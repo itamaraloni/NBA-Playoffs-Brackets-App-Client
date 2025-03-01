@@ -35,7 +35,9 @@ function App() {
       },
       status: 'completed',
       actualHomeScore: 4,
-      actualAwayScore: 1
+      actualAwayScore: 1,
+      predictedHomeScore: 4,
+      predictedAwayScore: 2
     }
   };
 
@@ -78,6 +80,8 @@ function App() {
                     status="completed"
                     actualHomeScore={sampleMatchups.completed.actualHomeScore}
                     actualAwayScore={sampleMatchups.completed.actualAwayScore}
+                    predictedHomeScore={sampleMatchups.completed.predictedHomeScore}
+                    predictedAwayScore={sampleMatchups.completed.predictedAwayScore}
                     onSubmitPrediction={(prediction) => {
                       console.log('Prediction submitted:', prediction);
                     }}

@@ -7,6 +7,8 @@ const MatchupPredictionCard = ({
   status = 'upcoming',
   actualHomeScore = null,
   actualAwayScore = null,
+  predictedHomeScore = null,
+  predictedAwayScore = null,
   onSubmitPrediction 
 }) => {
   const [homeScore, setHomeScore] = useState(0);
@@ -69,58 +71,79 @@ const MatchupPredictionCard = ({
       {status === 'upcoming' && (
         <div className="prediction-input flex flex-col justify-center items-center">
           <div className="flex justify-center items-center">
-          <div className="home-team-score mr-4">
-            <label className="block text-sm font-medium text-gray-700">
+            <div className="home-team-score mr-4">
+              <label className="block text-sm font-medium text-gray-700">
                 {homeTeam.name}
-            </label>
-            <input 
-              type="number" 
-              value={homeScore}
+              </label>
+              <input 
+                type="number" 
+                value={homeScore}
                 onChange={(e) => {
                   const value = Math.min(4, Math.max(0, Number(e.target.value)));
                   setHomeScore(value);
                 }}
-              className="mt-1 block w-20 rounded-md border-gray-300 shadow-sm"
-              min="0"
-              max="4"
+                className="mt-1 block w-20 rounded-md border-gray-300 shadow-sm"
+                min="0"
+                max="4"
               />
-          </div>
+            </div>
             
-          <div className="away-team-score">
-            <label className="block text-sm font-medium text-gray-700">
+            <div className="away-team-score">
+              <label className="block text-sm font-medium text-gray-700">
                 {awayTeam.name}
-            </label>
-            <input 
-              type="number" 
-              value={awayScore}
+              </label>
+              <input 
+                type="number" 
+                value={awayScore}
                 onChange={(e) => {
                   const value = Math.min(4, Math.max(0, Number(e.target.value)));
                   setAwayScore(value);
                 }}
-              className="mt-1 block w-20 rounded-md border-gray-300 shadow-sm"
-              min="0"
-              max="4"
-            />
+                className="mt-1 block w-20 rounded-md border-gray-300 shadow-sm"
+                min="0"
+                max="4"
+              />
+            </div>
           </div>
-        </div>
 
           {/* Validation Error Display */}
           {validationError && (
             <div className="text-red-500 mt-2 text-sm">
               {validationError}
+            </div>
+          )}
+
+          <div className="submit-prediction text-center mt-4">
+            <button 
+              onClick={handleSubmitPrediction}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Submit Prediction
+            </button>
+          </div>
         </div>
       )}
 
-        <div className="submit-prediction text-center mt-4">
-          <button 
-            onClick={handleSubmitPrediction}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Submit Prediction
-          </button>
-        </div>
-        </div>
+      {status === 'completed' && actualHomeScore !== null && actualAwayScore !== null && (
+        <>
+          <div className="actual-score text-center">
+            <span className="font-bold">Final Score:</span>
+            <span className="ml-2">
+              {homeTeam.name} {actualHomeScore} - {actualAwayScore} {awayTeam.name}
+            </span>
+          </div>
+
+          {predictedHomeScore !== null && predictedAwayScore !== null && (
+            <div className="predicted-score text-center mt-2">
+              <span className="font-bold">Predicted Score:</span>
+              <span className="ml-2">
+                {homeTeam.name} {predictedHomeScore} - {predictedAwayScore} {awayTeam.name}
+              </span>
+            </div>
+          )}
+        </>
       )}
+
     </div>
   );
 };
