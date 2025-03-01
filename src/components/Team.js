@@ -21,10 +21,11 @@ const Team = ({
         />
       )}
       <div className="team-info">
-        <span className="team-name font-bold">
-          {seed ? `${seed}. ${name}` : name}
-        </span>
-        <span className="team-conference text-sm text-gray-500">
+        <div className="flex items-baseline">
+          {seed && <span className='mr-1'>#{seed}</span>}
+        <span className='team-name font-bold'>{name}</span>
+        </div>
+        <span className="team-conference text-sm italic text-gray-500">
           {conference}
         </span>
       </div>
