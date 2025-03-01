@@ -11,8 +11,33 @@ const MatchupPredictionCard = ({
 }) => {
   const [homeScore, setHomeScore] = useState(0);
   const [awayScore, setAwayScore] = useState(0);
+  const [validationError, setValidationError] = useState('');
+
+  // Validate NBA Playoff series scoring rules
+  const validateScore = (home, away) => {
+    // Ensure only one team has 4 wins
+    if (home < 4 && away < 4) {
+      return 'Invalid score: One team must have 4 wins';
+    }
+    else if (home === 4 && away === 4) {
+      return 'Invalid score: Only one team can have 4 wins';
+    }
+    
+    return '';
+  };
 
   const handleSubmitPrediction = () => {
+    // Validate scores before submission
+    const error = validateScore(homeScore, awayScore);
+    console.log('error:', error);
+    if (error) {
+      setValidationError(error);
+      return;
+    }
+
+    // Clear any previous validation errors
+    setValidationError('');
+
     if (onSubmitPrediction) {
       onSubmitPrediction({
         homeTeam: homeTeam.name,
@@ -42,46 +67,50 @@ const MatchupPredictionCard = ({
       </div>
 
       {status === 'upcoming' && (
-        <div className="prediction-input flex justify-center items-center">
+        <div className="prediction-input flex flex-col justify-center items-center">
+          <div className="flex justify-center items-center">
           <div className="home-team-score mr-4">
             <label className="block text-sm font-medium text-gray-700">
-              {homeTeam.name} Score
+                {homeTeam.name}
             </label>
             <input 
               type="number" 
               value={homeScore}
-              onChange={(e) => setHomeScore(Number(e.target.value))}
+                onChange={(e) => {
+                  const value = Math.min(4, Math.max(0, Number(e.target.value)));
+                  setHomeScore(value);
+                }}
               className="mt-1 block w-20 rounded-md border-gray-300 shadow-sm"
               min="0"
               max="4"
               />
           </div>
+            
           <div className="away-team-score">
             <label className="block text-sm font-medium text-gray-700">
-              {awayTeam.name} Score
+                {awayTeam.name}
             </label>
             <input 
               type="number" 
               value={awayScore}
-              onChange={(e) => setAwayScore(Number(e.target.value))}
+                onChange={(e) => {
+                  const value = Math.min(4, Math.max(0, Number(e.target.value)));
+                  setAwayScore(value);
+                }}
               className="mt-1 block w-20 rounded-md border-gray-300 shadow-sm"
               min="0"
               max="4"
             />
           </div>
         </div>
-      )}
 
-      {status !== 'upcoming' && actualHomeScore !== null && actualAwayScore !== null && (
-        <div className="actual-score text-center">
-          <span className="font-bold">Final Score:</span>
-          <span className="ml-2">
-            {homeTeam.name} {actualHomeScore} - {awayTeam.name} {actualAwayScore}
-          </span>
+          {/* Validation Error Display */}
+          {validationError && (
+            <div className="text-red-500 mt-2 text-sm">
+              {validationError}
         </div>
       )}
 
-      {status === 'upcoming' && (
         <div className="submit-prediction text-center mt-4">
           <button 
             onClick={handleSubmitPrediction}
@@ -89,6 +118,7 @@ const MatchupPredictionCard = ({
           >
             Submit Prediction
           </button>
+        </div>
         </div>
       )}
     </div>
