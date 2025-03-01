@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import RoundPredictions from './pages/RoundPredictions';
+import LeaguePage from './pages/LeaguePage';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
             <div className="space-x-4">
               <Link to="/" className="text-white hover:text-blue-200">Home</Link>
               <Link to="/predictions" className="text-white hover:text-blue-200">Predictions</Link>
+              <Link to="/league" className="text-white hover:text-blue-200">My League</Link>
             </div>
           </div>
         </nav>
@@ -21,6 +23,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/predictions" element={<RoundPredictions />} />
+            <Route path="/league" element={<LeaguePage />} />
           </Routes>
         </div>
       </div>
