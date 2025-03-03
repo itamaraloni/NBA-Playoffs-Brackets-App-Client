@@ -1,0 +1,10 @@
+# NBA Playoff Predictions Frontend Setup Guide
+
+## Prerequisites
+- Ensure Node.js is installed (version 20.x recommended)
+- Ensure npm is installed (version 10.x recommended)
+
+### Modules that I 'npm install'-ed
+
+react-router-dom
+react-icons
