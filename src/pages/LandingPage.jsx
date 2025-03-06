@@ -39,16 +39,8 @@ const LandingPage = () => {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center">
             <FaBasketballBall className="text-orange-500 text-3xl mr-2" />
-            <h1 className="text-2xl font-bold">NBA Playoff Predictor</h1>
+            <h1 className="text-2xl font-bold">NBA Playoff Predictions</h1>
           </div>
-          <button
-            onClick={handleSignIn}
-            disabled={loading}
-            className="bg-white text-blue-800 hover:bg-gray-100 px-4 py-2 rounded-lg flex items-center font-medium"
-          >
-            <FaGoogle className="mr-2" />
-            Sign in with Google
-          </button>
         </div>
       </header>
 
@@ -99,7 +91,7 @@ const LandingPage = () => {
             <FaBasketballBall className="text-orange-500 text-xl mr-2" />
             <span className="font-bold">NBA Playoff Predictor</span>
           </div>
-          <p className="text-gray-400 text-sm">© {new Date().getFullYear()} All Rights Reserved</p>
+          <p className="text-gray-400 text-sm">© {new Date().getFullYear()} All Rights Reserved to Darch & Itapita8</p>
         </div>
       </footer>
     </div>
