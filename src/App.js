@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import RoundPredictions from './pages/RoundPredictions';
 import LeaguePage from './pages/LeaguePage';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
   return (
@@ -38,6 +39,16 @@ function App() {
                 <AppNavigation />
                 <div className="container mx-auto mt-8 px-4">
                   <LeaguePage />
+                </div>
+              </div>
+            } />
+
+            {/* Profile route */}
+            <Route path="/profile" element={
+              <div>
+                <AppNavigation />
+                <div className="container mx-auto mt-8 px-4">
+                  <ProfilePage />
                 </div>
               </div>
             } />
