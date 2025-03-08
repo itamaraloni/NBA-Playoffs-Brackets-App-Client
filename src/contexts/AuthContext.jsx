@@ -30,8 +30,15 @@ const signInWithGoogle = async () => {
       const result = await signInWithPopup(auth, provider);
       console.log("result:", result);
 
-      // Sync with your database after successful Firebase auth
-      // await syncUserWithDatabase(result.user);
+      // Sync with your database after successful Firebase auth and get player_id in userData if exists
+      // const userData await syncUserWithDatabase(result.user);
+      const userData = null; // dummy data for now until we implement syncUserWithDatabase
+
+      // Set enhanced user object with player_id
+      setCurrentUser({
+        ...result.user,
+        player_id: userData?.player_id || null
+      });
 
       return result;
     } catch (err) {
@@ -41,7 +48,8 @@ const signInWithGoogle = async () => {
     }
   };
 
-  // Syncing with database
+// Syncing with database
+// eslint-disable-next-line no-unused-vars
 const syncUserWithDatabase = async (user) => {
     if (!user) return;
   
@@ -70,10 +78,11 @@ const syncUserWithDatabase = async (user) => {
       
       // Optionally get additional user data from your backend
       const userData = await response.json();
-      return userData;
+      return userData; // Should include player_id if exists
     } catch (error) {
         // Handle error appropriately
       console.error("Error syncing user with database:", error);
+      return null;
     }
   };
 
@@ -91,10 +100,22 @@ const syncUserWithDatabase = async (user) => {
 
   // Subscribe to user on auth state change
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-      setLoading(false);
-    });
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // FOR TESTING: Toggle this to test different dashboard views
+      const testWithPlayerId = true;
+
+      const userData = await syncUserWithDatabase(user);
+      setCurrentUser({
+        ...user,
+        player_id: testWithPlayerId ? 'dummy-player-id' : userData?.player_id || null
+        //player_id: userData?.player_id || null
+      });
+    } else {
+      setCurrentUser(null);
+    }
+    setLoading(false);
+  });
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
