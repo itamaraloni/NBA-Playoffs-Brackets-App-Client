@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import RoundPredictions from './pages/RoundPredictions';
 import LeaguePage from './pages/LeaguePage';
 import ProfilePage from './pages/ProfilePage';
+import CreateLeaguePage from './pages/CreateLeaguePage';
 
 function App() {
   return (
@@ -50,6 +51,15 @@ function App() {
                 <AppNavigation />
                 <div className="container mx-auto mt-8 px-4">
                   <ProfilePage />
+                </div>
+              </div>
+            } />
+
+            {/* Create League route */}
+            <Route path="/create-league" element={
+              <div>
+                <div className="container mx-auto mt-8 px-4">
+                  <CreateLeaguePage />
                 </div>
               </div>
             } />
