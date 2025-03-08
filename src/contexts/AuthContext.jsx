@@ -34,11 +34,19 @@ const signInWithGoogle = async () => {
       // const userData await syncUserWithDatabase(result.user);
       const userData = null; // dummy data for now until we implement syncUserWithDatabase
 
-      // Set enhanced user object with player_id
-      setCurrentUser({
-        ...result.user,
-        player_id: userData?.player_id || null
-      });
+      const isTestForUserWithPlayerId = true; // Set to false to test without player_id
+      if (isTestForUserWithPlayerId) {
+        localStorage.setItem('player_id', 'dummy-player-id');
+      }
+      else {
+        // Save player_id to localStorage instead of currentUser
+        if (userData?.player_id) {
+          localStorage.setItem('player_id', userData.player_id);
+        }
+        else {
+          localStorage.removeItem('player_id');
+        }
+      }
 
       return result;
     } catch (err) {
@@ -72,13 +80,9 @@ const syncUserWithDatabase = async (user) => {
         })
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to sync user with database');
-      }
+      if (!response.ok) throw new Error('Failed to sync user with database');
       
-      // Optionally get additional user data from your backend
-      const userData = await response.json();
-      return userData; // Should include player_id if exists
+      return await response.json(); // Should include player_id if exists
     } catch (error) {
         // Handle error appropriately
       console.error("Error syncing user with database:", error);
@@ -91,6 +95,8 @@ const syncUserWithDatabase = async (user) => {
     try {
       setError(null);
       await signOut(auth);
+      // Clear player_id from localStorage on logout
+      localStorage.removeItem('player_id');
     } catch (err) {
       setError(err.message);
       console.error("Error signing out", err);
@@ -101,20 +107,9 @@ const syncUserWithDatabase = async (user) => {
   // Subscribe to user on auth state change
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      // FOR TESTING: Toggle this to test different dashboard views
-      const testWithPlayerId = true;
-
-      const userData = await syncUserWithDatabase(user);
-      setCurrentUser({
-        ...user,
-        player_id: testWithPlayerId ? 'dummy-player-id' : userData?.player_id || null
-        //player_id: userData?.player_id || null
-      });
-    } else {
-      setCurrentUser(null);
-    }
+    setCurrentUser(user);
     setLoading(false);
+    // We're not adding player_id to currentUser anymore
   });
 
     // Cleanup subscription on unmount

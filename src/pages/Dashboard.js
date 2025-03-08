@@ -7,6 +7,7 @@ const Dashboard = () => {
   const [leagueCode, setLeagueCode] = useState('');
   const [codeError, setCodeError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const playerId = localStorage.getItem('player_id');
   const navigate = useNavigate();
 
   const handleCreateLeague = () => {
@@ -215,7 +216,7 @@ const Dashboard = () => {
     <div className="dashboard p-4">
       <h1 className="text-3xl font-bold mb-6">NBA Playoff Predictions</h1>
       
-      {currentUser?.player_id ? renderExistingPlayerContent() : renderNewUserContent()}
+      {playerId ? renderExistingPlayerContent() : renderNewUserContent()}
     </div>
   );
 };
