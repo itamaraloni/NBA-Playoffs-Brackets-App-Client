@@ -31,26 +31,23 @@ const signInWithGoogle = async () => {
       console.log("result:", result);
 
       // Sync with your database after successful Firebase auth and get player_id in userData if exists
-      const userData = await syncUserWithDatabase(result.user);
-      // const userData = null; // dummy data for now until we implement syncUserWithDatabase
+      // Option 1 - Sync with database
+      // const userData = await syncUserWithDatabase(result.user);
 
-      if (userData?.player_id) {
-        localStorage.setItem('player_id', userData.player_id);
+      // Option 2 - Dummy data for testing
+      const isTestForUserWithPlayerId = false; // Set to false to test without player_id
+      if (isTestForUserWithPlayerId) {
+        localStorage.setItem('player_id', 'dummy-player-id');
       }
-
-      // const isTestForUserWithPlayerId = true; // Set to false to test without player_id
-      // if (isTestForUserWithPlayerId) {
-      //   localStorage.setItem('player_id', 'dummy-player-id');
-      // }
-      // else {
-      //   // Save player_id to localStorage instead of currentUser
-      //   if (userData?.player_id) {
-      //     localStorage.setItem('player_id', userData.player_id);
-      //   }
-      //   else {
-      //     localStorage.removeItem('player_id');
-      //   }
-      // }
+      else {
+        // Save player_id to localStorage instead of currentUser
+        if (userData?.player_id) {
+          localStorage.setItem('player_id', userData.player_id);
+        }
+        else {
+          localStorage.removeItem('player_id');
+        }
+      }
 
       return result;
     } catch (err) {
@@ -80,8 +77,6 @@ const syncUserWithDatabase = async (user) => {
         body: JSON.stringify({
           user_id: user.uid,
           email: user.email
-          // displayName: user.displayName,
-          // photoURL: user.photoURL
         })
       });
       
