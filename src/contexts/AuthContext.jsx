@@ -31,22 +31,26 @@ const signInWithGoogle = async () => {
       console.log("result:", result);
 
       // Sync with your database after successful Firebase auth and get player_id in userData if exists
-      // const userData await syncUserWithDatabase(result.user);
-      const userData = null; // dummy data for now until we implement syncUserWithDatabase
+      const userData = await syncUserWithDatabase(result.user);
+      // const userData = null; // dummy data for now until we implement syncUserWithDatabase
 
-      const isTestForUserWithPlayerId = true; // Set to false to test without player_id
-      if (isTestForUserWithPlayerId) {
-        localStorage.setItem('player_id', 'dummy-player-id');
+      if (userData?.player_id) {
+        localStorage.setItem('player_id', userData.player_id);
       }
-      else {
-        // Save player_id to localStorage instead of currentUser
-        if (userData?.player_id) {
-          localStorage.setItem('player_id', userData.player_id);
-        }
-        else {
-          localStorage.removeItem('player_id');
-        }
-      }
+
+      // const isTestForUserWithPlayerId = true; // Set to false to test without player_id
+      // if (isTestForUserWithPlayerId) {
+      //   localStorage.setItem('player_id', 'dummy-player-id');
+      // }
+      // else {
+      //   // Save player_id to localStorage instead of currentUser
+      //   if (userData?.player_id) {
+      //     localStorage.setItem('player_id', userData.player_id);
+      //   }
+      //   else {
+      //     localStorage.removeItem('player_id');
+      //   }
+      // }
 
       return result;
     } catch (err) {
@@ -63,20 +67,21 @@ const syncUserWithDatabase = async (user) => {
   
     // Get the Firebase token for backend authentication
     const idToken = await user.getIdToken();
-    
+    console.log("user_id: " + user.uid)
+    console.log("email: " + user.email)
     // Call your backend API to create/update user in your database
     try {
-      const response = await fetch('https://your-api.com/api/users/sync', {
+      const response = await fetch('http://127.0.0.1:5000/user/check', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify({
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL
+          user_id: user.uid,
+          email: user.email
+          // displayName: user.displayName,
+          // photoURL: user.photoURL
         })
       });
       
