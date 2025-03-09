@@ -8,6 +8,7 @@ import RoundPredictions from './pages/RoundPredictions';
 import LeaguePage from './pages/LeaguePage';
 import ProfilePage from './pages/ProfilePage';
 import CreateLeaguePage from './pages/CreateLeaguePage';
+import CreatePlayerPage from './pages/CreatePlayerPage';
 
 function App() {
   return (
@@ -60,6 +61,15 @@ function App() {
               <div>
                 <div className="container mx-auto mt-8 px-4">
                   <CreateLeaguePage />
+                </div>
+              </div>
+            } />
+
+            {/* Create Player entity route */}
+            <Route path="/create-player" element={
+              <div>
+                <div className="container mx-auto mt-8 px-4">
+                  <CreatePlayerPage />
                 </div>
               </div>
             } />
