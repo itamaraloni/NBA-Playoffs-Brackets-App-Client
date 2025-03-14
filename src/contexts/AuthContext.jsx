@@ -97,6 +97,10 @@ const syncUserWithDatabase = async (user) => {
       await signOut(auth);
       // Clear player_id from localStorage on logout
       localStorage.removeItem('player_id');
+      // Clear authentication state
+      setCurrentUser(null);
+      // Redirect user
+      window.location.href = '/landing'; // Force page reload and redirect
     } catch (err) {
       setError(err.message);
       console.error("Error signing out", err);

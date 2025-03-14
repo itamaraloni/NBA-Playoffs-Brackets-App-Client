@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { 
   AppBar, 
-  Box, 
+  Box,
+  Button,
   Toolbar, 
   Typography, 
   Drawer, 
@@ -76,7 +77,6 @@ const Layout = ({ children, onLogout }) => {
             disableHoverListener={!isMobile}
           >
             <ListItem 
-              button 
               component={Link} 
               to={item.path}
               selected={location.pathname === item.path}
@@ -117,32 +117,14 @@ const Layout = ({ children, onLogout }) => {
       {/* Logout button at bottom */}
       <Divider />
       <List>
-        <ListItem 
-          button 
+        <Button
           onClick={onLogout}
-          sx={{
-            minHeight: 48,
-            px: 2.5,
-            my: 1,
-            '&:hover': {
-              backgroundColor: `${theme.palette.error.main}15`,
-            }
-          }}
-        >
-          <ListItemIcon sx={{ 
-            minWidth: 0, 
-            mr: 3,
-            color: theme.palette.error.main
-          }}>
-            <LogoutIcon />
-          </ListItemIcon>
-          <ListItemText 
-            primary="Logout" 
-            primaryTypographyProps={{ 
-              fontSize: '0.95rem',
-            }}
-          />
-        </ListItem>
+          fullWidth
+          color="error"
+          startIcon={<LogoutIcon />}
+          >
+          Logout
+        </Button>
       </List>
     </Box>
   );

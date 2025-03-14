@@ -36,7 +36,7 @@ const StandaloneHeader = ({ title, onLogout, showLogout = true }) => {
 
           {showLogout && (
             <Button
-              color="inherit"
+              color="error"
               startIcon={<LogoutIcon />}
               onClick={onLogout}
               sx={{ ml: 2 }}
