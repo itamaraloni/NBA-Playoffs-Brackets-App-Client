@@ -14,10 +14,10 @@ import {
 } from '@mui/material';
 import {
   EmojiEvents as TrophyIcon,
-  MilitaryTech as MvpIcon,
-  Star as CorrectSeriesScoreIcon,
-  StarHalf as CorrectSeriesOutcomeIcon
+  MilitaryTech as MvpIcon
 } from '@mui/icons-material';
+import { BsBullseye } from 'react-icons/bs';
+import { TbCrystalBall } from 'react-icons/tb';
 
 /**
  * Reusable scoring rules component
@@ -25,6 +25,15 @@ import {
 const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // Custom styling to align React icons with Material-UI icons
+  const reactIconStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 24,
+    height: 24
+  };
 
   return (
     <Card elevation={elevation}>
@@ -45,23 +54,27 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
           <Divider component="li" />
           <ListItem>
             <ListItemIcon>
-              <MvpIcon color="primary" />
+              <MvpIcon color="secondary" />
             </ListItemIcon>
             <ListItemText primary="Correct MVP prediction: 30 points" />
           </ListItem>
           <Divider component="li" />
           <ListItem>
             <ListItemIcon>
-              <CorrectSeriesScoreIcon color="primary" />
+              <div style={reactIconStyle}>
+                <TbCrystalBall size={20} style={{ color: theme.palette.success.main }} />
+              </div>
             </ListItemIcon>
-            <ListItemText primary="Correct series socre prediction: 15 points per series" />
+            <ListItemText primary="Bulls-Eye prediction: 15 points per series" />
           </ListItem>
           <Divider component="li" />
           <ListItem>
             <ListItemIcon>
-              <CorrectSeriesOutcomeIcon color="primary" />
+              <div style={reactIconStyle}>
+                <BsBullseye size={20} style={{ color: theme.palette.warning.main }} />
+              </div>
             </ListItemIcon>
-            <ListItemText primary="Correct series outcome prediction: 10 additional points" />
+            <ListItemText primary="Outcome hit prediction: 10 points per series" />
           </ListItem>
         </List>
       </CardContent>
