@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './CreateLeaguePage.css';
+import {
+  Typography
+} from '@mui/material';
+import ScoringRules from '../components/ScoringRules';
 
 // League avatar options
 const avatarOptions = [
@@ -87,21 +91,11 @@ const CreateLeaguePage = () => {
           </div>
         </div>
         
-        <div className="scoring-info">
-          <h3>Scoring System</h3>
-          <p>
-            Our league uses a point-based system:
-          </p>
-          <ul>
-            <li>Bulls eye hit in the exact matchup score: 5 points</li>
-            <li>Direction hit in the winner of the matchup: 2 point</li>
-            <li>Loser you picked the wrong team: 0 points</li>
-          </ul>
-          <p>
-            Players are ranked based on total points, with tie-breakers determined by 
-            number of bulls eye hits, the more accurate the more chances to win.
-          </p>
-        </div>
+      {/* Scoring Rules Section */}
+      <Typography variant="h5" component="h2" sx={{ mt: 4, mb: 2 }}>
+        Scoring Rules
+      </Typography>
+      <ScoringRules showTitle={false} />
         
         <button 
           type="submit" 
