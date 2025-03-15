@@ -6,7 +6,7 @@ import Layout from './components/Layout';
 import StandaloneHeader from './components/StandaloneHeader';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
-import RoundPredictions from './pages/RoundPredictions';
+import PredictionsPage from './pages/PredictionsPage';
 import LeaguePage from './pages/LeaguePage';
 import ProfilePage from './pages/ProfilePage';
 import CreateLeaguePage from './pages/CreateLeaguePage';
@@ -16,8 +16,7 @@ function AppContent() {
   const { logout } = useAuth();
   
   const handleLogout = () => {
-    logout();
-    // Redirect to landing page happens via auth context
+      logout(); // From AuthContext.useAuth()
   };
   
   return (
@@ -54,7 +53,7 @@ function AppContent() {
         
         <Route path="/predictions" element={
           <Layout onLogout={handleLogout}>
-            <RoundPredictions />
+            <PredictionsPage />
           </Layout>
         } />
         
