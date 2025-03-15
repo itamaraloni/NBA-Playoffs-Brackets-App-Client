@@ -43,8 +43,8 @@ const Layout = ({ children, onLogout }) => {
 
   const navigationItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'My League', icon: <MyLeagueIcon />, path: '/league' },
     { text: 'Predictions', icon: <PredictionsIcon />, path: '/predictions' },
+    { text: 'My League', icon: <MyLeagueIcon />, path: '/league' },
     { text: 'Profile', icon: <ProfileIcon />, path: '/profile' },
   ];
 
