@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 import { Logout as LogoutIcon } from '@mui/icons-material';
 import ThemeToggle from '../theme/ThemeToggle';
 
-const StandaloneHeader = ({ title, onLogout, showLogout = true }) => {
+const StandaloneHeader = ({ title, onLogout, showLogout = true, showHome = true }) => {
   const theme = useTheme();
 
   return (
@@ -24,15 +24,17 @@ const StandaloneHeader = ({ title, onLogout, showLogout = true }) => {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <ThemeToggle />
           
-          <Button 
-            component={Link} 
-            to="/dashboard" 
-            variant="contained" 
-            color="primary"
-            sx={{ ml: 1 }}
-          >
-            Home
-          </Button>
+          {showHome && (
+            <Button 
+              component={Link} 
+              to="/dashboard" 
+              variant="contained" 
+              color="primary"
+              sx={{ ml: 1 }}
+            >
+              Home
+            </Button>
+          )}
 
           {showLogout && (
             <Button
