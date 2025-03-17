@@ -1,9 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaGoogle, FaBasketballBall } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
+import StandaloneHeader from '../components/StandaloneHeader';
+import ScoringRules from '../components/ScoringRules';
+import {
+  Box,
+  Button,
+  Container,
+  Typography,
+  Paper,
+  Alert,
+  CircularProgress,
+  useTheme,
+  useMediaQuery,
+  Grid
+} from '@mui/material';
+import {
+  Google,
+  SportsBasketball
+} from '@mui/icons-material';
 
 const LandingPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { currentUser, signInWithGoogle } = useAuth();
@@ -12,8 +31,6 @@ const LandingPage = () => {
   // Check if user is already logged in and redirect accordingly
   useEffect(() => {
     if (currentUser) {
-      // For now, always redirect to dashboard
-      // Later we'll add backend check for new vs existing users
       navigate('/dashboard');
     }
   }, [currentUser, navigate]);
@@ -33,68 +50,123 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Header */}
-      <header className="bg-blue-800 text-white shadow-lg">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center">
-            <FaBasketballBall className="text-orange-500 text-3xl mr-2" />
-            <h1 className="text-2xl font-bold">NBA Playoff Predictions</h1>
-          </div>
-        </div>
-      </header>
+    
+    <Box 
+      sx={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        minHeight: '100vh',
+        bgcolor: 'background.default',
+        color: 'text.primary'
+      }}
+      >
+
+      {/* Hedear Section */}  
+      <StandaloneHeader title="NBA Playoffs Predictor" showLogout={false} showHome={false} />
 
       {/* Hero Section */}
-      <section className="flex-grow bg-gradient-to-b from-blue-700 to-blue-900 text-white py-20">
-        <div className="container mx-auto px-4">
+      <Box 
+        component="section"
+        sx={{
+          flexGrow: 1,
+          background: theme.palette.mode === 'dark' 
+            ? `linear-gradient(to bottom, ${theme.palette.primary.dark}, ${theme.palette.primary.main})` 
+            : `linear-gradient(to bottom, #e3f2fd, #bbdefb)`,
+          py: 8,
+          color: 'white'
+        }}
+      >
+        <Container maxWidth="lg">
           {error && (
-            <div className="bg-red-500 text-white p-4 rounded-lg mb-6 max-w-md mx-auto">
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mb: 4, 
+                maxWidth: 'md', 
+                mx: 'auto',
+                '& .MuiAlert-message': {
+                  color: theme.palette.error.dark
+                }
+              }}
+            >
               {error}
-            </div>
+            </Alert>
           )}
 
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-5xl font-bold mb-6">Predict. Compete. Win.</h2>
-            <p className="text-xl mb-8">
-              Join thousands of basketball fans in predicting the NBA Playoff outcomes. 
-              Test your basketball knowledge and climb the leaderboards!
-            </p>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <Box sx={{ textAlign: isMobile ? 'center' : 'left', mb: isMobile ? 4 : 0 }}>
+                <Typography variant="h2" component="h2" gutterBottom fontWeight="bold" sx={{ mb: 3 }}>
+                  Predict. Compete. Win.
+                </Typography>
+                <Typography variant="h5" component="p" sx={{ mb: 4, opacity: 0.9 }}>
+                  Join thousands of basketball fans in predicting the NBA Playoff outcomes. 
+                  Test your basketball knowledge and climb the leaderboards!
+                </Typography>
+                
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="large"
+                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <Google />}
+                  onClick={handleSignIn}
+                  disabled={loading}
+                  sx={{ 
+                    px: 4, 
+                    py: 1.5,
+                    fontSize: '1.1rem',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {loading ? 'Loading...' : 'Get Started with Google'}
+                </Button>
+              </Box>
+            </Grid>
             
-            <button
-              onClick={handleSignIn}
-              disabled={loading}
-              className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-lg text-xl font-bold flex items-center mx-auto"
-            >
-              {loading ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Loading...
-                </span>
-              ) : (
-                <>
-                  <FaGoogle className="mr-2" />
-                  Get Started with Google
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </section>
+            <Grid item xs={12} md={6}>
+              <Paper 
+                elevation={4} 
+                sx={{ 
+                  p: 3, 
+                  borderRadius: 2,
+                  bgcolor: 'background.paper',
+                  color: 'text.primary'
+                }}
+              >
+                <Typography variant="h5" component="h3" gutterBottom fontWeight="bold" align="center">
+                  How Scoring Works
+                </Typography>
+                <ScoringRules />
+              </Paper>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-6">
-        <div className="container mx-auto px-4 text-center">
-          <div className="flex items-center justify-center mb-2">
-            <FaBasketballBall className="text-orange-500 text-xl mr-2" />
-            <span className="font-bold">NBA Playoff Predictor</span>
-          </div>
-          <p className="text-gray-400 text-sm">© {new Date().getFullYear()} All Rights Reserved to Darch & Itapita8</p>
-        </div>
-      </footer>
-    </div>
+      <Box 
+        component="footer"
+        sx={{
+          py: 3,
+          bgcolor: 'background.paper',
+          color: 'text.primary',
+        }}
+      >
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+              <SportsBasketball sx={{ mr: 1, color: 'secondary.main' }} />
+              <Typography variant="subtitle1" fontWeight="bold">
+                NBA Playoff Predictor
+              </Typography>
+            </Box>
+            <Typography variant="body2" color={theme.palette.mode === 'dark' ? 'text.secondary' : 'grey.400'}>
+              © {new Date().getFullYear()} All Rights Reserved to Darch & Itapita8
+            </Typography>
+          </Box>
+        </Container>
+      </Box>
+    </Box>
   );
 };
 
