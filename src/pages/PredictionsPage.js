@@ -11,8 +11,10 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import MatchupPredictionCard from '../components/MatchupPredictionCard';
-import { useAuth } from '../contexts/AuthContext';
+import MatchupDetailsDialog from '../components/MatchupDetailsDialog';
 import { getMatchups, submitPrediction, updateMatchupScore } from '../services/MatchupServices';
+import { getMatchupPredictions } from '../services/LeaguePredictionsServices';
+import { useAuth } from '../contexts/AuthContext';
 
 // Tab Panel component for accessibility
 function TabPanel(props) {
@@ -52,6 +54,12 @@ const PredictionsPage = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // League predictions dialog state
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedMatchup, setSelectedMatchup] = useState(null);
+  const [leaguePredictions, setLeaguePredictions] = useState([]);
+  
   const { user } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -81,7 +89,6 @@ const PredictionsPage = () => {
     };
 
     loadMatchups();
-    console.log("Current user from AuthContext:", user);
   }, [user]);
 
   const handleTabChange = (event, newValue) => {
@@ -92,7 +99,7 @@ const PredictionsPage = () => {
     try {
       await submitPrediction(prediction);
       
-      // For testing, update local state to simulate backend update
+      // Update local state to simulate backend update
       const updatedMatchups = { ...matchups };
       const matchupIndex = updatedMatchups.upcoming.findIndex(
         m => m.homeTeam.name === prediction.homeTeam && m.awayTeam.name === prediction.awayTeam
@@ -162,6 +169,32 @@ const PredictionsPage = () => {
     }
   };
 
+  // This function is passed to MatchupPredictionCard and called when
+  // "View League Predictions" button is clicked
+  const handleViewDetails = async (matchup) => {
+    setSelectedMatchup(matchup);
+    setDialogOpen(true);
+    
+    try {
+      // Fetch league predictions from the service
+      const predictions = await getMatchupPredictions(
+        matchup.homeTeam.name,
+        matchup.awayTeam.name
+      );
+      setLeaguePredictions(predictions);
+    } catch (error) {
+      console.error("Error fetching league predictions:", error);
+      setLeaguePredictions([]);
+    }
+  };
+
+  // Close the league predictions dialog
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setSelectedMatchup(null);
+  };
+
+  // Render matchup cards
   const renderMatchups = (matchupList) => {
     if (matchupList.length === 0) {
       return (
@@ -186,6 +219,7 @@ const PredictionsPage = () => {
         onSubmitPrediction={handleSubmitPrediction}
         isAdmin={user?.is_admin}
         onUpdateScore={handleUpdateScore}
+        onViewDetails={handleViewDetails} // Pass the function to open the dialog
       />
     ));
   };
@@ -244,6 +278,14 @@ const PredictionsPage = () => {
           </TabPanel>
         </Box>
       )}
+
+      {/* League Predictions Dialog */}
+      <MatchupDetailsDialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        matchup={selectedMatchup}
+        leaguePredictions={leaguePredictions}
+      />
     </Container>
   );
 };
