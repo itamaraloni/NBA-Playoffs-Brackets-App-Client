@@ -8,7 +8,7 @@ import {
   useTheme
 } from '@mui/material';
 import StandingsTable from '../components/StandingsTable';
-import ScoringRules from '../components/ScoringRules';
+import ScoringRules from '../components/common/ScoringRules';
 import League from '../components/League';
 import PlayerDetailDialog from '../components/PlayerDetailDialog';
 

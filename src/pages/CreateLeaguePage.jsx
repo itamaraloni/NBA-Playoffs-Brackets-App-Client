@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import ScoringRules from '../components/ScoringRules';
+import ScoringRules from '../components/common/ScoringRules';
 import {
   Box,
   Button,
