@@ -1,4 +1,5 @@
 import React from 'react';
+import { Box, Typography, Avatar } from '@mui/material';
 
 const Team = ({ 
   name, 
@@ -6,30 +7,45 @@ const Team = ({
   seed, 
   conference 
 }) => {
-
   return (
-    <div className="team-container flex items-center">
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column',
+      alignItems: 'center',
+      textAlign: 'center',
+      width: '100%'
+    }}>
       {logo && (
-        <img 
-          src={logo} 
-          alt={`${name} logo`} 
-          className="team-logo w-12 h-12 mr-2"
-          onError={(e) => {
-            console.error(`Error loading logo for ${name}:`, e);
-            e.target.style.display = 'none'; // Hide broken image
+        <Avatar
+          src={logo}
+          alt={`${name} logo`}
+          sx={{ 
+            width: 48, 
+            height: 48, 
+            mb: 1 
+          }}
+          imgProps={{
+            onError: (e) => {
+              console.error(`Error loading logo for ${name}:`, e);
+              e.target.style.display = 'none';
+            }
           }}
         />
       )}
-      <div className="team-info">
-        <div className="flex items-baseline">
-          {seed && <span className='mr-1'>#{seed}</span>}
-        <span className='team-name font-bold'>{name}</span>
-        </div>
-        <span className="team-conference text-sm italic text-gray-500">
-          {conference}
-        </span>
-      </div>
-    </div>
+      <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', mb: 0.5 }}>
+        {seed && (
+          <Typography variant="subtitle2" sx={{ mr: 0.5 }}>
+            #{seed}
+          </Typography>
+        )}
+        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+          {name}
+        </Typography>
+      </Box>
+      <Typography variant="caption" color="text.secondary">
+        {conference}
+      </Typography>
+    </Box>
   );
 };
 
