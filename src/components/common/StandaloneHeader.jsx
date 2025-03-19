@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { Logout as LogoutIcon } from '@mui/icons-material';
-import ThemeToggle from '../theme/ThemeToggle';
+import ThemeToggle from '../../theme/ThemeToggle';
 
 const StandaloneHeader = ({ title, onLogout, showLogout = true, showHome = true }) => {
   const theme = useTheme();

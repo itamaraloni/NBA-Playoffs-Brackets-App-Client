@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ThemeProvider from './theme/ThemeProvider';
 import Layout from './components/Layout';
-import StandaloneHeader from './components/StandaloneHeader';
+import StandaloneHeader from './components/common/StandaloneHeader';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import PredictionsPage from './pages/PredictionsPage';

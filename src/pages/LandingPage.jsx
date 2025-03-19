@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import StandaloneHeader from '../components/StandaloneHeader';
+import StandaloneHeader from '../components/common/StandaloneHeader';
 import ScoringRules from '../components/common/ScoringRules';
 import {
   Box,
