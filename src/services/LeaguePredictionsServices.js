@@ -37,6 +37,13 @@ const mockLeaguePredictions = {
         homeScore: 4, 
         awayScore: 3 
       },
+      {
+        userId: 'user7',
+        userName: 'David Taylor',
+        userAvatar: null,
+        homeScore: 4,
+        awayScore: 3
+      }
     ],
     'New York Knicks-Atlanta Hawks': [
       { 
