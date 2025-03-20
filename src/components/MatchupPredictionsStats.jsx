@@ -1,16 +1,110 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Typography,
   Box,
   Grid,
   Paper,
-  CircularProgress
+  CircularProgress,
+  useTheme
 } from '@mui/material';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+
+/**
+ * Chart component for prediction distribution
+ */
+const PredictionDistributionChart = ({ data, homeTeam, awayTeam }) => {
+  const theme = useTheme();
+  
+  // Generate a colorful palette for the pie slices
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FF6B6B', '#747FFF'];
+  
+  // Format the tooltip content
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <Box sx={{ 
+          bgcolor: 'background.paper', 
+          p: 1, 
+          border: '1px solid', 
+          borderColor: 'divider',
+          borderRadius: 1,
+          boxShadow: 1
+        }}>
+          <Typography variant="body2" color="text.primary">
+            {homeTeam} {data.homeScore} - {data.awayScore} {awayTeam}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {data.count} users ({Math.round(data.percentage)}%)
+          </Typography>
+        </Box>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <Box sx={{ width: '100%', height: 180 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={theme.breakpoints.down('sm') ? 25 : 40}
+            outerRadius={theme.breakpoints.down('sm') ? 45 : 60}
+            paddingAngle={4}
+            dataKey="count"
+            label={false}
+          >
+            {data.map((entry, index) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={COLORS[index % COLORS.length]} 
+              />
+            ))}
+          </Pie>
+          <Tooltip content={<CustomTooltip />} />
+        </PieChart>
+      </ResponsiveContainer>
+    </Box>
+  );
+};
 
 /**
  * Component to display prediction statistics for a matchup
  */
-const MatchupPredictionsStats = ({ stats, loading, homeTeam, awayTeam }) => {
+const MatchupPredictionStats = ({ stats, loading, homeTeam, awayTeam, leaguePredictions = [] }) => {
+  // Calculate prediction distribution from raw predictions
+  const predictionDistribution = useMemo(() => {
+    if (!leaguePredictions || leaguePredictions.length === 0) return [];
+    
+    // Group predictions by their scores
+    const grouped = {};
+    leaguePredictions.forEach(prediction => {
+      const key = `${prediction.homeScore}-${prediction.awayScore}`;
+      if (!grouped[key]) {
+        grouped[key] = {
+          id: key,
+          homeScore: prediction.homeScore,
+          awayScore: prediction.awayScore,
+          count: 0
+        };
+      }
+      grouped[key].count++;
+    });
+    
+    // Convert to array and calculate percentages
+    const distribution = Object.values(grouped);
+    const totalCount = leaguePredictions.length;
+    
+    distribution.forEach(item => {
+      item.percentage = (item.count / totalCount) * 100;
+    });
+    
+    // Sort by count (descending)
+    return distribution.sort((a, b) => b.count - a.count);
+  }, [leaguePredictions]);
   return (
     <>
       <Typography variant="h6" sx={{ mb: 2 }}>
@@ -57,19 +151,16 @@ const MatchupPredictionsStats = ({ stats, loading, homeTeam, awayTeam }) => {
           <Grid item xs={12} md={4}>
             <Paper elevation={1} sx={{ p: 2, textAlign: 'center', height: '100%' }}>
               <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                Most Common Prediction
+                Prediction Distribution
               </Typography>
-              {stats.mostCommonScore ? (
-                <>
-                  <Typography variant="h5" sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
-                    {homeTeam?.name} {stats.mostCommonScore.homeScore} - {stats.mostCommonScore.awayScore} {awayTeam?.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {stats.mostCommonScore.count} users ({Math.round(stats.mostCommonScore.percentage)}%)
-                  </Typography>
-                </>
+              {predictionDistribution.length > 0 ? (
+                <PredictionDistributionChart 
+                  data={predictionDistribution}
+                  homeTeam={homeTeam?.name}
+                  awayTeam={awayTeam?.name}
+                />
               ) : (
-                <Typography variant="body1">No common prediction</Typography>
+                <Typography variant="body1">No prediction data available</Typography>
               )}
             </Paper>
           </Grid>
@@ -83,4 +174,4 @@ const MatchupPredictionsStats = ({ stats, loading, homeTeam, awayTeam }) => {
   );
 };
 
-export default MatchupPredictionsStats;
+export default MatchupPredictionStats;

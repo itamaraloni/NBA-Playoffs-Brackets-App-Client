@@ -200,7 +200,8 @@ const MatchupDetailsDialog = ({
           stats={stats} 
           loading={loading} 
           homeTeam={homeTeam} 
-          awayTeam={awayTeam} 
+          awayTeam={awayTeam}
+          leaguePredictions={leaguePredictions}
         />
         
         <Divider sx={{ mb: 3 }} />
