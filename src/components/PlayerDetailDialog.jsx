@@ -22,6 +22,7 @@ import {
 } from '@mui/icons-material';
 import { BsBullseye } from 'react-icons/bs';
 import { TbCrystalBall } from 'react-icons/tb';
+import { AiOutlineCloseCircle } from 'react-icons/ai';
 
 const PlayerDetailDialog = ({ player, open, onClose }) => {
   const theme = useTheme();
@@ -112,6 +113,11 @@ const PlayerDetailDialog = ({ player, open, onClose }) => {
                     variant="outlined" 
                     sx={{ fontWeight: 'medium', fontSize: '1rem' }}
                   />
+                  {player.championship_team_points !== undefined && (
+                    <Typography variant="body2" fontWeight="medium" sx={{ mt: 2, color: theme.palette.primary.main }}>
+                      {player.championship_team_points} points earned
+                    </Typography>
+                  )}
                 </Paper>
               </Grid>
               
@@ -137,61 +143,72 @@ const PlayerDetailDialog = ({ player, open, onClose }) => {
                     variant="outlined" 
                     sx={{ fontWeight: 'medium', fontSize: '1rem' }}
                   />
-                </Paper>
-              </Grid>
-            
-              <Grid item xs={12} md={6}>
-                <Paper 
-                  variant="outlined" 
-                  sx={{ 
-                    p: 3,
-                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(46, 125, 50, 0.08)' : 'rgba(237, 247, 237, 0.8)',
-                    borderColor: theme.palette.success.main
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <div style={reactIconStyle}>
-                      <TbCrystalBall size={20} style={{ color: theme.palette.success.main }} />
-                    </div>
-                    <Typography variant="body1" fontWeight="medium" sx={{ ml: 1 }}>
-                      Bulls-Eye Predictions
+                  {player.mvp_points !== undefined && (
+                    <Typography variant="body2" fontWeight="medium" sx={{ mt: 2, color: theme.palette.secondary.main }}>
+                      {player.mvp_points} points earned
                     </Typography>
-                  </Box>
-                  <Chip
-                    label={`${player.bullsEye || 0} Bulls-Eye`}
-                    color="success"
-                    variant="outlined"
-                    sx={{ fontWeight: 'medium', fontSize: '1rem' }}
-                  />
-                </Paper>
-              </Grid>
-            
-              <Grid item xs={12} md={6}>
-                <Paper 
-                  variant="outlined" 
-                  sx={{ 
-                    p: 3,
-                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(237, 108, 2, 0.08)' : 'rgba(255, 244, 229, 0.8)',
-                    borderColor: theme.palette.warning.main
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <div style={reactIconStyle}>
-                      <BsBullseye size={20} style={{ color: theme.palette.warning.main }} />
-                    </div>
-                    <Typography variant="body1" fontWeight="medium" sx={{ ml: 1 }}>
-                      Outcome Hits Predictions
-                    </Typography>
-                  </Box>
-                  <Chip
-                    label={`${player.hits || 0} HITS`}
-                    color="warning"
-                    variant="outlined"
-                    sx={{ fontWeight: 'medium', fontSize: '1rem' }}
-                  />
+                  )}
                 </Paper>
               </Grid>
             </Grid>
+          </Grid>
+
+          {/* Score Breakdown */}
+          <Grid item xs={12} md={10}>
+            <Typography variant="h6" gutterBottom align="center" sx={{ mb: 3 }}>
+              Score Breakdown
+            </Typography>
+            <Paper 
+              variant="outlined" 
+              sx={{ 
+                p: 2.5, 
+                mb: 4,
+                bgcolor: theme.palette.background.paper
+              }}
+            >
+              <Grid container spacing={2} sx={{ mb: 2 }}>
+                <Grid item xs={4}>
+                  <Box sx={{ textAlign: 'center', p: 1 }}>
+                    <div style={{ ...reactIconStyle, margin: '0 auto', marginBottom: '8px' }}>
+                      <TbCrystalBall size={24} style={{ color: theme.palette.success.main }} />
+                    </div>
+                    <Typography variant="body2" color="text.secondary">Bulls-Eye</Typography>
+                    <Typography variant="h6" color="success.main" fontWeight="bold">
+                      {player.bullsEye || 0}
+                    </Typography>
+                  </Box>
+                </Grid>
+                
+                <Grid item xs={4}>
+                  <Box sx={{ textAlign: 'center', p: 1 }}>
+                    <div style={{ ...reactIconStyle, margin: '0 auto', marginBottom: '8px' }}>
+                      <BsBullseye size={24} style={{ color: theme.palette.warning.main }} />
+                    </div>
+                    <Typography variant="body2" color="text.secondary">Hits</Typography>
+                    <Typography variant="h6" color="warning.main" fontWeight="bold">
+                      {player.hits || 0}
+                    </Typography>
+                  </Box>
+                </Grid>
+                
+                <Grid item xs={4}>
+                  <Box sx={{ textAlign: 'center', p: 1 }}>
+                    <div style={{ ...reactIconStyle, margin: '0 auto', marginBottom: '8px' }}>
+                      <AiOutlineCloseCircle size={24} style={{ color: theme.palette.error.main }} />
+                    </div>
+                    <Typography variant="body2" color="text.secondary">Misses</Typography>
+                    <Typography variant="h6" color="error.main" fontWeight="bold">
+                      {player.misses || 0}
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+              <Divider sx={{ my: 1.5 }} />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                <Typography variant="subtitle1" fontWeight="medium">Total Score</Typography>
+                <Typography variant="subtitle1" fontWeight="bold" color="primary">{player.score || 0} pts</Typography>
+              </Box>
+            </Paper>
           </Grid>
         </Grid>
       </DialogContent>
@@ -207,7 +224,11 @@ PlayerDetailDialog.propTypes = {
     mvpPrediction: PropTypes.string,
     bullsEye: PropTypes.number,
     hits: PropTypes.number,
-    score: PropTypes.number
+    misses: PropTypes.number,
+    score: PropTypes.number,
+    championship_team_points: PropTypes.number,
+    mvp_points: PropTypes.number,
+    round_predictions_points: PropTypes.number
   }),
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired
