@@ -28,25 +28,24 @@ const signInWithGoogle = async () => {
       setError(null);
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      console.log("result:", result);
 
-      // Sync with your database after successful Firebase auth and get player_id in userData if exists
-      // Option 1 - Sync with database
-      // const userData = await syncUserWithDatabase(result.user);
+      // Sync with your database after successful Firebase auth and get userData
+      const userData = await syncUserWithDatabase(result.user);
+      console.log("userData: ", userData);
 
-      // Option 2 - Dummy data for testing
-      const isTestForUserWithPlayerId = false; // Set to false to test without player_id
-      if (isTestForUserWithPlayerId) {
-        localStorage.setItem('player_id', 'dummy-player-id');
+      // Save is_admin to localStorage
+      if (userData?.is_admin) {
+        localStorage.setItem('is_admin', userData.is_admin);
       }
-      else {
-        // Save player_id to localStorage instead of currentUser
-        if (userData?.player_id) {
-          localStorage.setItem('player_id', userData.player_id);
-        }
-        else {
-          localStorage.removeItem('player_id');
-        }
+
+      // Save player_id to localStorage
+      if (userData?.player?.player_id) {
+        localStorage.setItem('player_id', userData.player.player_id);
+      }
+
+      // Save leauge_id to localStorage
+      if (userData?.league?.league_id) {
+        localStorage.setItem('league_id', userData.league.league_id);
       }
 
       return result;
@@ -58,14 +57,11 @@ const signInWithGoogle = async () => {
   };
 
 // Syncing with database
-// eslint-disable-next-line no-unused-vars
 const syncUserWithDatabase = async (user) => {
     if (!user) return;
   
     // Get the Firebase token for backend authentication
     const idToken = await user.getIdToken();
-    console.log("user_id: " + user.uid)
-    console.log("email: " + user.email)
     // Call your backend API to create/update user in your database
     try {
       const response = await fetch('http://127.0.0.1:5000/user/check', {
@@ -82,7 +78,7 @@ const syncUserWithDatabase = async (user) => {
       
       if (!response.ok) throw new Error('Failed to sync user with database');
       
-      return await response.json(); // Should include player_id if exists
+      return await response.json();
     } catch (error) {
         // Handle error appropriately
       console.error("Error syncing user with database:", error);
@@ -95,10 +91,19 @@ const syncUserWithDatabase = async (user) => {
     try {
       setError(null);
       await signOut(auth);
-      // Clear player_id from localStorage on logout
-      localStorage.removeItem('player_id');
+
+      // Save theme before clearing localStorage
+      const theme = localStorage.getItem('theme-mode');
+
+      // Clear localStorage
+      localStorage.clear();
+
+      // Restore theme
+      localStorage.setItem('theme-mode', theme);
+      
       // Clear authentication state
       setCurrentUser(null);
+
       // Redirect user
       window.location.href = '/landing'; // Force page reload and redirect
     } catch (err) {
@@ -113,25 +118,28 @@ const syncUserWithDatabase = async (user) => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
     setCurrentUser(user);
     setLoading(false);
-    // We're not adding player_id to currentUser anymore
   });
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
 
+    // Add isAuthenticated derived property
+    const isAuthenticated = !!currentUser;
+
   // Context values to be provided
   const value = {
     currentUser,
     loading,
     error,
+    isAuthenticated,
     signInWithGoogle,
     logout
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }
