@@ -13,7 +13,6 @@ import {
 } from '@mui/material';
 import {
   Group as UsersIcon,
-  EmojiEvents as TrophyIcon,
   CalendarMonth as CalendarIcon,
   ContentCopy as CopyIcon
 } from '@mui/icons-material';
@@ -56,8 +55,8 @@ const League = ({
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <CalendarIcon fontSize="small" sx={{ mr: 0.5, color: theme.palette.primary.main }} />
-                          <Typography variant="body2">
-              Season: {league?.season}
+            <Typography variant="body2">
+              Season: {`${new Date().getFullYear()-1}-${new Date().getFullYear()}`}
             </Typography>
           </Box>
           
@@ -125,7 +124,7 @@ const League = ({
                 .sort((a, b) => (b.score || 0) - (a.score || 0)) // Sort by score descending
                 .map((player) => (
                   <PlayerCard 
-                    key={player.id} 
+                    key={player.id}
                     player={player}
                     isCurrentPlayer={player.id === currentPlayerId}
                   />
@@ -142,7 +141,6 @@ League.propTypes = {
   league: PropTypes.shape({
     id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
-    season: PropTypes.string.isRequired,
     isActive: PropTypes.bool,
     code: PropTypes.string,
     playerCount: PropTypes.number,
