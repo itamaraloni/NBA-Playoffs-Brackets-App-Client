@@ -1,6 +1,37 @@
 import apiClient from './ApiClient';
 
 /**
+ * League related service methods
+*/
+const LeagueServices = {
+  /**
+   * Get league data with players
+  */
+ async getLeagueWithPlayers(leagueId) {
+   try {
+     const data = await apiClient.get(`/league/${leagueId}/players`);
+     return transformLeagueData(data);
+    } catch (error) {
+      throw error;
+    }
+  },
+  
+  /**
+   * Create a new league
+  */
+ async createLeague(leagueData) {
+   return await apiClient.post('/league', leagueData);
+  },
+  
+  /**
+   * Join a league using code
+  */
+ async joinLeague(leagueCode, playerData) {
+   return await apiClient.post(`/league/join/${leagueCode}`, playerData);
+  },
+};
+
+/**
  * Transform player data from API format to UI format
  */
 const transformPlayerData = (player) => ({
@@ -31,36 +62,5 @@ const transformLeagueData = (data) => ({
   playerCount: data.players.playerCount,
   players: data.players.data.map(transformPlayerData)
 });
-
-/**
- * League related service methods
- */
-const LeagueServices = {
-  /**
-   * Get league data with players
-   */
-  async getLeagueWithPlayers(leagueId) {
-    try {
-      const data = await apiClient.get(`/league/${leagueId}/players`);
-      return transformLeagueData(data);
-    } catch (error) {
-      throw error;
-    }
-  },
-  
-  /**
-   * Create a new league
-   */
-  async createLeague(leagueData) {
-    return await apiClient.post('/league', leagueData);
-  },
-  
-  /**
-   * Join a league using code
-   */
-  async joinLeague(leagueCode, playerData) {
-    return await apiClient.post(`/league/join/${leagueCode}`, playerData);
-  },
-};
 
 export default LeagueServices;
