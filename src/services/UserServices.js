@@ -1,4 +1,3 @@
-// src/services/UserServices.js
 import apiClient from './ApiClient';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
@@ -49,7 +48,12 @@ const UserServices = {
    * @returns {Promise<Object>} User profile data
    */
   async getUserProfile() {
-    return await apiClient.get('/user/profile');
+    try {
+      const data = await apiClient.get('/user/get_profile');
+      return transformUserProfile(data);
+    } catch (error) {
+      throw error;
+    }
   },
   
   /**
@@ -106,6 +110,45 @@ const UserServices = {
     if (userData?.league?.league_id) {
       localStorage.setItem('league_id', userData.league.league_id);
     }
+  }
+};
+
+/**
+ * Transform API user profile to UI format
+ * @param {Object} response - API response
+ * @returns {Object} Transformed data
+ */
+const transformUserProfile = (response) => {
+  try {
+    // Extract data from response
+    const data = response;
+    
+    if (!data || !data.user) {
+      console.error("Invalid profile data structure", data);
+      return null;
+    }
+    
+    return {
+      user: data.user,
+      player: data.player ? {
+        ...data.player,
+        formattedPlayer: {
+          name: data.player.name,
+          championshipPrediction: data.player.winning_team,
+          mvpPrediction: data.player.mvp,
+          bullsEye: data.player.bullsEye || 0,
+          hits: data.player.hits || 0,
+          misses: data.player.misses || 0,
+          score: data.player.total_points,
+          championship_team_points: data.player.championship_team_points,
+          mvp_points: data.player.mvp_points
+        }
+      } : null,
+      league: data.league
+    };
+  } catch (error) {
+    console.error("Error transforming user profile:", error);
+    return null;
   }
 };
 
