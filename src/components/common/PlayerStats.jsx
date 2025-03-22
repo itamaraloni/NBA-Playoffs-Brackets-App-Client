@@ -7,17 +7,28 @@ import {
   Chip,
   Divider,
   Paper,
+  IconButton,
   useTheme
 } from '@mui/material';
 import {
   EmojiEvents as TrophyIcon,
-  MilitaryTech as MvpIcon
+  MilitaryTech as MvpIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import { BsBullseye } from 'react-icons/bs';
 import { TbCrystalBall } from 'react-icons/tb';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 
-const PlayerStats = ({ player, showScoreBreakdown = true }) => {
+const PlayerStats = ({ 
+  player, 
+  showScoreBreakdown = true,
+  allowEditing = false,
+  onEditMvp = () => {},
+  onEditChampionship = () => {}
+}) => {
+  const currentDate = new Date();
+  const editDeadline = new Date('2025-04-14T23:59:59');
+  const canEdit = allowEditing && currentDate < editDeadline;
   const theme = useTheme();
 
   // Custom styling to align React icons with Material-UI icons
@@ -49,11 +60,24 @@ const PlayerStats = ({ player, showScoreBreakdown = true }) => {
                 borderColor: theme.palette.primary.main
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <TrophyIcon sx={{ color: 'gold' }} />
-                <Typography variant="body1" fontWeight="medium" sx={{ ml: 1 }}>
-                  Championship Winner
-                </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <TrophyIcon sx={{ color: 'gold' }} />
+                  <Typography variant="body1" fontWeight="medium" sx={{ ml: 1 }}>
+                    Championship Winner
+                  </Typography>
+                </Box>
+                {canEdit && (
+                  <IconButton 
+                    size="small" 
+                    color="primary" 
+                    onClick={() => onEditChampionship(player)} 
+                    sx={{ ml: 1 }}
+                    aria-label="Edit championship prediction"
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                )}
               </Box>
               <Chip 
                 label={player.championshipPrediction} 
@@ -79,11 +103,24 @@ const PlayerStats = ({ player, showScoreBreakdown = true }) => {
                 borderColor: theme.palette.secondary.main
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <MvpIcon sx={{ color: 'gold' }} />
-                <Typography variant="body1" fontWeight="medium" sx={{ ml: 1 }}>
-                  MVP Prediction
-                </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <MvpIcon sx={{ color: 'gold' }} />
+                  <Typography variant="body1" fontWeight="medium" sx={{ ml: 1 }}>
+                    MVP Prediction
+                  </Typography>
+                </Box>
+                {canEdit && (
+                  <IconButton 
+                    size="small" 
+                    color="secondary" 
+                    onClick={() => onEditMvp(player)}
+                    sx={{ ml: 1 }}
+                    aria-label="Edit MVP prediction"
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                )}
               </Box>
               <Chip 
                 label={player.mvpPrediction} 
@@ -178,7 +215,10 @@ PlayerStats.propTypes = {
     mvp_points: PropTypes.number,
     round_predictions_points: PropTypes.number
   }).isRequired,
-  showScoreBreakdown: PropTypes.bool
+  showScoreBreakdown: PropTypes.bool,
+  allowEditing: PropTypes.bool,
+  onEditMvp: PropTypes.func,
+  onEditChampionship: PropTypes.func
 };
 
 export default PlayerStats;
