@@ -1,4 +1,3 @@
-
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
 
 /**
@@ -38,10 +37,21 @@ const apiClient = {
       }
       
       // Handle 401 unauthorized
-      if (response.status === 401) {
-        // You could automatically redirect to login page here
-        // localStorage.removeItem('auth_token');
-        // window.location.href = '/login';
+      if (response.status === 401 || response.status === 500) { // 500 is just for now before we implement on backend side the error handling properly
+        // logout user
+        // Save theme before clearing localStorage
+        const theme = localStorage.getItem('theme-mode');
+        
+        // Clear localStorage
+        localStorage.clear();
+        
+        // Restore theme
+        if (theme) {
+          localStorage.setItem('theme-mode', theme);
+        }
+
+        // Redirect user
+        window.location.href = '/landing';
       }
       
       throw new Error(errorMessage);
