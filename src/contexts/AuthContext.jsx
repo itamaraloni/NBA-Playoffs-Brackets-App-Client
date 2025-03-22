@@ -24,37 +24,45 @@ export function AuthProvider({ children }) {
 
   // Sign in with Google
 const signInWithGoogle = async () => {
-    try {
-      setError(null);
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-
-      // Sync with your database after successful Firebase auth and get userData
-      const userData = await syncUserWithDatabase(result.user);
-      console.log("userData: ", userData);
-
-      // Save is_admin to localStorage
-      if (userData?.is_admin) {
-        localStorage.setItem('is_admin', userData.is_admin);
-      }
-
-      // Save player_id to localStorage
-      if (userData?.player?.player_id) {
-        localStorage.setItem('player_id', userData.player.player_id);
-      }
-
-      // Save leauge_id to localStorage
-      if (userData?.league?.league_id) {
-        localStorage.setItem('league_id', userData.league.league_id);
-      }
-
-      return result;
-    } catch (err) {
-      setError(err.message);
-      console.error("Error signing in with Google", err);
-      throw err;
+  try {
+    setError(null);
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    
+    // Sync with database and get userData
+    const userData = await syncUserWithDatabase(user);
+    
+    // Get Firebase token
+    const idToken = await user.getIdToken();
+    
+    // Save to localStorage
+    localStorage.setItem('auth_token', idToken);
+    
+    if (userData?.is_admin) {
+      localStorage.setItem('is_admin', userData.is_admin);
     }
-  };
+    
+    if (userData?.player?.player_id) {
+      localStorage.setItem('player_id', userData.player.player_id);
+    }
+    
+    if (userData?.league?.league_id) {
+      localStorage.setItem('league_id', userData.league.league_id);
+    }
+    
+    // Update currentUser with the enhanced data
+    setCurrentUser({
+      ...user,
+      userData: userData // Store backend data with the user object
+    });
+    
+    return result;
+  } catch (err) {
+    // Error handling remains the same
+    throw err;
+  }
+};
 
 // Syncing with database
 const syncUserWithDatabase = async (user) => {

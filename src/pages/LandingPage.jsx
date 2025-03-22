@@ -25,27 +25,24 @@ const LandingPage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { currentUser, signInWithGoogle } = useAuth();
+  const { signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   
   // Check if user is already logged in and redirect accordingly
-  useEffect(() => {
-    if (currentUser) {
-      navigate('/dashboard');
-    }
-  }, [currentUser, navigate]);
-
   const handleSignIn = async () => {
     try {
       setLoading(true);
       setError(null);
       await signInWithGoogle();
-      // Redirect will be handled by the useEffect when currentUser updates
+      
+      // Add a small delay to ensure state updates propagate
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 100);
+      
     } catch (err) {
-      console.error('Sign in error:', err);
-      setError('Failed to sign in with Google. Please try again.');
-    } finally {
-      setLoading(false);
+      setError(err.message);
+      console.error("Error signing in with Google. Please try again.", err);
     }
   };
 
