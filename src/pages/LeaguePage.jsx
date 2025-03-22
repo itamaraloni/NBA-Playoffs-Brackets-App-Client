@@ -12,6 +12,7 @@ import StandingsTable from '../components/StandingsTable';
 import ScoringRules from '../components/common/ScoringRules';
 import League from '../components/League';
 import PlayerDetailDialog from '../components/PlayerDetailDialog';
+import LeagueServices from '../services/LeagueServices';
 
 const LeaguePage = () => {
   const theme = useTheme();
@@ -27,89 +28,18 @@ const LeaguePage = () => {
   const currentPlayerId = localStorage.getItem('player_id');
   const leagueId = localStorage.getItem('league_id');
   
-  // Fetch league data from API
+  // Fetch league data from API using service
   useEffect(() => {
     const fetchLeagueData = async () => {
       setLoading(true);
       try {
-        // TODO: Replace with actual API call
-        // Example: const response = await fetch(`http://127.0.0.1:5000/league/${leagueId}`);
-        
-        // Using mock data for now
-        setTimeout(() => {
-          const mockLeague = {
-            id: 'league1',
-            name: 'NBA Fanatics League',
-            isActive: true,
-            code: 'NBAPLAY2025',
-            playerCount: 4,
-            players: [
-              { 
-                id: 'player1', 
-                name: 'BasketballFan23',
-                championshipPrediction: 'Boston Celtics',
-                mvpPrediction: 'Jayson Tatum',
-                leagueId: 'league1',
-                score: 125,
-                championship_team_points: 50,
-                mvp_points: 30,
-                round_predictions_points: 45,
-                bullsEye: 2,
-                hits: 3,
-                misses: 4
-              },
-              { 
-                id: 'player2', 
-                name: 'HoopMaster',
-                championshipPrediction: 'Denver Nuggets',
-                mvpPrediction: 'Nikola Jokić',
-                leagueId: 'league1',
-                score: 50,
-                championship_team_points: 0,
-                mvp_points: 0,
-                round_predictions_points: 50,
-                bullsEye: 1,
-                hits: 2,
-                misses: 3
-              },
-              { 
-                id: 'player3', 
-                name: 'LakersNation',
-                championshipPrediction: 'Los Angeles Lakers',
-                mvpPrediction: 'LeBron James',
-                leagueId: 'league1',
-                score: 75,
-                championship_team_points: 0,
-                mvp_points: 0,
-                round_predictions_points: 75,
-                bullsEye: 3,
-                hits: 4,
-                misses: 0
-              },
-              { 
-                id: '27b8a1b5-0678-11f0-bbbe-5424f67f2c00', 
-                name: 'Current Player',
-                championshipPrediction: 'Milwaukee Bucks',
-                mvpPrediction: 'Giannis Antetokounmpo',
-                leagueId: 'league1',
-                score: 30,
-                championship_team_points: 0,
-                mvp_points: 0,
-                round_predictions_points: 30,
-                bullsEye: 0,
-                hits: 3,
-                misses: 2
-              }
-            ]
-          };
-          
-          setLeagueData(mockLeague);
-          setLoading(false);
-        }, 1000);
-        
+        // Use league service to fetch data
+        const data = await LeagueServices.getLeagueWithPlayers(leagueId);
+        setLeagueData(data);
+        setLoading(false);
       } catch (err) {
         console.error('Failed to fetch league data:', err);
-        setError('Failed to load league data. Please try again later.');
+        setError(err.message);
         setLoading(false);
       }
     };
