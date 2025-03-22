@@ -9,135 +9,15 @@ import {
   Avatar,
   Divider,
   Button,
-  Chip,
   useTheme
 } from '@mui/material';
 import {
   Email as EmailIcon,
   Person as PersonIcon,
   CalendarToday as CalendarIcon,
-  EmojiEvents as TrophyIcon,
-  MilitaryTech as MvpIcon
 } from '@mui/icons-material';
-import { BsBullseye } from 'react-icons/bs';
-import { TbCrystalBall } from 'react-icons/tb';
 import { Link } from 'react-router-dom';
-
-// A simplified version of PlayerDetailComponent that's not a dialog
-const PlayerDetailComponent = ({ player }) => {
-  const theme = useTheme();
-
-  if (!player) return null;
-
-  return (
-    <Grid container spacing={3} justifyContent="center">
-      <Grid item xs={12} md={10}>
-        <Typography variant="h6" gutterBottom align="center">
-          Player Predictions
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <Paper 
-              variant="outlined" 
-              sx={{ 
-                p: 3, 
-                mb: 3,
-                bgcolor: theme.palette.mode === 'dark' ? 'rgba(25, 118, 210, 0.08)' : 'rgba(232, 244, 253, 0.8)',
-                borderColor: theme.palette.primary.main
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <TrophyIcon sx={{ color: 'gold', mr: 1 }} />
-                <Typography variant="body1" fontWeight="medium">
-                  Championship Winner
-                </Typography>
-              </Box>
-              <Chip 
-                label={player.championshipPrediction} 
-                color="primary" 
-                variant="outlined" 
-                sx={{ fontWeight: 'medium', fontSize: '1rem' }}
-              />
-            </Paper>
-          </Grid>
-          
-          <Grid item xs={12} md={6}>
-            <Paper 
-              variant="outlined" 
-              sx={{ 
-                p: 3, 
-                mb: 3,
-                bgcolor: theme.palette.mode === 'dark' ? 'rgba(156, 39, 176, 0.08)' : 'rgba(243, 229, 245, 0.8)',
-                borderColor: theme.palette.secondary.main
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <MvpIcon sx={{ color: 'gold', mr: 1 }} />
-                <Typography variant="body1" fontWeight="medium">
-                  MVP Prediction
-                </Typography>
-              </Box>
-              <Chip 
-                label={player.mvpPrediction} 
-                color="secondary" 
-                variant="outlined" 
-                sx={{ fontWeight: 'medium', fontSize: '1rem' }}
-              />
-            </Paper>
-          </Grid>
-        
-          <Grid item xs={12} md={6}>
-            <Paper 
-              variant="outlined" 
-              sx={{ 
-                p: 3,
-                bgcolor: theme.palette.mode === 'dark' ? 'rgba(46, 125, 50, 0.08)' : 'rgba(237, 247, 237, 0.8)',
-                borderColor: theme.palette.success.main
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <TbCrystalBall style={{ color: theme.palette.success.main, marginRight: 8 }} />
-                <Typography variant="body1" fontWeight="medium">
-                  Bulls-Eye Predictions
-                </Typography>
-              </Box>
-              <Chip
-                label={`${player.bullsEye} Bulls-Eye`}
-                color="success"
-                variant="outlined"
-                sx={{ fontWeight: 'medium', fontSize: '1rem' }}
-              />
-            </Paper>
-          </Grid>
-        
-          <Grid item xs={12} md={6}>
-            <Paper 
-              variant="outlined" 
-              sx={{ 
-                p: 3,
-                bgcolor: theme.palette.mode === 'dark' ? 'rgba(237, 108, 2, 0.08)' : 'rgba(255, 244, 229, 0.8)',
-                borderColor: theme.palette.warning.main
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <BsBullseye style={{ color: theme.palette.warning.main, marginRight: 8 }} />
-                <Typography variant="body1" fontWeight="medium">
-                  Outcome Hits
-                </Typography>
-              </Box>
-              <Chip
-                label={`${player.hits} HITS`}
-                color="warning"
-                variant="outlined"
-                sx={{ fontWeight: 'medium', fontSize: '1rem' }}
-              />
-            </Paper>
-          </Grid>
-        </Grid>
-      </Grid>
-    </Grid>
-  );
-};
+import PlayerStats from '../components/common/PlayerStats';
 
 function ProfilePage() {
   const theme = useTheme();
@@ -153,17 +33,25 @@ function ProfilePage() {
       mvpPrediction: "Jayson Tatum",
       points: 50,
       bullsEye: 2,
-      hits: 4 
+      hits: 4,
+      misses: 1,
+      score: 50,
+      championship_team_points: 25,
+      mvp_points: 25
     }
   };
 
-  // Format the player data to match the PlayerDetailComponent props
+  // Format the player data to match the PlayerStats props
   const formattedPlayerData = playerData && playerData.hasJoinedLeague ? {
     name: playerData.playerName,
     championshipPrediction: playerData.predictions.championshipPrediction,
     mvpPrediction: playerData.predictions.mvpPrediction,
     bullsEye: playerData.predictions.bullsEye || 0,
-    hits: playerData.predictions.hits || 0
+    hits: playerData.predictions.hits || 0,
+    misses: playerData.predictions.misses || 0,
+    score: playerData.predictions.points,
+    championship_team_points: playerData.predictions.championship_team_points,
+    mvp_points: playerData.predictions.mvp_points
   } : null;
 
   return (
@@ -324,7 +212,7 @@ function ProfilePage() {
                   </Button>
                 </Paper>
               ) : (
-                <PlayerDetailComponent player={formattedPlayerData} />
+                <PlayerStats player={formattedPlayerData} showScoreBreakdown={true} />
               )}
             </Box>
           </>
