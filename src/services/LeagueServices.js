@@ -19,15 +19,22 @@ const LeagueServices = {
   /**
    * Create a new league
   */
- async createLeague(leagueData) {
-   return await apiClient.post('/league', leagueData);
+ async createLeague(leagueSetupData) {
+   return await apiClient.post('/league/create_league', leagueSetupData);
   },
   
   /**
-   * Join a league using code
+   * Validates league code
   */
- async joinLeague(leagueCode, playerData) {
-   return await apiClient.post(`/league/join/${leagueCode}`, playerData);
+ async validateLeagueCode(leagueCode) {
+   return await apiClient.get(`/league/validate_code/${leagueCode}`);
+  },
+
+  /**
+   * Join a league
+  */
+  async joinLeague(joinToLeagueData) {
+    return await apiClient.post('/league/join_player_to_league', joinToLeagueData);
   },
 };
 

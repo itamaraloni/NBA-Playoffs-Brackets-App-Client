@@ -11,6 +11,7 @@ import {
 import AppExplanation from '../components/AppExplanation';
 import { CreateLeagueSection, JoinLeagueSection } from '../components/CreateJoinLeagueComponents';
 import { LeagueStatsSection, UpcomingGamesSection } from '../components/DashboardComponents';
+import LeagueServices from '../services/LeagueServices';
 
 const Dashboard = () => {
   const theme = useTheme();
@@ -32,29 +33,26 @@ const Dashboard = () => {
       return;
     }
 
+    // Validate that the code is a 6-digit number
+    const codeRegex = /^\d{6}$/;
+    if (!codeRegex.test(leagueCode)) {
+      setCodeError('League code must be a 6-digit number');
+      return;
+    }
+
     setIsLoading(true);
     setCodeError('');
 
     try {
-      // TODO: Replace with actual API call
-      console.log(`Checking league code: ${leagueCode}`);
+      // Call the actual API to validate the league code
+      const response = await LeagueServices.validateLeagueCode(leagueCode);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Dummy validation - in real implementation, this would be a backend call
-      const isValidCode = leagueCode.length >= 6;
-      
-      if (isValidCode) {
-        // Store league ID for use in CreatePlayerPage
-        localStorage.setItem('joinLeagueId', 'dummy-league-id');
-        navigate('/create-player');
-      } else {
-        setCodeError('League not found. Please check the code and try again.');
-      }
+      // If we get here, the code is valid - store the league ID
+      localStorage.setItem('joinLeagueId', response.league_id);
+      navigate('/create-player');
     } catch (error) {
       console.error('Error joining league:', error);
-      setCodeError('An error occurred. Please try again.');
+      setCodeError(error.message || 'Error joining league. Please try again.');
     } finally {
       setIsLoading(false);
     }
