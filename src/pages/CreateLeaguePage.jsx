@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import ScoringRules from '../components/common/ScoringRules';
 import {
   Box,
@@ -8,32 +7,18 @@ import {
   Container,
   TextField,
   Typography,
-  Grid,
   Paper,
-  Avatar,
   Alert,
   CircularProgress,
   useTheme,
-  Card,
-  CardActionArea,
-  CardContent,
   Divider
 } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
-// League avatar options
-const avatarOptions = [
-  { id: 1, src: '/resources/league-avatars/Kobe-Bryant.png', alt: 'Kobe Bryant' },
-  { id: 2, src: '/resources/league-avatars/Lebron-James.png', alt: 'Lebron James' },
-  // Add more avatars here
-];
-
 const CreateLeaguePage = () => {
   const [leagueName, setLeagueName] = useState('');
-  const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { currentUser } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
 
@@ -46,19 +31,13 @@ const CreateLeaguePage = () => {
       return;
     }
     
-    if (!selectedAvatar) {
-      setError('Please select an avatar for your league');
-      return;
-    }
-    
     setIsLoading(true);
     setError(null);
     
     try {
       // Store league data in localStorage to use later when creating player
       localStorage.setItem('leagueSetup', JSON.stringify({
-        name: leagueName,
-        avatarId: selectedAvatar
+        name: leagueName
       }));
       
       // Navigate to player creation page
@@ -103,57 +82,6 @@ const CreateLeaguePage = () => {
             inputProps={{ maxLength: 30 }}
             sx={{ mb: 3 }}
           />
-          
-          <Typography variant="h6" component="h2" gutterBottom sx={{ mt: 2 }}>
-            Select League Avatar
-          </Typography>
-          
-          <Grid container spacing={2} sx={{ mb: 4 }}>
-            {avatarOptions.map((avatar) => (
-              <Grid item xs={6} sm={4} md={3} key={avatar.id}>
-                <Card 
-                  elevation={selectedAvatar === avatar.id ? 8 : 1}
-                  sx={{ 
-                    borderRadius: 2,
-                    border: selectedAvatar === avatar.id 
-                      ? `2px solid ${theme.palette.primary.main}` 
-                      : '2px solid transparent',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <CardActionArea onClick={() => setSelectedAvatar(selectedAvatar === avatar.id ? null : avatar.id)}>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      justifyContent: 'center', 
-                      p: 2,
-                      bgcolor: selectedAvatar === avatar.id 
-                        ? theme.palette.mode === 'dark' 
-                          ? 'rgba(66, 66, 66, 0.5)' 
-                          : 'rgba(224, 242, 254, 0.5)' 
-                        : 'transparent'
-                    }}>
-                      <Avatar
-                        src={avatar.src}
-                        alt={avatar.alt}
-                        sx={{ 
-                          width: 80, 
-                          height: 80,
-                          border: selectedAvatar === avatar.id 
-                            ? `2px solid ${theme.palette.primary.main}` 
-                            : 'none'
-                        }}
-                      />
-                    </Box>
-                    <CardContent sx={{ py: 1, textAlign: 'center' }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {avatar.alt}
-                      </Typography>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
           
           <Divider sx={{ my: 3 }} />
           
