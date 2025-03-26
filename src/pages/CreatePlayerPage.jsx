@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import {
   Box,
   Button,
@@ -25,53 +24,12 @@ import {
   EmojiEvents as EmojiEventsIcon,
   Save as SaveIcon
 } from '@mui/icons-material';
-
-// NBA Teams that are likely to win the champoinship
-const nbaTeams = [
-  'Boston Celtics',
-  'Oklahoma City Thunder',
-  'Cleveland Cavaliers',
-  'Los Angels Lakers',
-  'Denver Nuggets',
-  'Golden State Warriors',
-  'New York Knicks',
-  'Milwaukee Bucks'
-];
-
-// MVP Candidates
-const mvpCandidates = [
-  'Jayson Tatum',
-  'Jaylen Brown',
-  'Shai Gilgeous-Alexander',
-  'Jalen Williams',
-  'Nikola Jokić',
-  'Stephen Curry',
-  'Luka Dončić',
-  'LeBron James',
-  'Giannis Antetokounmpo',
-  'Damian Lillard',
-  'Anthony Edwards',
-  'Kevin Durant',
-  'Jalen Brunson',
-  'Karl-Anthony Towns',
-  'Donovan Mitchell',
-  'Other'
-];
-
-// Avatar options
-const avatarOptions = [
-  { id: 1, src: '/resources/player-avatars/steph.png', alt: 'Stephan Curry' },
-  { id: 2, src: '/resources/player-avatars/jokic.png', alt: 'Nikola Jokic' },
-  { id: 3, src: '/resources/player-avatars/deni.png', alt: 'Deni Avdija' },
-  { id: 4, src: '/resources/player-avatars/casspi.png', alt: 'Omri Casspi' },
-  { id: 5, src: '/resources/player-avatars/draymond.png', alt: 'Draymond Green' }
-];
+import LeagueServices from '../services/LeagueServices';
+import { NBA_TEAMS, MVP_CANDIDATES, PLAYER_AVATARS } from '../shared/GeneralConsts';
 
 const CreatePlayerPage = () => {
-  const { currentUser } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
-  
   const [playerName, setPlayerName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
@@ -95,33 +53,58 @@ const CreatePlayerPage = () => {
     setError(null);
 
     try {
-      // Send player data to backend API
-      const response = await fetch('/api/players', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: currentUser?.uid,
-          playerName,
-          avatar: avatarOptions.find(opt => opt.id === selectedAvatar)?.src,
-          championshipTeam: selectedTeam,
-          mvpPick: selectedMVP === 'Other' ? otherMVP : selectedMVP,
-        }),
+      let leagueId = localStorage.getItem('joinLeagueId');
+      let messageToDisplay = '';
+      const leagueSetup = localStorage.getItem('leagueSetup');
+      if (leagueSetup) {
+        const { name: leagueName } = JSON.parse(leagueSetup);
+
+        // Create league
+        const createLeagueResponse = await LeagueServices.createLeague({
+          league_name: leagueName,
+        });
+        
+        if (createLeagueResponse.message === 'error') {
+          throw new Error('Failed to create league');
+        }
+        
+        // clear league setup data
+        localStorage.removeItem('leagueSetup');
+
+        messageToDisplay = 'League created successfully';
+        console.log(`${messageToDisplay}:`, createLeagueResponse);
+        leagueId = createLeagueResponse.league_id;
+      }
+      else {
+        // clear join league id
+        localStorage.removeItem('joinLeagueId');
+      }
+
+      console.log('selected avatar:', selectedAvatar);
+      // create player id
+      const createPlayerResponse = await LeagueServices.joinLeague({
+        league_id: leagueId,
+        name: playerName,
+        player_avatar: String(selectedAvatar),
+        championship_team: selectedTeam,
+        mvp: selectedMVP === 'Other' ? otherMVP : selectedMVP,
       });
 
-      if (!response.ok) {
+      if (createPlayerResponse.error === 'error') {
         throw new Error('Failed to create player');
       }
 
+      console.log('Player created successfully:', createPlayerResponse);
+      messageToDisplay = `${messageToDisplay ? messageToDisplay + ' and ' : ''}Player created successfully`;
       setAlert({
         open: true,
-        message: 'Player created successfully',
+        message: messageToDisplay,
         severity: 'success'
       });
-      
-      // Navigate to dashboard after short delay
-      setTimeout(() => navigate('/dashboard'), 1500);
+
+      // Store player id and League id in localStorage
+      localStorage.setItem('player_id', createPlayerResponse.player_id);
+      localStorage.setItem('league_id', leagueId);
     } catch (error) {
       console.error('Error creating player:', error);
       setError('Failed to create player. Please try again.');
@@ -132,6 +115,7 @@ const CreatePlayerPage = () => {
 
   const handleCloseAlert = () => {
     setAlert({ ...alert, open: false });
+    navigate('/dashboard'); // Navigate only when user closes the alert
   };
 
   return (
@@ -184,7 +168,7 @@ const CreatePlayerPage = () => {
           </Typography>
           
           <Grid container spacing={2} sx={{ mb: 4 }}>
-            {avatarOptions.map((avatar) => (
+            {PLAYER_AVATARS.map((avatar) => (
               <Grid item xs={6} sm={4} key={avatar.id}>
                 <Card 
                   elevation={selectedAvatar === avatar.id ? 8 : 1}
@@ -253,7 +237,7 @@ const CreatePlayerPage = () => {
             <Grid item xs={12} md={6}>
               <Autocomplete
                 id="championship-team"
-                options={nbaTeams}
+                options={NBA_TEAMS}
                 fullWidth
                 value={selectedTeam}
                 onChange={(event, newValue) => {
@@ -273,7 +257,7 @@ const CreatePlayerPage = () => {
             <Grid item xs={12} md={6}>
               <Autocomplete
                 id="mvp-player"
-                options={mvpCandidates}
+                options={MVP_CANDIDATES}
                 fullWidth
                 value={selectedMVP}
                 onChange={(event, newValue) => {
@@ -335,8 +319,27 @@ const CreatePlayerPage = () => {
         </Box>
       </Paper>
       
-      <Snackbar open={alert.open} autoHideDuration={6000} onClose={handleCloseAlert}>
-        <Alert onClose={handleCloseAlert} severity={alert.severity}>
+      <Snackbar 
+        open={alert.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: 'center', horizontal: 'center' }} // Center position
+      >
+        <Alert 
+          onClose={handleCloseAlert} 
+          severity={alert.severity}
+          sx={{ 
+            width: '100%',
+            maxWidth: '400px',
+            boxShadow: 3,
+            '& .MuiAlert-action': { alignItems: 'center' }
+          }}
+          action={
+            <Button color="inherit" size="small" onClick={handleCloseAlert}>
+              Click to continue
+            </Button>
+          }
+        >
           {alert.message}
         </Alert>
       </Snackbar>
