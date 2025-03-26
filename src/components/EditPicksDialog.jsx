@@ -13,73 +13,19 @@ import {
   Typography,
   Box,
   useTheme,
-  IconButton
+  IconButton,
+  TextField
 } from '@mui/material';
 import {
   Close as CloseIcon,
   EmojiEvents as TrophyIcon,
   MilitaryTech as MvpIcon
 } from '@mui/icons-material';
-
-// These would likely come from an API in a real application
-const NBA_TEAMS = [
-  "Boston Celtics",
-  "Brooklyn Nets",
-  "New York Knicks",
-  "Philadelphia 76ers",
-  "Toronto Raptors",
-  "Chicago Bulls",
-  "Cleveland Cavaliers",
-  "Detroit Pistons",
-  "Indiana Pacers",
-  "Milwaukee Bucks",
-  "Atlanta Hawks",
-  "Charlotte Hornets",
-  "Miami Heat",
-  "Orlando Magic",
-  "Washington Wizards",
-  "Denver Nuggets",
-  "Minnesota Timberwolves",
-  "Oklahoma City Thunder",
-  "Portland Trail Blazers",
-  "Utah Jazz",
-  "Golden State Warriors",
-  "Los Angeles Clippers",
-  "Los Angeles Lakers",
-  "Phoenix Suns",
-  "Sacramento Kings",
-  "Dallas Mavericks",
-  "Houston Rockets",
-  "Memphis Grizzlies",
-  "New Orleans Pelicans",
-  "San Antonio Spurs"
-];
-
-const MVP_CANDIDATES = [
-  "Nikola Jokić",
-  "Giannis Antetokounmpo",
-  "Jayson Tatum",
-  "Luka Dončić",
-  "Joel Embiid",
-  "Stephen Curry",
-  "Kevin Durant",
-  "LeBron James",
-  "Anthony Davis",
-  "Kawhi Leonard",
-  "Damian Lillard",
-  "Donovan Mitchell",
-  "Shai Gilgeous-Alexander",
-  "Anthony Edwards",
-  "Jalen Brunson",
-  "Tyrese Haliburton",
-  "Jaylen Brown",
-  "Devin Booker",
-  "Ja Morant",
-  "Victor Wembanyama"
-];
+import { NBA_TEAMS, MVP_CANDIDATES } from '../shared/GeneralConsts';
 
 const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
   const theme = useTheme();
+  const [otherMVP, setOtherMVP] = useState('');
   const [selection, setSelection] = useState(
     type === 'championship' 
       ? (player?.championshipPrediction || '') 
@@ -93,6 +39,8 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
         ? (player?.championshipPrediction || '')
         : (player?.mvpPrediction || '')
     );
+    // Reset otherMVP when dialog opens or type changes
+    setOtherMVP('');
   }, [type, player]);
 
   const handleChange = (event) => {
@@ -100,7 +48,11 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
   };
 
   const handleSave = () => {
-    onSave(type, selection);
+    if (type === 'mvp' && selection === 'Other') {
+      onSave(type, otherMVP);
+    } else {
+      onSave(type, selection);
+    }
     onClose();
   };
 
@@ -168,6 +120,18 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
               </MenuItem>
             ))}
           </Select>
+          {type === 'mvp' && selection === 'Other' && (
+            <TextField
+              label="Custom MVP Pick"
+              variant="outlined"
+              fullWidth
+              required
+              value={otherMVP}
+              onChange={(e) => setOtherMVP(e.target.value)}
+              margin="normal"
+              sx={{ mt: 2 }}
+            />
+          )}
         </FormControl>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -176,9 +140,11 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
           onClick={handleSave} 
           variant="contained" 
           color={getColor()}
-          disabled={!selection || selection === (type === 'championship' 
-            ? player?.championshipPrediction 
-            : player?.mvpPrediction)}
+          disabled={!selection || 
+            (selection === (type === 'championship' 
+              ? player?.championshipPrediction 
+              : player?.mvpPrediction)) ||
+            (type === 'mvp' && selection === 'Other' && !otherMVP.trim())}
         >
           Save Change
         </Button>
