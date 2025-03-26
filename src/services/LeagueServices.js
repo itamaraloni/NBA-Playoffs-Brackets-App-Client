@@ -24,7 +24,7 @@ const LeagueServices = {
   },
   
   /**
-   * Validates league code
+   * Validates league code and returns its league id
   */
  async validateLeagueCode(leagueCode) {
    return await apiClient.get(`/league/validate_code/${leagueCode}`);

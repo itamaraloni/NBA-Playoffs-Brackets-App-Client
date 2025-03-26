@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import {
   Container,
   Typography,
   Grid,
+  Snackbar,
+  Alert,
+  Button,
   useTheme,
   useMediaQuery
 } from '@mui/material';
@@ -16,7 +18,7 @@ import LeagueServices from '../services/LeagueServices';
 const Dashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { currentUser } = useAuth();
+  const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
   const [leagueCode, setLeagueCode] = useState('');
   const [codeError, setCodeError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -49,13 +51,24 @@ const Dashboard = () => {
       
       // If we get here, the code is valid - store the league ID
       localStorage.setItem('joinLeagueId', response.league_id);
-      navigate('/create-player');
+
+      // Show success message
+      setAlert({
+        open: true,
+        message: 'League joined successfully! Proceeding to player creation.',
+        severity: 'success'
+      });
     } catch (error) {
       console.error('Error joining league:', error);
       setCodeError(error.message || 'Error joining league. Please try again.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCloseAlert = () => {
+    setAlert({ ...alert, open: false });
+    navigate('/create-player'); // Navigate after user acknowledges
   };
 
   // New user content (no player ID)
@@ -102,6 +115,32 @@ const Dashboard = () => {
       </Typography>
       
       {playerId ? renderExistingPlayerContent() : renderNewUserContent()}
+
+      <Snackbar 
+          open={alert.open} 
+          autoHideDuration={6000} 
+          onClose={handleCloseAlert}
+          anchorOrigin={{ vertical: 'center', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={handleCloseAlert} 
+            severity={alert.severity}
+            sx={{ 
+              width: '100%',
+              maxWidth: '400px',
+              boxShadow: 3,
+              '& .MuiAlert-action': { alignItems: 'center' }
+            }}
+            action={
+              <Button color="inherit" size="small" onClick={handleCloseAlert}>
+                Click to continue
+              </Button>
+            }
+          >
+            {alert.message}
+          </Alert>
+      </Snackbar>
+
     </Container>
   );
 };
