@@ -16,6 +16,7 @@ import {
   Tooltip
 } from '@mui/material';
 import { EmojiEvents as TrophyIcon } from '@mui/icons-material';
+import { PLAYER_AVATARS } from '../shared/GeneralConsts';
 
 /**
  * Responsive standings table for displaying player rankings
@@ -83,17 +84,19 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
           </TableCell>
           <TableCell>
             <Box display="flex" alignItems="center">
-              <Avatar 
-                sx={{ 
-                  width: 32, 
-                  height: 32, 
-                  mr: 1, 
-                  bgcolor: isCurrentPlayer ? theme.palette.primary.main : theme.palette.grey[300],
-                  fontSize: '0.875rem'
-                }}
-              >
-                {player.name.charAt(0)}
-              </Avatar>
+            <Avatar 
+              sx={{ 
+                width: 32, 
+                height: 32, 
+                mr: 1, 
+                bgcolor: isCurrentPlayer ? theme.palette.primary.main : theme.palette.grey[300],
+                fontSize: '0.875rem'
+              }}
+              src={PLAYER_AVATARS.find(avatar => avatar.id === player.player_avatar)?.src}
+              alt={player.name}
+            >
+              {player.name.charAt(0)}
+            </Avatar>
               <Typography 
                 variant="body2" 
                 fontWeight={isCurrentPlayer ? 'bold' : 'regular'}
@@ -124,16 +127,19 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
           </TableCell>
           <TableCell>
             <Box display="flex" alignItems="center">
-              <Avatar 
-                sx={{ 
-                  width: 32, 
-                  height: 32, 
-                  mr: 1, 
-                  bgcolor: isCurrentPlayer ? theme.palette.primary.main : theme.palette.grey[300]
-                }}
-              >
-                {player.name.charAt(0)}
-              </Avatar>
+            <Avatar 
+              sx={{ 
+                width: 32, 
+                height: 32, 
+                mr: 1, 
+                bgcolor: isCurrentPlayer ? theme.palette.primary.main : theme.palette.grey[300],
+                fontSize: '0.875rem'
+              }}
+              src={PLAYER_AVATARS.find(avatar => avatar.id === player.player_avatar)?.src}
+              alt={player.name}
+            >
+              {player.name.charAt(0)}
+            </Avatar>
               <Typography variant="body2" fontWeight={isCurrentPlayer ? 'bold' : 'regular'}>
                 {player.name}
                 {isCurrentPlayer && <Typography component="span" variant="caption" color="text.secondary">{' '}(You)</Typography>}
@@ -161,16 +167,19 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
           </TableCell>
           <TableCell>
             <Box display="flex" alignItems="center">
-              <Avatar 
-                sx={{ 
-                  width: 32, 
-                  height: 32, 
-                  mr: 1, 
-                  bgcolor: isCurrentPlayer ? theme.palette.primary.main : theme.palette.grey[300]
-                }}
-              >
-                {player.name.charAt(0)}
-              </Avatar>
+            <Avatar 
+              sx={{ 
+                width: 32, 
+                height: 32, 
+                mr: 1, 
+                bgcolor: isCurrentPlayer ? theme.palette.primary.main : theme.palette.grey[300],
+                fontSize: '0.875rem'
+              }}
+              src={PLAYER_AVATARS.find(avatar => avatar.id === player.player_avatar)?.src}
+              alt={player.name}
+            >
+              {player.name.charAt(0)}
+            </Avatar>
               <Typography variant="body2" fontWeight={isCurrentPlayer ? 'bold' : 'regular'}>
                 {player.name}
                 {isCurrentPlayer && <Typography component="span" variant="caption" color="text.secondary">{' '}(You)</Typography>}
@@ -233,6 +242,7 @@ StandingsTable.propTypes = {
       name: PropTypes.string.isRequired,
       championshipPrediction: PropTypes.string,
       mvpPrediction: PropTypes.string,
+      player_avatar: PropTypes.string,
       score: PropTypes.number.isRequired
     })
   ).isRequired,

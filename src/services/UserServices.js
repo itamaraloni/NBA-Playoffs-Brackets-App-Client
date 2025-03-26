@@ -134,6 +134,7 @@ const transformUserProfile = (response) => {
         ...data.player,
         formattedPlayer: {
           name: data.player.name,
+          player_avatar: data.player.player_avatar,
           championshipPrediction: data.player.winning_team,
           mvpPrediction: data.player.mvp,
           bullsEye: data.player.bullsEye || 0,

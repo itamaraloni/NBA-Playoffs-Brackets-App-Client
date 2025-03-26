@@ -20,6 +20,7 @@ import {
 import PlayerStats from '../components/common/PlayerStats';
 import EditPicksDialog from '../components/EditPicksDialog';
 import UserServices from '../services/UserServices';
+import { PLAYER_AVATARS } from '../shared/GeneralConsts';
 
 function ProfilePage() {
   const theme = useTheme();
@@ -212,6 +213,8 @@ function ProfilePage() {
                 width: 48,
                 height: 48
               }}
+              src={PLAYER_AVATARS.find(avatar => avatar.id === profileData.player.player_avatar)?.src}
+              alt={PLAYER_AVATARS.find(avatar => avatar.id === profileData.player.player_avatar)?.alt || profileData.player.name}
             >
               {profileData.player.name.charAt(0)}
             </Avatar>

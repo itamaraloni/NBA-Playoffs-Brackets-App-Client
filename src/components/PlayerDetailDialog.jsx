@@ -16,6 +16,7 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import PlayerStats from './common/PlayerStats';
+import { PLAYER_AVATARS } from '../shared/GeneralConsts';
 
 const PlayerDetailDialog = ({ player, open, onClose }) => {
   const theme = useTheme();
@@ -38,16 +39,18 @@ const PlayerDetailDialog = ({ player, open, onClose }) => {
         p: 2
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar 
-            sx={{ 
-              width: 48, 
-              height: 48, 
-              mr: 2,
-              bgcolor: theme.palette.primary.main
-            }}
-          >
-            {player.name.charAt(0)}
-          </Avatar>
+            <Avatar 
+              sx={{ 
+                bgcolor: theme.palette.primary.main,
+                width: 48,
+                height: 48,
+                mr: 2
+              }}
+              src={PLAYER_AVATARS.find(avatar => avatar.id === player.player_avatar)?.src}
+              alt={PLAYER_AVATARS.find(avatar => avatar.id === player.player_avatar)?.alt || player.name}
+            >
+              {player.name.charAt(0)}
+            </Avatar>
           <Typography variant="h6">
             {player.name}
             {player.score !== undefined && (
@@ -83,6 +86,7 @@ PlayerDetailDialog.propTypes = {
     bullsEye: PropTypes.number,
     hits: PropTypes.number,
     misses: PropTypes.number,
+    player_avatar: PropTypes.string,
     score: PropTypes.number,
     championship_team_points: PropTypes.number,
     mvp_points: PropTypes.number,

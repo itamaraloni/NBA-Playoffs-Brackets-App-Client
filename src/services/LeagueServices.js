@@ -44,6 +44,7 @@ const LeagueServices = {
 const transformPlayerData = (player) => ({
   id: player.player_id,
   name: player.name,
+  player_avatar: player.player_avatar,
   championshipPrediction: player.winning_team,
   mvpPrediction: player.mvp_prediction,
   leagueId: player.league_id,
