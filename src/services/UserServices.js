@@ -61,8 +61,13 @@ const UserServices = {
    * @param {Object} profileData - Profile data to update
    * @returns {Promise<Object>} Updated profile
    */
-  async updateUserProfile(profileData) {
-    return await apiClient.put('/user/profile', profileData);
+  async updatePicks(type, selection, playerId) {
+    if (type === 'championship') {
+      return await apiClient.post('/user/update_championship', { player_id: playerId, championship: selection });
+    }
+    else {
+      return await apiClient.post('/user/update_mvp', { player_id: playerId, mvp: selection });
+    }
   },
   
   /**

@@ -64,9 +64,17 @@ function ProfilePage() {
     try {
       setLoading(true);
       // Call API to update prediction
-      await UserServices.updatePrediction(type, selection);
+      console.log('Saving pick:', type, selection);
+      const updatePicksResponse = await UserServices.updatePicks(type, selection, localStorage.getItem('player_id'));
+      console.log('Update picks response:', updatePicksResponse);
+      if (updatePicksResponse.error) {
+        throw new Error(updatePicksResponse.error);
+      }
+
+      // Show success message
+      window.notify.success(`Your ${type === 'mvp' ? 'MVP' : 'Championship'} pick has been updated!`);
       
-      // Refresh profile data
+      // Refresh profile data with updated one
       const data = await UserServices.getUserProfile();
       setProfileData(data);
       setError(null);
