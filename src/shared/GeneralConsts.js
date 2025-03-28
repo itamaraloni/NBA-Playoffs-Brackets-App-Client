@@ -3,7 +3,7 @@ export const NBA_TEAMS = [
     'Boston Celtics',
     'Oklahoma City Thunder',
     'Cleveland Cavaliers',
-    'Los Angels Lakers',
+    'Los Angeles Lakers',
     'Denver Nuggets',
     'Golden State Warriors',
     'New York Knicks',
