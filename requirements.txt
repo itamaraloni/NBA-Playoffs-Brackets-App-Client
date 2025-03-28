@@ -11,3 +11,4 @@ react-icons
 firebase
 @mui/material @emotion/react @emotion/styled @mui/icons-material
 recharts
+react-toastify

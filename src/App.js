@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ThemeProvider from './theme/ThemeProvider';
 import Layout from './components/Layout';
@@ -90,6 +92,7 @@ function App() {
     <AuthProvider>
       <ThemeProvider>
         <AppContent />
+        <ToastContainer position="top-right" autoClose={5000} />
       </ThemeProvider>
     </AuthProvider>
   );
