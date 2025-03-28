@@ -114,7 +114,24 @@ const apiClient = {
     });
     
     return this.handleResponse(response);
-  }
+  },
+
+  setupConnectionMonitoring() {
+    window.addEventListener('online', () => {
+      if (window.notify) {
+        window.notify.success('Internet connection restored');
+      }
+    });
+    
+    window.addEventListener('offline', () => {
+      if (window.notify) {
+        window.notify.error('Internet connection lost');
+      }
+    });
+  },
 };
+
+// Initialize connection monitoring
+apiClient.setupConnectionMonitoring();
 
 export default apiClient;
