@@ -10,10 +10,10 @@ import {
   Box,
   Button,
   Alert,
-  IconButton,
   useMediaQuery,
   useTheme
 } from '@mui/material';
+import { RocketLaunch } from '@mui/icons-material';
 
 /**
  * Card component displaying a playoff matchup with prediction functionality
@@ -27,7 +27,7 @@ const MatchupPredictionCard = ({
   predictedHomeScore = null,
   predictedAwayScore = null,
   onSubmitPrediction,
-  isAdmin = false,
+  isAdmin = localStorage.getItem('is_admin') === 'true',
   onUpdateScore,
   onViewDetails
 }) => {
@@ -111,6 +111,13 @@ const MatchupPredictionCard = ({
   };
 
   /**
+   * Handle activating 'Upcoming' matchup
+   */
+  const handleActivateMatchup = () => {
+    console.log('Activate matchup:', homeTeam.name, awayTeam.name);
+  };
+
+  /**
    * Render prediction input for upcoming games
    */
   const renderUpcomingMatchup = () => (
@@ -163,11 +170,25 @@ const MatchupPredictionCard = ({
         <Button 
           variant="contained" 
           color="primary"
+          startIcon={<RocketLaunch />}
           onClick={handleSubmitPrediction}
         >
           Submit Prediction
         </Button>
       </Box>
+
+      {isAdmin && (
+        <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Button 
+            variant="contained" 
+            color="primary"
+            startIcon={<RocketLaunch />}
+            onClick={handleActivateMatchup}
+          >
+            Activate Prediction
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 
