@@ -21,40 +21,55 @@ const apiClient = {
   },
   
   /**
-   * Handle fetch response
+   * Handle fetch response with improved error handling
    */
   async handleResponse(response) {
     // Check if the request was successful
     if (!response.ok) {
-      let errorMessage;
+      let errorData = null;
+      let errorMessage = `Error: ${response.status} ${response.statusText}`;
+      let errorCode = null;
       
       // Try to parse error message from the response
       try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorData.error || `Error: ${response.status} ${response.statusText}`;
+        errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+        errorCode = errorData.code;
       } catch (e) {
-        errorMessage = `Error: ${response.status} ${response.statusText}`;
+        // Response wasn't JSON, use default error message
       }
       
-      // Handle 401 unauthorized
-      if (response.status === 401 || response.status === 500) { // 500 is just for now before we implement on backend side the error handling properly
-        // logout user
-        // Save theme before clearing localStorage
-        const theme = localStorage.getItem('theme-mode');
-        
-        // Clear localStorage
-        localStorage.clear();
-        
-        // Restore theme
-        if (theme) {
-          localStorage.setItem('theme-mode', theme);
+      // Handle auth errors (401 Unauthorized)
+      if (response.status === 401) {
+        try {
+          console.log(`Auth error: ${errorMessage}`);
+          
+          // Save theme
+          const theme = localStorage.getItem('theme-mode');
+          localStorage.clear();
+          if (theme) localStorage.setItem('theme-mode', theme);
+          
+          // Show notification first, before potential redirect
+          if (window.notify) {
+            window.notify.warning('Your session has expired. Please log in again.');
+          }
+          
+          // Small delay to allow notification to appear before redirect
+          setTimeout(() => {
+            window.location.href = '/landing';
+          }, 1000);
+          
+          return; // Stop execution
+        } catch (e) {
+          console.error("Error in auth handling:", e);
         }
-
-        // Redirect user
-        window.location.href = '/landing';
       }
       
-      throw new Error(errorMessage);
+      // Handle other errors
+      const error = new Error(errorMessage);
+      error.status = response.status;
+      error.data = errorData;
+      throw error;
     }
     
     // For 204 No Content responses
