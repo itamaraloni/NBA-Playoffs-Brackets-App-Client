@@ -46,7 +46,26 @@ export function AuthProvider({ children }) {
       
       return result;
     } catch (err) {
-      throw err;
+      setError(err.message || "Error signing in with Google");
+      
+      // Always prevent continuation to app
+      const errorHandler = new Promise((resolve, reject) => {
+        if (window.notify) {
+          window.notify.error("Error signing in with Google. Please try again.");
+        } else {
+          alert("Error signing in with Google. Please try again.");
+        }
+        
+        // Delay navigation to ensure notification is seen
+        setTimeout(() => {
+          window.location.href = '/landing';
+          reject(err); // Important: reject the promise to prevent further execution
+        }, 2500);
+      });
+      
+      // This ensures the promise chain stops here
+      await errorHandler;
+      throw err; // Re-throw to ensure calling code knows authentication failed
     }
   };
 
@@ -56,8 +75,7 @@ const syncUserWithDatabase = async (user) => {
   try {
     return await UserServices.syncUserWithDatabase(user);
   } catch (error) {
-    console.error("Error syncing user with database:", error);
-    return null;
+    throw error;
   }
 };
 
