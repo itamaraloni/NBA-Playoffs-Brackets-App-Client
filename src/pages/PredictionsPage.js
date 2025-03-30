@@ -107,7 +107,7 @@ const PredictionsPage = () => {
       // Update local state to simulate backend update
       const updatedMatchups = { ...matchups };
       const matchupIndex = updatedMatchups.upcoming.findIndex(
-        m => m.homeTeam.name === prediction.homeTeam && m.awayTeam.name === prediction.awayTeam
+        m => m.id === prediction.matchupId
       );
       
       if (matchupIndex !== -1) {
@@ -118,7 +118,7 @@ const PredictionsPage = () => {
         };
         setMatchups(updatedMatchups);
       }
-
+  
     } catch (err) {
       setError('Failed to submit prediction. Please try again.');
       console.error('Error submitting prediction:', err);
@@ -144,9 +144,9 @@ const PredictionsPage = () => {
       const inProgressCopy = [...matchups.inProgress];
       const completedCopy = [...matchups.completed];
       
-      // Find the matchup in in-progress list
+      // Find the matchup in in-progress list by matchup ID
       const matchupIndex = inProgressCopy.findIndex(
-        m => m.homeTeam.name === scoreUpdate.homeTeam && m.awayTeam.name === scoreUpdate.awayTeam
+        m => m.id === scoreUpdate.matchupId
       );
       
       if (matchupIndex !== -1) {
@@ -236,7 +236,7 @@ const PredictionsPage = () => {
         ...prevMatchup,
         predictionStats: result.stats
       }));
-      
+
     } catch (error) {
       console.error("Error fetching league predictions:", error);
       setLeaguePredictions([]);

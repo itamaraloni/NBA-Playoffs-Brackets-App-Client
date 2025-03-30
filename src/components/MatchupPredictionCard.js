@@ -87,8 +87,7 @@ const MatchupPredictionCard = ({
 
     if (onUpdateScore) {
       onUpdateScore({
-        homeTeam: homeTeam.name,
-        awayTeam: awayTeam.name,
+        matchupId: matchupId,
         homeScore: actualHome,
         awayScore: actualAway
       });
