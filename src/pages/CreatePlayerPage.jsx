@@ -34,7 +34,6 @@ const CreatePlayerPage = () => {
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedMVP, setSelectedMVP] = useState(null);
-  const [otherMVP, setOtherMVP] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
@@ -43,8 +42,7 @@ const CreatePlayerPage = () => {
     e.preventDefault();
     
     // Form validation
-    if (!playerName || !selectedAvatar || !selectedTeam || !selectedMVP || 
-        (selectedMVP === 'Other' && !otherMVP)) {
+    if (!playerName || !selectedAvatar || !selectedTeam || !selectedMVP) {
       setError('Please fill in all required fields');
       return;
     }
@@ -87,7 +85,7 @@ const CreatePlayerPage = () => {
         name: playerName,
         player_avatar: String(selectedAvatar),
         championship_team: selectedTeam,
-        mvp: selectedMVP === 'Other' ? otherMVP : selectedMVP,
+        mvp: selectedMVP,
       });
 
       if (createPlayerResponse.error === 'error') {
@@ -275,19 +273,6 @@ const CreatePlayerPage = () => {
               />
             </Grid>
           </Grid>
-          
-          {selectedMVP === 'Other' && (
-            <TextField
-              label="Custom MVP Pick"
-              variant="outlined"
-              fullWidth
-              required
-              value={otherMVP}
-              onChange={(e) => setOtherMVP(e.target.value)}
-              margin="normal"
-              sx={{ mt: 2 }}
-            />
-          )}
           
           <Box sx={{ mt: 4 }}>
             {error && (

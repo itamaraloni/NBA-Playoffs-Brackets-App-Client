@@ -25,7 +25,6 @@ import { NBA_TEAMS, MVP_CANDIDATES } from '../shared/GeneralConsts';
 
 const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
   const theme = useTheme();
-  const [otherMVP, setOtherMVP] = useState('');
   const [selection, setSelection] = useState(
     type === 'championship' 
       ? (player?.championshipPrediction || '') 
@@ -39,8 +38,6 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
         ? (player?.championshipPrediction || '')
         : (player?.mvpPrediction || '')
     );
-    // Reset otherMVP when dialog opens or type changes
-    setOtherMVP('');
   }, [type, player]);
 
   const handleChange = (event) => {
@@ -48,11 +45,7 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
   };
 
   const handleSave = () => {
-    if (type === 'mvp' && selection === 'Other') {
-      onSave(type, otherMVP);
-    } else {
-      onSave(type, selection);
-    }
+    onSave(type, selection);
     onClose();
   };
 
@@ -120,18 +113,6 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
               </MenuItem>
             ))}
           </Select>
-          {type === 'mvp' && selection === 'Other' && (
-            <TextField
-              label="Custom MVP Pick"
-              variant="outlined"
-              fullWidth
-              required
-              value={otherMVP}
-              onChange={(e) => setOtherMVP(e.target.value)}
-              margin="normal"
-              sx={{ mt: 2 }}
-            />
-          )}
         </FormControl>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -143,8 +124,7 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
           disabled={!selection || 
             (selection === (type === 'championship' 
               ? player?.championshipPrediction 
-              : player?.mvpPrediction)) ||
-            (type === 'mvp' && selection === 'Other' && !otherMVP.trim())}
+              : player?.mvpPrediction))}
         >
           Save Change
         </Button>
