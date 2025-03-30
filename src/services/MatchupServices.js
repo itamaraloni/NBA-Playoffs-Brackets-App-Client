@@ -1,76 +1,84 @@
-// Sample matchup data
-export const getMatchups = async () => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    return [
-      {
-        id: 'm1',
-        homeTeam: {
-          name: 'Boston Celtics',
-          logo: '/resources/team-logos/boston-celtics.png',
-          seed: 1,
-          conference: 'Eastern'
-        },
-        awayTeam: {
-          name: 'Miami Heat',
-          logo: '/resources/team-logos/miami-heat.png',
-          seed: 8,
-          conference: 'Eastern'
-        },
-        status: 'upcoming',
-        round: 1,
-        predictedHomeScore: 4,
-        predictedAwayScore: 1
-      },
-      {
-        id: 'm2',
-        homeTeam: {
-          name: 'New York Knicks',
-          logo: '/resources/team-logos/new-york-knicks.png',
-          seed: 2,
-          conference: 'Eastern'
-        },
-        awayTeam: {
-          name: 'Atlanta Hawks',
-          logo: '/resources/team-logos/atlanta-hawks.png',
-          seed: 7,
-          conference: 'Eastern'
-        },
-        status: 'in-progress',
-        actualHomeScore: 2,
-        actualAwayScore: 1,
-        round: 1,
-        predictedHomeScore: 4,
-        predictedAwayScore: 1
-      },
-      {
-        id: 'm3',
-        homeTeam: {
-          name: 'Milwaukee Bucks',
-          logo: '/resources/team-logos/milwaukee-bucks.png',
-          seed: 3,
-          conference: 'Eastern'
-        },
-        awayTeam: {
-          name: 'Indiana Pacers',
-          logo: '/resources/team-logos/indiana-pacers.png',
-          seed: 6,
-          conference: 'Eastern'
-        },
-        status: 'completed',
-        actualHomeScore: 4,
-        actualAwayScore: 2,
-        round: 1,
-        predictedHomeScore: 4,
-        predictedAwayScore: 1
-      },
-      {
-        id: 'm4',
-        homeTeam: {
-          name: 'Cleveland Cavaliers',
-          logo: '/resources/team-logos/cleveland-cavaliers.png',
-          seed: 4,
+import apiClient from './ApiClient';
+
+const MatchupServices = {
+  /**
+   * Get all matchup predictions for the current user
+   * @returns {Promise<Object>} Object containing grouped predictions
+   */
+  getMatchups: async () => {
+    try {
+      const response = await apiClient.get('/prediction/get_all_matchups_with_predictions');
+      
+      // Process the API response to match the expected format in the PredictionsPage component
+      const transformedData = [];
+      
+      // Process upcoming matchups
+      response.predictions.upcoming.forEach(item => {
+        transformedData.push({
+          id: item.matchup.matchup_id,
+          homeTeam: {
+            name: item.matchup.home_team_name,
+            logo: `/resources/team-logos/${item.matchup.home_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+          },
+          awayTeam: {
+            name: item.matchup.away_team_name,
+            logo: `/resources/team-logos/${item.matchup.away_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+          },
+          status: 'upcoming',
+          predictedHomeScore: item.prediction.home_team_score,
+          predictedAwayScore: item.prediction.away_team_score,
+          round: 1 // Default value, adjust if available from API
+        });
+      });
+      
+      // Process in-progress matchups
+      response.predictions.in_progress.forEach(item => {
+        transformedData.push({
+          id: item.matchup.matchup_id,
+          homeTeam: {
+            name: item.matchup.home_team_name,
+            logo: `/resources/team-logos/${item.matchup.home_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+          },
+          awayTeam: {
+            name: item.matchup.away_team_name,
+            logo: `/resources/team-logos/${item.matchup.away_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+          },
+          status: 'in-progress',
+          actualHomeScore: item.matchup.home_team_score,
+          actualAwayScore: item.matchup.away_team_score,
+          predictedHomeScore: item.prediction.home_team_score,
+          predictedAwayScore: item.prediction.away_team_score,
+          round: 1 // Default value, adjust if available from API
+        });
+      });
+      
+      // Process completed matchups
+      response.predictions.completed.forEach(item => {
+        transformedData.push({
+          id: item.matchup.matchup_id,
+          homeTeam: {
+            name: item.matchup.home_team_name,
+            logo: `/resources/team-logos/${item.matchup.home_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+          },
+          awayTeam: {
+            name: item.matchup.away_team_name,
+            logo: `/resources/team-logos/${item.matchup.away_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+          },
+          status: 'completed',
+          actualHomeScore: item.matchup.home_team_score,
+          actualAwayScore: item.matchup.away_team_score,
+          predictedHomeScore: item.prediction.home_team_score,
+          predictedAwayScore: item.prediction.away_team_score,
+          round: 1 // Default value, adjust if available from API
+        });
+      });
+      
+      return transformedData;
+    } catch (error) {
+      console.error('Error fetching matchups:', error);
+      throw error;
+    }
+  },
           conference: 'Eastern'
         },
         awayTeam: {

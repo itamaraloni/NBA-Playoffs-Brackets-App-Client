@@ -12,7 +12,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import MatchupPredictionCard from '../components/MatchupPredictionCard';
 import MatchupDetailsDialog from '../components/MatchupDetailsDialog';
-import { getMatchups, submitPrediction, updateMatchupScore } from '../services/MatchupServices';
+import MatchupServices from '../services/MatchupServices';
 import { getMatchupPredictions } from '../services/LeaguePredictionsServices';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -69,7 +69,7 @@ const PredictionsPage = () => {
     const loadMatchups = async () => {
       try {
         setLoading(true);
-        const data = await getMatchups();
+        const data = await MatchupServices.getMatchups();
         
         // Organize matchups by status
         const organized = {
