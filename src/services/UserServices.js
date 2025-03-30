@@ -111,6 +111,10 @@ const UserServices = {
     if (userData?.player?.player_id) {
       localStorage.setItem('player_id', userData.player.player_id);
     }
+
+    if (userData?.player?.player_name) {
+      localStorage.setItem('player_name', userData.player.player_name);
+    }
     
     if (userData?.league?.league_id) {
       localStorage.setItem('league_id', userData.league.league_id);
