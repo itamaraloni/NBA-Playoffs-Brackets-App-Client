@@ -242,10 +242,6 @@ function ProfilePage() {
           
           {/* Predictions Section */}
           <Box sx={{ mt: 2 }}>
-            <Typography variant="h6" color="textSecondary" gutterBottom>
-              My Predictions
-            </Typography>
-            
             <PlayerStats 
               player={formattedPlayerData} 
               showScoreBreakdown={true}

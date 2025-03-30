@@ -64,7 +64,7 @@ const PlayerStats = ({
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <TrophyIcon sx={{ color: 'gold' }} />
                   <Typography variant="body1" fontWeight="medium" sx={{ ml: 1 }}>
-                    Championship Winner
+                    Championship
                   </Typography>
                 </Box>
                 {canEdit && (
@@ -107,7 +107,7 @@ const PlayerStats = ({
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <MvpIcon sx={{ color: 'gold' }} />
                   <Typography variant="body1" fontWeight="medium" sx={{ ml: 1 }}>
-                    MVP Prediction
+                    MVP
                   </Typography>
                 </Box>
                 {canEdit && (
