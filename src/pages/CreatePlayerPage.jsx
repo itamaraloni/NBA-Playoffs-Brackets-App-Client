@@ -25,7 +25,7 @@ import {
   Save as SaveIcon
 } from '@mui/icons-material';
 import LeagueServices from '../services/LeagueServices';
-import { NBA_TEAMS, MVP_CANDIDATES, PLAYER_AVATARS } from '../shared/GeneralConsts';
+import { NBA_TEAMS_WITH_POINTS, MVP_CANDIDATES_WITH_POINTS, PLAYER_AVATARS } from '../shared/GeneralConsts';
 
 const CreatePlayerPage = () => {
   const navigate = useNavigate();
@@ -233,44 +233,66 @@ const CreatePlayerPage = () => {
           
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <Autocomplete
-                id="championship-team"
-                options={NBA_TEAMS}
-                fullWidth
-                value={selectedTeam}
-                onChange={(event, newValue) => {
-                  setSelectedTeam(newValue);
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="NBA Championship Team"
-                    required
-                    variant="outlined"
-                    margin="normal"
-                  />
-                )}
-              />
+            <Autocomplete
+              id="championship-team"
+              options={NBA_TEAMS_WITH_POINTS}
+              fullWidth
+              value={selectedTeam ? NBA_TEAMS_WITH_POINTS.find(team => team.name === selectedTeam) : null}
+              onChange={(event, newValue) => {
+                setSelectedTeam(newValue ? newValue.name : null);
+              }}
+              getOptionLabel={(option) => option.name}
+              renderOption={(props, option) => (
+                <li {...props}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                    <span>{option.name}</span>
+                    <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+                      {option.points} pts
+                    </Typography>
+                  </Box>
+                </li>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="NBA Championship Team"
+                  required
+                  variant="outlined"
+                  margin="normal"
+                />
+              )}
+            />
             </Grid>
             <Grid item xs={12} md={6}>
-              <Autocomplete
-                id="mvp-player"
-                options={MVP_CANDIDATES}
-                fullWidth
-                value={selectedMVP}
-                onChange={(event, newValue) => {
-                  setSelectedMVP(newValue);
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Finals MVP Pick"
-                    required
-                    variant="outlined"
-                    margin="normal"
-                  />
-                )}
-              />
+            <Autocomplete
+              id="mvp-player"
+              options={MVP_CANDIDATES_WITH_POINTS}
+              fullWidth
+              value={selectedMVP ? MVP_CANDIDATES_WITH_POINTS.find(player => player.name === selectedMVP) : null}
+              onChange={(event, newValue) => {
+                setSelectedMVP(newValue ? newValue.name : null);
+              }}
+              getOptionLabel={(option) => option.name}
+              renderOption={(props, option) => (
+                <li {...props}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                    <span>{option.name}</span>
+                    <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+                      {option.points} pts
+                    </Typography>
+                  </Box>
+                </li>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Finals MVP Pick"
+                  required
+                  variant="outlined"
+                  margin="normal"
+                />
+              )}
+            />
             </Grid>
           </Grid>
           

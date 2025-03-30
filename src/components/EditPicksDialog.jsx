@@ -13,15 +13,14 @@ import {
   Typography,
   Box,
   useTheme,
-  IconButton,
-  TextField
+  IconButton
 } from '@mui/material';
 import {
   Close as CloseIcon,
   EmojiEvents as TrophyIcon,
   MilitaryTech as MvpIcon
 } from '@mui/icons-material';
-import { NBA_TEAMS, MVP_CANDIDATES } from '../shared/GeneralConsts';
+import { NBA_TEAMS_WITH_POINTS, MVP_CANDIDATES_WITH_POINTS } from '../shared/GeneralConsts';
 
 const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
   const theme = useTheme();
@@ -56,7 +55,7 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
   };
 
   const getOptions = () => {
-    return type === 'championship' ? NBA_TEAMS : MVP_CANDIDATES;
+    return type === 'championship' ? NBA_TEAMS_WITH_POINTS : MVP_CANDIDATES_WITH_POINTS;
   };
 
   const getIcon = () => {
@@ -108,8 +107,13 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
             color={getColor()}
           >
             {getOptions().map((option) => (
-              <MenuItem key={option} value={option}>
-                {option}
+              <MenuItem key={option.name} value={option.name}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                  <span>{option.name}</span>
+                  <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+                    {option.points} pts
+                  </Typography>
+                </Box>
               </MenuItem>
             ))}
           </Select>

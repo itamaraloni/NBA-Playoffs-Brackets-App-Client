@@ -1,36 +1,42 @@
-// NBA Teams
-export const NBA_TEAMS = [
-    'Boston Celtics',
-    'Oklahoma City Thunder',
-    'Cleveland Cavaliers',
-    'Los Angeles Lakers',
-    'Denver Nuggets',
-    'Golden State Warriors',
-    'New York Knicks',
-    'Minnesota Timberwolves',
-    'Milwaukee Bucks'
-  ];
+// NBA Teams with scoring
+export const NBA_TEAMS_WITH_POINTS = [
+  { name: 'Boston Celtics', points: 10 },
+  { name: 'Oklahoma City Thunder', points: 12 },
+  { name: 'Cleveland Cavaliers', points: 14 },
+  { name: 'Los Angeles Lakers', points: 16 },
+  { name: 'Denver Nuggets', points: 18 },
+  { name: 'Golden State Warriors', points: 20 },
+  { name: 'New York Knicks', points: 22 },
+  { name: 'Minnesota Timberwolves', points: 24 },
+  { name: 'Milwaukee Bucks', points: 26 }
+];
 
-// MVP Candidates
-export const MVP_CANDIDATES = [
-    'Shai Gilgeous-Alexander',
-    'Jayson Tatum',
-    'Donovan Mitchell',
-    'Jaylen Brown',
-    'Nikola Jokić',
-    'Stephen Curry',
-    'Luka Dončić',
-    'Jalen Williams',
-    'LeBron James',
-    'Darius Garland',
-    'Evan Mobley',
-    'Jalen Brunson',
-    'Giannis Antetokounmpo',
-    'Anthony Edwards',
-    'Kevin Durant',
-    'Damian Lillard',
-    'Other'
-  ];
+// For backward compatibility
+export const NBA_TEAMS = NBA_TEAMS_WITH_POINTS.map(team => team.name);
+
+// MVP Candidates with scoring
+export const MVP_CANDIDATES_WITH_POINTS = [
+  { name: 'Shai Gilgeous-Alexander', points: 10 },
+  { name: 'Jayson Tatum', points: 12 },
+  { name: 'Donovan Mitchell', points: 14 },
+  { name: 'Jaylen Brown', points: 16 },
+  { name: 'Nikola Jokić', points: 18 },
+  { name: 'Stephen Curry', points: 20 },
+  { name: 'Luka Dončić', points: 22 },
+  { name: 'Jalen Williams', points: 24 },
+  { name: 'LeBron James', points: 26 },
+  { name: 'Darius Garland', points: 28 },
+  { name: 'Evan Mobley', points: 30 },
+  { name: 'Jalen Brunson', points: 32 },
+  { name: 'Giannis Antetokounmpo', points: 34 },
+  { name: 'Anthony Edwards', points: 36 },
+  { name: 'Kevin Durant', points: 38 },
+  { name: 'Damian Lillard', points: 40 },
+  { name: 'Other', points: 50 }
+];
+
+// For backward compatibility
+export const MVP_CANDIDATES = MVP_CANDIDATES_WITH_POINTS.map(player => player.name);
 
 // Player avatars
 export const PLAYER_AVATARS = [
