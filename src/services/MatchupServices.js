@@ -17,17 +17,21 @@ const MatchupServices = {
         transformedData.push({
           id: item.matchup.matchup_id,
           homeTeam: {
-            name: item.matchup.home_team_name,
-            logo: `/resources/team-logos/${item.matchup.home_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+            name: item.matchup.home_team.home_team_name,
+            logo: `/resources/team-logos/${item.matchup.home_team.home_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+            conference: item.matchup.home_team.home_team_conference,
+            seed: item.matchup.home_team.home_team_seed
           },
           awayTeam: {
-            name: item.matchup.away_team_name,
-            logo: `/resources/team-logos/${item.matchup.away_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+            name: item.matchup.away_team.away_team_name,
+            logo: `/resources/team-logos/${item.matchup.away_team.away_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+            conference: item.matchup.away_team.away_team_conference,
+            seed: item.matchup.away_team.away_team_seed
           },
           status: 'upcoming',
           predictedHomeScore: item.prediction.home_team_score,
           predictedAwayScore: item.prediction.away_team_score,
-          round: 1 // Default value, adjust if available from API
+          round: item.matchup.round || 1
         });
       });
       
@@ -36,19 +40,23 @@ const MatchupServices = {
         transformedData.push({
           id: item.matchup.matchup_id,
           homeTeam: {
-            name: item.matchup.home_team_name,
-            logo: `/resources/team-logos/${item.matchup.home_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+            name: item.matchup.home_team.home_team_name,
+            logo: `/resources/team-logos/${item.matchup.home_team.home_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+            conference: item.matchup.home_team.home_team_conference,
+            seed: item.matchup.home_team.home_team_seed
           },
           awayTeam: {
-            name: item.matchup.away_team_name,
-            logo: `/resources/team-logos/${item.matchup.away_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+            name: item.matchup.away_team.away_team_name,
+            logo: `/resources/team-logos/${item.matchup.away_team.away_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+            conference: item.matchup.away_team.away_team_conference,
+            seed: item.matchup.away_team.away_team_seed
           },
           status: 'in-progress',
-          actualHomeScore: item.matchup.home_team_score,
-          actualAwayScore: item.matchup.away_team_score,
+          actualHomeScore: item.matchup.home_team.home_team_score,
+          actualAwayScore: item.matchup.away_team.away_team_score,
           predictedHomeScore: item.prediction.home_team_score,
           predictedAwayScore: item.prediction.away_team_score,
-          round: 1 // Default value, adjust if available from API
+          round: item.matchup.round || 1
         });
       });
       
@@ -57,19 +65,23 @@ const MatchupServices = {
         transformedData.push({
           id: item.matchup.matchup_id,
           homeTeam: {
-            name: item.matchup.home_team_name,
-            logo: `/resources/team-logos/${item.matchup.home_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+            name: item.matchup.home_team.home_team_name,
+            logo: `/resources/team-logos/${item.matchup.home_team.home_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+            conference: item.matchup.home_team.home_team_conference,
+            seed: item.matchup.home_team.home_team_seed
           },
           awayTeam: {
-            name: item.matchup.away_team_name,
-            logo: `/resources/team-logos/${item.matchup.away_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+            name: item.matchup.away_team.away_team_name,
+            logo: `/resources/team-logos/${item.matchup.away_team.away_team_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+            conference: item.matchup.away_team.away_team_conference,
+            seed: item.matchup.away_team.away_team_seed
           },
           status: 'completed',
-          actualHomeScore: item.matchup.home_team_score,
-          actualAwayScore: item.matchup.away_team_score,
+          actualHomeScore: item.matchup.home_team.home_team_score,
+          actualAwayScore: item.matchup.away_team.away_team_score,
           predictedHomeScore: item.prediction.home_team_score,
           predictedAwayScore: item.prediction.away_team_score,
-          round: 1 // Default value, adjust if available from API
+          round: item.matchup.round || 1
         });
       });
       
