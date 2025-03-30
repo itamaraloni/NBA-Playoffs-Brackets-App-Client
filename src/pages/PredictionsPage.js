@@ -97,7 +97,13 @@ const PredictionsPage = () => {
 
   const handleSubmitPrediction = async (prediction) => {
     try {
-      await submitPrediction(prediction);
+      const response = await MatchupServices.submitPrediction(prediction);
+      
+      console.log('Prediction response:', response);
+      // Show success notification
+      if (window.notify) {
+        window.notify.success('Prediction submitted successfully!');
+      }
       
       // Update local state to simulate backend update
       const updatedMatchups = { ...matchups };
@@ -117,6 +123,11 @@ const PredictionsPage = () => {
     } catch (err) {
       setError('Failed to submit prediction. Please try again.');
       console.error('Error submitting prediction:', err);
+      
+      // Show error notification
+      if (window.notify) {
+        window.notify.error('Failed to submit prediction');
+      }
     }
   };
 
@@ -208,7 +219,8 @@ const PredictionsPage = () => {
 
     return matchupList.map((matchup, index) => (
       <MatchupPredictionCard
-        key={`${matchup.homeTeam.name}-${matchup.awayTeam.name}-${index}`}
+        key={`${matchup.id}-${index}`}
+        matchupId={matchup.id}
         homeTeam={matchup.homeTeam}
         awayTeam={matchup.awayTeam}
         status={matchup.status}

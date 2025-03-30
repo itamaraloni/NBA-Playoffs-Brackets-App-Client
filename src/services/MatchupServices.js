@@ -79,25 +79,36 @@ const MatchupServices = {
       throw error;
     }
   },
-          conference: 'Eastern'
-        },
-        awayTeam: {
-          name: 'Orlando Magic',
-          logo: '/resources/team-logos/orlando-magic.png',
-          seed: 5,
-          conference: 'Eastern'
-        },
-        status: 'upcoming',
-        round: 1
-      },
-      {
-        id: 'm5',
-        homeTeam: {
-          name: 'Oklahoma City Thunder',
-          logo: '/resources/team-logos/oklahoma-city-thunder.png',
-          seed: 1,
-          conference: 'Western'
-        },
+  
+  /**
+   * Submit a prediction for a matchup
+   * @param {Object} prediction Prediction data
+   * @returns {Promise<Object>} Success response
+   */
+  submitPrediction: async (prediction) => {
+    try {
+      const response = await apiClient.post('/prediction/submit_prediction', {
+        matchup_id: prediction.matchupId,
+        homeScore: prediction.homeScore,
+        awayScore: prediction.awayScore
+      });
+      
+      return response;
+    } catch (error) {
+      console.error('Error submitting prediction:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Update matchup scores (admin only)
+   * @param {Object} scoreUpdate Score update data
+   * @returns {Promise<Object>} Success response
+   */
+  updateMatchupScore: async (scoreUpdate) => {
+    try {
+      const response = await apiClient.post('/matchup/update_score', {
+        homeTeam: scoreUpdate.homeTeam,
         awayTeam: {
           name: 'Memphis Grizzlies',
           logo: '/resources/team-logos/memphis-grizzlies.png',

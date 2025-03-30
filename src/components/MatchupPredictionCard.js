@@ -14,13 +14,15 @@ import {
   useTheme
 } from '@mui/material';
 import { RocketLaunch } from '@mui/icons-material';
+import MatchupServices from '../services/MatchupServices';
 
 /**
  * Card component displaying a playoff matchup with prediction functionality
  */
 const MatchupPredictionCard = ({ 
-  homeTeam, 
-  awayTeam, 
+  homeTeam,
+  awayTeam,
+  matchupId,
   status = 'upcoming',
   actualHomeScore = null,
   actualAwayScore = null,
@@ -69,8 +71,7 @@ const MatchupPredictionCard = ({
 
     if (onSubmitPrediction) {
       onSubmitPrediction({
-        homeTeam: homeTeam.name,
-        awayTeam: awayTeam.name,
+        matchupId: matchupId,
         homeScore,
         awayScore
       });
