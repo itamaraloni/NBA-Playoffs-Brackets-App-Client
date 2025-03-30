@@ -13,7 +13,6 @@ import { useTheme } from '@mui/material/styles';
 import MatchupPredictionCard from '../components/MatchupPredictionCard';
 import MatchupDetailsDialog from '../components/MatchupDetailsDialog';
 import MatchupServices from '../services/MatchupServices';
-import { getMatchupPredictions } from '../services/LeaguePredictionsServices';
 import { useAuth } from '../contexts/AuthContext';
 
 // Tab Panel component for accessibility
@@ -133,7 +132,12 @@ const PredictionsPage = () => {
 
   const handleUpdateScore = async (scoreUpdate) => {
     try {
-      await updateMatchupScore(scoreUpdate);
+      await MatchupServices.updateMatchupScore(scoreUpdate);
+      
+      // Show success notification
+      if (window.notify) {
+        window.notify.success('Score updated successfully!');
+      }
       
       // Create copies of all arrays to avoid direct state mutation
       const upcomingCopy = [...matchups.upcoming];
@@ -177,7 +181,29 @@ const PredictionsPage = () => {
     } catch (err) {
       setError('Failed to update score. Please try again.');
       console.error('Error updating score:', err);
+      
+      // Show error notification
+      if (window.notify) {
+        window.notify.error('Failed to update score');
+      }
     }
+  };
+
+  /*
+   This function is passed to MatchupPredictionCard and called after successful activating an upcoming matchup
+   to re-render the updated data
+  */
+  const handleMatchupActivated = async () => {
+    const data = await MatchupServices.getMatchups();
+    
+    const organized = {
+      upcoming: data.filter(m => m.status === 'upcoming'),
+      inProgress: data.filter(m => m.status === 'in-progress'),
+      completed: data.filter(m => m.status === 'completed')
+    };
+    
+    setMatchups(organized);
+    setTabIndex(1); // Switch to In Progress tab
   };
 
   // This function is passed to MatchupPredictionCard and called when
@@ -187,15 +213,38 @@ const PredictionsPage = () => {
     setDialogOpen(true);
     
     try {
-      // Fetch league predictions from the service
-      const predictions = await getMatchupPredictions(
-        matchup.homeTeam.name,
-        matchup.awayTeam.name
+      const leagueId = localStorage.getItem('league_id');
+      
+      if (!leagueId) {
+        console.error("No league ID available");
+        if (window.notify) {
+          window.notify.error('Unable to load predictions: No league found');
+        }
+        return;
+      }
+
+      // Fetch league predictions using matchup ID and league ID
+      const result = await MatchupServices.getMatchupPredictions(
+        matchup.id,
+        leagueId
       );
-      setLeaguePredictions(predictions);
+      
+      setLeaguePredictions(result.predictions);
+
+      // Pass stats in the matchup object
+      setSelectedMatchup(prevMatchup => ({
+        ...prevMatchup,
+        predictionStats: result.stats
+      }));
+      
     } catch (error) {
       console.error("Error fetching league predictions:", error);
       setLeaguePredictions([]);
+      
+      // Show error notification
+      if (window.notify) {
+        window.notify.error('Failed to load league predictions');
+      }
     }
   };
 
@@ -232,6 +281,7 @@ const PredictionsPage = () => {
         isAdmin={user?.is_admin}
         onUpdateScore={handleUpdateScore}
         onViewDetails={handleViewDetails} // Pass the function to open the dialog
+        onActivateMatchup={handleMatchupActivated} // Pass the function to re-render matchups after successful matchup activation
       />
     ));
   };

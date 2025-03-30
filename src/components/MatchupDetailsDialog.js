@@ -23,7 +23,6 @@ import { TbCrystalBall } from 'react-icons/tb';
 import MatchupTeamsDisplay from './common/MatchupTeamsDisplay';
 import MatchupScoreDisplay from './common/MatchupScoreDisplay';
 import MatchupPredictionsStats from './MatchupPredictionsStats';
-import { getMatchupPredictionStats } from '../services/LeaguePredictionsServices';
 
 /**
  * Dialog to display league predictions for a matchup
@@ -34,33 +33,10 @@ const MatchupDetailsDialog = ({
   matchup,
   leaguePredictions = []
 }) => {
-  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
-
-  // Load prediction statistics when matchup changes
-  useEffect(() => {
-    const loadStats = async () => {
-      if (matchup && open) {
-        setLoading(true);
-        try {
-          const predictionStats = await getMatchupPredictionStats(
-            matchup?.homeTeam?.name, 
-            matchup?.awayTeam?.name
-          );
-          setStats(predictionStats);
-        } catch (error) {
-          console.error("Error loading prediction stats:", error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-    
-    loadStats();
-  }, [matchup, open]);
 
   // If no matchup data, don't render
   if (!matchup) return null;
@@ -197,7 +173,7 @@ const MatchupDetailsDialog = ({
         
         {/* Prediction Statistics - Now using separate component */}
         <MatchupPredictionsStats 
-          stats={stats} 
+          stats={matchup?.predictionStats} 
           loading={loading} 
           homeTeam={homeTeam} 
           awayTeam={awayTeam}
@@ -215,17 +191,21 @@ const MatchupDetailsDialog = ({
           {leaguePredictions.length > 0 ? (
             leaguePredictions.map((prediction, index) => {
               const accuracy = getPredictionAccuracy(prediction);
+              const isCurrentPlayer = prediction.userName === localStorage.getItem('player_name'); 
               
               return (
                 <ListItem 
-                  key={`${prediction.userId}-${index}`}
+                  key={`${prediction.userName}-${index}`}
                   divider={index < leaguePredictions.length - 1}
                   sx={{ 
                     py: 2,
                     flexDirection: { xs: 'column', sm: 'row' },
-                    alignItems: { xs: 'flex-start', sm: 'center' }
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    bgcolor: isCurrentPlayer ? 'action.selected' : 'inherit',
+                    borderRadius: 1
                   }}
                 >
+                  {/* Avatar section */}
                   <Box sx={{ 
                     display: 'flex', 
                     width: '100%', 
@@ -247,7 +227,7 @@ const MatchupDetailsDialog = ({
                       mb: { xs: 1, sm: 0 }
                     }}>
                       <Typography variant="subtitle1">
-                        {prediction.userName}
+                        {prediction.userName}{isCurrentPlayer && ' (You)'}
                       </Typography>
                     </Box>
                     

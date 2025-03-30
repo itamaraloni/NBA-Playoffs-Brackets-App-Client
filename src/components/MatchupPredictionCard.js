@@ -31,7 +31,8 @@ const MatchupPredictionCard = ({
   onSubmitPrediction,
   isAdmin = localStorage.getItem('is_admin') === 'true',
   onUpdateScore,
-  onViewDetails
+  onViewDetails,
+  onActivateMatchup
 }) => {
   const [homeScore, setHomeScore] = useState(predictedHomeScore || 0);
   const [awayScore, setAwayScore] = useState(predictedAwayScore || 0);
@@ -100,6 +101,7 @@ const MatchupPredictionCard = ({
   const handleViewDetails = () => {
     if (onViewDetails && status !== 'upcoming') {
       onViewDetails({
+        id: matchupId,
         homeTeam,
         awayTeam,
         status,
@@ -114,8 +116,26 @@ const MatchupPredictionCard = ({
   /**
    * Handle activating 'Upcoming' matchup
    */
-  const handleActivateMatchup = () => {
-    console.log('Activate matchup:', homeTeam.name, awayTeam.name);
+  const handleActivateMatchup = async () => {
+    console.log('Activate matchup:', matchupId);
+    try {
+      const response = await MatchupServices.activateMatchup(matchupId);
+      console.log("matchup activation response", response);
+      // Show success notification
+      if (window.notify) {
+        window.notify.success('Prediction submitted successfully!');
+      }
+      
+      // Notify the parent component to refresh data
+      if (onActivateMatchup) {
+        onActivateMatchup();
+      }
+    } catch (err) {
+      // Show error notification
+      if (window.notify) {
+        window.notify.error('Failed to activate matchup');
+      }
+    }
   };
 
   /**

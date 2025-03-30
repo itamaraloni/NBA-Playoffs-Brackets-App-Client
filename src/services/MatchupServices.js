@@ -109,55 +109,78 @@ const MatchupServices = {
     try {
       const response = await apiClient.post('/matchup/update_score', {
         homeTeam: scoreUpdate.homeTeam,
-        awayTeam: {
-          name: 'Memphis Grizzlies',
-          logo: '/resources/team-logos/memphis-grizzlies.png',
-          seed: 8,
-          conference: 'Western'
-        },
-        status: 'in-progress',
-        actualHomeScore: 3,
-        actualAwayScore: 1,
-        round: 1,
-        predictedHomeScore: 4,
-        predictedAwayScore: 0
-      },
-      {
-        id: 'm6',
-        homeTeam: {
-          name: 'Denver Nuggets',
-          logo: '/resources/team-logos/denver-nuggets.png',
-          seed: 2,
-          conference: 'Western'
-        },
-        awayTeam: {
-          name: 'Los Angeles Lakers',
-          logo: '/resources/team-logos/los-angeles-lakers.png',
-          seed: 7,
-          conference: 'Western'
-        },
-        status: 'completed',
-        actualHomeScore: 4,
-        actualAwayScore: 1,
-        round: 1,
-        predictedHomeScore: 4,
-        predictedAwayScore: 3
-      }
-    ];
-  };
+        awayTeam: scoreUpdate.awayTeam,
+        homeScore: scoreUpdate.homeScore,
+        awayScore: scoreUpdate.awayScore
+      });
+      return response;
+    } catch (error) {
+      console.error('Error updating score:', error);
+      throw error;
+    }
+  },
   
-  // Dummy function for prediction submission (will be replaced with actual API call)
-  export const submitPrediction = async (prediction) => {
-    console.log('Prediction submitted:', prediction);
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return { success: true };
-  };
-  
-  // Dummy function for score update (will be replaced with actual API call)
-  export const updateMatchupScore = async (scoreUpdate) => {
-    console.log('Score updated:', scoreUpdate);
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return { success: true };
-  };
+  /**
+   * Get league predictions for a specific matchup with statistics for it
+   * @param {string} matchupId Matchup ID
+   * @param {string} leagueId League ID
+   * @returns {Promise<Array>} League predictions
+   */
+  getMatchupPredictions: async (matchupId, leagueId) => {
+    try {
+      const response = await apiClient.get(`/prediction/get_matchup_predictions/${leagueId}/${matchupId}`);
+      
+      // Transform the response to match the expected format in the MatchupDetailsDialog
+      const transformedPredictions = response.predictions.map(pred => ({
+        userName: pred.player_name,
+        homeScore: pred.prediction.home_team_score,
+        awayScore: pred.prediction.away_team_score,
+        hit: pred.prediction.hit,
+        bullsEye: pred.prediction.bullsEye,
+        pointsEarned: pred.prediction.points_earned
+      }));
+      
+      // Calculate stats
+      const homeTeamWins = transformedPredictions.filter(p => p.homeScore > p.awayScore);
+      const awayTeamWins = transformedPredictions.filter(p => p.awayScore > p.homeScore);
+      
+      const stats = {
+        totalPredictions: transformedPredictions.length,
+        homeTeamWinCount: homeTeamWins.length,
+        awayTeamWinCount: awayTeamWins.length,
+        homeTeamWinPercentage: transformedPredictions.length ? 
+          (homeTeamWins.length / transformedPredictions.length) * 100 : 0,
+        awayTeamWinPercentage: transformedPredictions.length ? 
+          (awayTeamWins.length / transformedPredictions.length) * 100 : 0
+      };
+      
+      return {
+        predictions: transformedPredictions,
+        stats: stats
+      };
+    } catch (error) {
+      console.error('Error fetching matchup predictions:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Activate upcoming matchup into In Progress status
+   * @param {string} matchupId Matchup ID
+   * @returns {Promise<Object>} Success response
+   */
+  activateMatchup: async (matchupId) => {
+    try {
+      const response = await apiClient.post('/prediction/activate_matchup', {
+        matchup_id: matchupId
+      });
+
+      return response;
+    } catch (error) {
+      console.error('Error activating matchup:', error);
+      throw error;
+    }
+  }
+};
+
+export default MatchupServices;
