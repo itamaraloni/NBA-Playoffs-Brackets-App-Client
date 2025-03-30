@@ -280,10 +280,61 @@ const PredictionsPage = () => {
         onSubmitPrediction={handleSubmitPrediction}
         isAdmin={user?.is_admin}
         onUpdateScore={handleUpdateScore}
-        onViewDetails={handleViewDetails} // Pass the function to open the dialog
-        onActivateMatchup={handleMatchupActivated} // Pass the function to re-render matchups after successful matchup activation
+        onViewDetails={handleViewDetails}
+        onActivateMatchup={handleMatchupActivated}
       />
     ));
+  };
+
+  // In PredictionsPage.js - modify renderCompletedMatchups
+  const renderCompletedMatchups = () => {
+    if (matchups.completed.length === 0) {
+      return (
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          <Typography variant="body1" color="text.secondary">
+            No matchups available in this category.
+          </Typography>
+        </Box>
+      );
+    }
+
+    // Group by round
+    const groupedByRound = {};
+    matchups.completed.forEach(matchup => {
+      const round = matchup.round || 1;
+      if (!groupedByRound[round]) {
+        groupedByRound[round] = [];
+      }
+      groupedByRound[round].push(matchup);
+    });
+
+    // Render groups
+    return Object.entries(groupedByRound)
+      .sort(([roundA], [roundB]) => parseInt(roundA) - parseInt(roundB))
+      .map(([round, matchupsList]) => (
+        <Box key={`round-${round}`} sx={{ mb: 4, textAlign: 'center'}}>
+          <Typography variant="h6" sx={{ mb: 2 }}>Round {round}</Typography>
+          {matchupsList.map((matchup, index) => (
+            <MatchupPredictionCard
+              key={`${matchup.id}-${index}`}
+              matchupId={matchup.id}
+              homeTeam={matchup.homeTeam}
+              awayTeam={matchup.awayTeam}
+              status={matchup.status}
+              actualHomeScore={matchup.actualHomeScore}
+              actualAwayScore={matchup.actualAwayScore}
+              predictedHomeScore={matchup.predictedHomeScore}
+              predictedAwayScore={matchup.predictedAwayScore}
+              round={matchup.round}
+              onSubmitPrediction={handleSubmitPrediction}
+              isAdmin={user?.is_admin}
+              onUpdateScore={handleUpdateScore}
+              onViewDetails={handleViewDetails}
+              onActivateMatchup={handleMatchupActivated}
+            />
+          ))}
+        </Box>
+      ));
   };
 
   return (
@@ -336,7 +387,7 @@ const PredictionsPage = () => {
           </TabPanel>
           
           <TabPanel value={tabIndex} index={2}>
-            {renderMatchups(matchups.completed)}
+            {renderCompletedMatchups()}
           </TabPanel>
         </Box>
       )}
