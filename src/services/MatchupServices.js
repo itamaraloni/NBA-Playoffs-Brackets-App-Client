@@ -107,11 +107,10 @@ const MatchupServices = {
    */
   updateMatchupScore: async (scoreUpdate) => {
     try {
-      const response = await apiClient.post('/matchup/update_score', {
-        homeTeam: scoreUpdate.homeTeam,
-        awayTeam: scoreUpdate.awayTeam,
-        homeScore: scoreUpdate.homeScore,
-        awayScore: scoreUpdate.awayScore
+      const response = await apiClient.post('/prediction/update_matchup', {
+        matchup_id: scoreUpdate.matchupId,
+        home_team_score: scoreUpdate.homeScore,
+        away_team_score: scoreUpdate.awayScore
       });
       return response;
     } catch (error) {
