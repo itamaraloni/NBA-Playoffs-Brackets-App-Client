@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 
 /**
  * A component to display match scores with labels
@@ -20,14 +20,79 @@ const MatchupScoreDisplay = ({
   awayScore,
   sx = {}
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   return (
-    <Box sx={{ textAlign: 'center', ...sx }}>
-      <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-        {label}:
+    <Box sx={{ 
+      width: '100%',
+      maxWidth: '500px',
+      ...sx 
+    }}>
+      <Typography variant="subtitle1" sx={{ 
+        fontWeight: 'bold',
+        textAlign: 'center',
+        mb: 1,
+        color: theme.palette.grey[700],
+        borderBottom: `1px solid ${theme.palette.grey[400]}`,
+        pb: 0.5,
+        width: 'fit-content',
+        mx: 'auto'
+      }}>
+        {label}
       </Typography>
-      <Typography>
-        {homeTeam} {homeScore} - {awayScore} {awayTeam}
-      </Typography>
+      
+      {isMobile ? (
+        // Mobile layout (stacked)
+        <Box sx={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 1
+        }}>
+          <Typography sx={{ fontWeight: 'medium' }}>
+                          {homeTeam} <Typography component="span" sx={{ fontWeight: 'bold', fontSize: '1.1rem', ml: 1 }}>{homeScore}</Typography>
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.8 }}>
+            vs
+          </Typography>
+          <Typography sx={{ fontWeight: 'medium' }}>
+                          {awayTeam} <Typography component="span" sx={{ fontWeight: 'bold', fontSize: '1.1rem', ml: 1 }}>{awayScore}</Typography>
+          </Typography>
+        </Box>
+      ) : (
+        // Desktop layout (horizontal)
+        <Box sx={{ 
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <Box sx={{ 
+            flex: 1, 
+            textAlign: 'right',
+            pr: 1
+          }}>
+            <Typography sx={{ fontWeight: 'medium' }}>
+              {homeTeam} <Typography component="span" sx={{ fontWeight: 'bold', fontSize: '1.1rem', ml: 1 }}>{homeScore}</Typography>
+            </Typography>
+          </Box>
+          <Typography variant="body2" sx={{ 
+            px: 2,
+            opacity: 0.8
+          }}>
+            vs
+          </Typography>
+          <Box sx={{ 
+            flex: 1, 
+            textAlign: 'left',
+            pl: 1
+          }}>
+            <Typography sx={{ fontWeight: 'medium' }}>
+              <Typography component="span" sx={{ fontWeight: 'bold', fontSize: '1.1rem', mr: 1 }}>{awayScore}</Typography> {awayTeam}
+            </Typography>
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 };

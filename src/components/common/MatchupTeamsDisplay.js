@@ -15,19 +15,23 @@ const MatchupTeamsDisplay = ({
   awayTeam,
   sx = {}
 }) => {
+
   return (
     <Box sx={{ 
       display: 'flex', 
-      justifyContent: 'space-between', 
+      justifyContent: 'center', 
       alignItems: 'center',
       flexDirection: { xs: 'column', sm: 'row' },
+      width: '100%',
       ...sx
     }}>
       <Box sx={{ 
         display: 'flex', 
         flexDirection: 'column', 
-        alignItems: 'center', 
-        mb: { xs: 2, sm: 0 } 
+        alignItems: 'center',
+        mb: { xs: 2, sm: 0 },
+        flex: 1,
+        maxWidth: { xs: '100%', sm: '40%' }
       }}>
         <Team 
           name={homeTeam.name}
@@ -37,14 +41,31 @@ const MatchupTeamsDisplay = ({
         />
       </Box>
 
-      <Typography variant="h6" sx={{ fontWeight: 'bold', mx: 2 }}>
-        VS
-      </Typography>
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: { xs: '100%', sm: '20%' },
+        my: { xs: 2, sm: 0 }
+      }}>
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            fontWeight: 'bold',
+            textAlign: 'center',
+            px: 2
+          }}
+        >
+          VS
+        </Typography>
+      </Box>
 
       <Box sx={{ 
         display: 'flex', 
         flexDirection: 'column', 
-        alignItems: 'center' 
+        alignItems: 'center',
+        flex: 1,
+        maxWidth: { xs: '100%', sm: '40%' }
       }}>
         <Team 
           name={awayTeam.name}

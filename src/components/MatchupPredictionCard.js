@@ -153,7 +153,7 @@ const MatchupPredictionCard = ({
    * Render prediction input for upcoming games
    */
   const renderUpcomingMatchup = () => (
-    <Box sx={{ mt: 3 }}>
+    <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       {predictedHomeScore !== null && predictedAwayScore !== null && (
         <MatchScoreDisplay
           label="Your Prediction"
@@ -165,7 +165,7 @@ const MatchupPredictionCard = ({
         />
       )}
 
-      <Typography variant="subtitle1" sx={{ mb: 1, textAlign: 'center' }}>
+      <Typography variant="subtitle1" sx={{ mb: 1, textAlign: 'center', fontWeight: 500 }}>
         {predictedHomeScore !== null ? 'Update Your Prediction' : 'Make Your Prediction'}
       </Typography>
 
@@ -175,7 +175,9 @@ const MatchupPredictionCard = ({
         flexDirection: { xs: 'column', sm: 'row' },
         alignItems: 'center', 
         gap: 3,
-        px: 3
+        width: '100%',
+        maxWidth: '500px',
+        px: 2
       }}>
         <ScoreCounter
           label={homeTeam.name}
@@ -193,7 +195,7 @@ const MatchupPredictionCard = ({
       </Box>
 
       {validationError && (
-        <Alert severity="error" sx={{ mt: 2 }}>
+        <Alert severity="error" sx={{ mt: 2, width: '100%', maxWidth: '500px' }}>
           {validationError}
         </Alert>
       )}
@@ -204,6 +206,7 @@ const MatchupPredictionCard = ({
           color="primary"
           startIcon={<RocketLaunch />}
           onClick={handleSubmitPrediction}
+          sx={{ minWidth: '180px' }}
         >
           Submit Prediction
         </Button>
@@ -213,9 +216,10 @@ const MatchupPredictionCard = ({
         <Box sx={{ textAlign: 'center', mt: 2 }}>
           <Button 
             variant="contained" 
-            color="primary"
+            color="secondary"
             startIcon={<RocketLaunch />}
             onClick={handleActivateMatchup}
+            sx={{ minWidth: '180px' }}
           >
             Activate Prediction
           </Button>
@@ -228,14 +232,14 @@ const MatchupPredictionCard = ({
    * Render display for in-progress games
    */
   const renderInProgressMatchup = () => (
-    <Box sx={{ mt: 2 }}>
+    <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
       <MatchScoreDisplay
         label="Current Score"
         homeTeam={homeTeam.name}
         awayTeam={awayTeam.name}
         homeScore={actualHomeScore}
         awayScore={actualAwayScore}
-        sx={{ mb: 1 }}
+        sx={{ mb: 1, width: '100%' }}
       />
 
       {predictedHomeScore !== null && predictedAwayScore !== null && (
@@ -245,7 +249,7 @@ const MatchupPredictionCard = ({
           awayTeam={awayTeam.name}
           homeScore={predictedHomeScore}
           awayScore={predictedAwayScore}
-          sx={{ mt: 2 }}
+          sx={{ mt: 2, width: '100%' }}
         />
       )}
 
@@ -269,7 +273,7 @@ const MatchupPredictionCard = ({
           variant="outlined"
           onClick={handleViewDetails}
           size="small"
-          sx={{ width: { xs: '100%', sm: 'auto' } }}
+          sx={{ width: { xs: '100%', sm: 'auto' }, minWidth: '200px' }}
         >
           View League Predictions
         </Button>
@@ -281,14 +285,14 @@ const MatchupPredictionCard = ({
    * Render display for completed games
    */
   const renderCompletedMatchup = () => (
-    <Box sx={{ mt: 2 }}>
+    <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
       <MatchScoreDisplay
         label="Final Score"
         homeTeam={homeTeam.name}
         awayTeam={awayTeam.name}
         homeScore={actualHomeScore}
         awayScore={actualAwayScore}
-        sx={{ mb: 1 }}
+        sx={{ mb: 1, width: '100%' }}
       />
 
       {predictedHomeScore !== null && predictedAwayScore !== null && (
@@ -298,7 +302,7 @@ const MatchupPredictionCard = ({
           awayTeam={awayTeam.name}
           homeScore={predictedHomeScore}
           awayScore={predictedAwayScore}
-          sx={{ mt: 2 }}
+          sx={{ mt: 2, width: '100%' }}
         />
       )}
       
@@ -307,7 +311,7 @@ const MatchupPredictionCard = ({
           variant="outlined"
           onClick={handleViewDetails}
           size="small"
-          sx={{ width: { xs: '100%', sm: 'auto' } }}
+          sx={{ width: { xs: '100%', sm: 'auto' }, minWidth: '200px' }}
         >
           View League Predictions
         </Button>
@@ -331,6 +335,30 @@ const MatchupPredictionCard = ({
     }
   };
 
+  /**
+   * Get status chip color
+   */
+  const getStatusColor = () => {
+    switch (status) {
+      case 'upcoming': return 'info';
+      case 'in-progress': return 'warning';
+      case 'completed': return 'success';
+      default: return 'default';
+    }
+  };
+
+  /**
+   * Get status display text
+   */
+  const getStatusText = () => {
+    switch (status) {
+      case 'upcoming': return 'Upcoming';
+      case 'in-progress': return 'In Progress';
+      case 'completed': return 'Completed';
+      default: return status;
+    }
+  };
+
   return (
     <Card 
       variant="outlined" 
@@ -338,7 +366,8 @@ const MatchupPredictionCard = ({
         mb: 2, 
         borderRadius: 2,
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        position: 'relative'
+        position: 'relative',
+        overflow: 'visible'
       }}
     >
       {/* Round Badge */}
