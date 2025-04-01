@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TeamsDisplay from './common/MatchupTeamsDisplay';
 import ScoreCounter from './common/ScoreCounter';
 import MatchScoreDisplay from './common/MatchupScoreDisplay';
 import AdminScoreEditor from './common/MatchupAdminScoreEditor';
+import PlayInTeamSelector from './common/PlayInTeamSelector';
 import {
   Card,
   CardContent,
@@ -40,6 +41,7 @@ const MatchupPredictionCard = ({
   const [editMode, setEditMode] = useState(false);
   const [actualHome, setActualHome] = useState(actualHomeScore || 0);
   const [actualAway, setActualAway] = useState(actualAwayScore || 0);
+  const [selectedTeam, setSelectedTeam] = useState(null);
 
   /**
    * Get round display text
@@ -150,83 +152,171 @@ const MatchupPredictionCard = ({
   };
 
   /**
+   * Reset selected team when component is mounted or prediction type changes
+   */
+  useEffect(() => {
+    // If we have a previous prediction, set the selected team
+    if (round === "playin_first" || round === "playin_second") {
+      if (predictedHomeScore === 1) {
+        setSelectedTeam('home');
+      } else if (predictedAwayScore === 1) {
+        setSelectedTeam('away');
+      } else {
+        setSelectedTeam(null);
+      }
+    }
+  }, [round, predictedHomeScore, predictedAwayScore]);
+
+  /**
    * Render prediction input for upcoming games
    */
-  const renderUpcomingMatchup = () => (
-    <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      {predictedHomeScore !== null && predictedAwayScore !== null && (
-        <MatchScoreDisplay
-          label="Your Prediction"
-          homeTeam={homeTeam.name}
-          awayTeam={awayTeam.name}
-          homeScore={predictedHomeScore}
-          awayScore={predictedAwayScore}
-          sx={{ mb: 2 }}
-        />
-      )}
+  const renderUpcomingMatchup = () => {
+    // For Play-In games (single elimination)
+    if (round === "playin_first" || round === "playin_second") {
+      const handleTeamSelect = (team) => {
+        // Toggle selection if clicking the same team
+        if (selectedTeam === team) {
+          setSelectedTeam(null);
+        } else {
+          setSelectedTeam(team);
+        }
+        setValidationError('');
+      };
 
-      <Typography variant="subtitle1" sx={{ mb: 1, textAlign: 'center', fontWeight: 500 }}>
-        {predictedHomeScore !== null ? 'Update Your Prediction' : 'Make Your Prediction'}
-      </Typography>
+      const handlePlayInPrediction = () => {
+        if (!selectedTeam) {
+          setValidationError('Please select a team to win');
+          return;
+        }
 
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        flexDirection: { xs: 'column', sm: 'row' },
-        alignItems: 'center', 
-        gap: 3,
-        width: '100%',
-        maxWidth: '500px',
-        px: 2
-      }}>
-        <ScoreCounter
-          label={homeTeam.name}
-          value={homeScore}
-          onChange={setHomeScore}
-          sx={{ width: '100%', maxWidth: 200 }}
-        />
-        
-        <ScoreCounter
-          label={awayTeam.name}
-          value={awayScore}
-          onChange={setAwayScore}
-          sx={{ width: '100%', maxWidth: 200 }}
-        />
-      </Box>
+        if (onSubmitPrediction) {
+          const homeWin = selectedTeam === 'home';
+          onSubmitPrediction({
+            matchupId: matchupId,
+            homeScore: homeWin ? 1 : 0,
+            awayScore: homeWin ? 0 : 1
+          });
+        }
+      };
 
-      {validationError && (
-        <Alert severity="error" sx={{ mt: 2, width: '100%', maxWidth: '500px' }}>
-          {validationError}
-        </Alert>
-      )}
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+          <PlayInTeamSelector
+            homeTeam={homeTeam}
+            awayTeam={awayTeam}
+            selectedTeam={selectedTeam}
+            onSelectTeam={handleTeamSelect}
+            predictedHomeScore={predictedHomeScore}
+            predictedAwayScore={predictedAwayScore}
+            validationError={validationError}
+          />
 
-      <Box sx={{ textAlign: 'center', mt: 2 }}>
-        <Button 
-          variant="contained" 
-          color="primary"
-          startIcon={<RocketLaunch />}
-          onClick={handleSubmitPrediction}
-          sx={{ minWidth: '180px' }}
-        >
-          Submit Prediction
-        </Button>
-      </Box>
+          <Box sx={{ textAlign: 'center', mt: 3 }}>
+            <Button 
+              variant="contained" 
+              color="primary"
+              startIcon={<RocketLaunch />}
+              onClick={handlePlayInPrediction}
+              sx={{ minWidth: '180px' }}
+            >
+              Submit Prediction
+            </Button>
+          </Box>
 
-      {isAdmin && (
+          {isAdmin && (
+            <Box sx={{ textAlign: 'center', mt: 2 }}>
+              <Button 
+                variant="contained" 
+                color="secondary"
+                startIcon={<RocketLaunch />}
+                onClick={handleActivateMatchup}
+                sx={{ minWidth: '180px' }}
+              >
+                Activate Prediction
+              </Button>
+            </Box>
+          )}
+        </Box>
+      );
+    }
+    
+    // For regular playoff series (best of 7)
+    return (
+      <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        {predictedHomeScore !== null && predictedAwayScore !== null && (
+          <MatchScoreDisplay
+            label="Your Prediction"
+            homeTeam={homeTeam.name}
+            awayTeam={awayTeam.name}
+            homeScore={predictedHomeScore}
+            awayScore={predictedAwayScore}
+            sx={{ mb: 2 }}
+          />
+        )}
+
+        <Typography variant="subtitle1" sx={{ mb: 1, textAlign: 'center', fontWeight: 500 }}>
+          {predictedHomeScore !== null ? 'Update Your Prediction' : 'Make Your Prediction'}
+        </Typography>
+
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: 'center', 
+          gap: 3,
+          width: '100%',
+          maxWidth: '500px',
+          px: 2
+        }}>
+          <ScoreCounter
+            label={homeTeam.name}
+            value={homeScore}
+            onChange={setHomeScore}
+            sx={{ width: '100%', maxWidth: 200 }}
+          />
+          
+          <ScoreCounter
+            label={awayTeam.name}
+            value={awayScore}
+            onChange={setAwayScore}
+            sx={{ width: '100%', maxWidth: 200 }}
+          />
+        </Box>
+
+        {validationError && (
+          <Alert severity="error" sx={{ mt: 2, width: '100%', maxWidth: '500px' }}>
+            {validationError}
+          </Alert>
+        )}
+
         <Box sx={{ textAlign: 'center', mt: 2 }}>
           <Button 
             variant="contained" 
-            color="secondary"
+            color="primary"
             startIcon={<RocketLaunch />}
-            onClick={handleActivateMatchup}
+            onClick={handleSubmitPrediction}
             sx={{ minWidth: '180px' }}
           >
-            Activate Prediction
+            Submit Prediction
           </Button>
         </Box>
-      )}
-    </Box>
-  );
+
+        {isAdmin && (
+          <Box sx={{ textAlign: 'center', mt: 2 }}>
+            <Button 
+              variant="contained" 
+              color="secondary"
+              startIcon={<RocketLaunch />}
+              onClick={handleActivateMatchup}
+              sx={{ minWidth: '180px' }}
+            >
+              Activate Prediction
+            </Button>
+          </Box>
+        )}
+      </Box>
+    );
+  };
 
   /**
    * Render display for in-progress games
