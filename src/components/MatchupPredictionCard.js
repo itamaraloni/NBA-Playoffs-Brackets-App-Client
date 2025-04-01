@@ -10,10 +10,9 @@ import {
   Box,
   Button,
   Alert,
-  useMediaQuery,
-  useTheme
+  Chip
 } from '@mui/material';
-import { RocketLaunch } from '@mui/icons-material';
+import { RocketLaunch, EmojiEvents } from '@mui/icons-material';
 import MatchupServices from '../services/MatchupServices';
 
 /**
@@ -28,6 +27,7 @@ const MatchupPredictionCard = ({
   actualAwayScore = null,
   predictedHomeScore = null,
   predictedAwayScore = null,
+  round = 1,
   onSubmitPrediction,
   isAdmin = localStorage.getItem('is_admin') === 'true',
   onUpdateScore,
@@ -40,9 +40,21 @@ const MatchupPredictionCard = ({
   const [editMode, setEditMode] = useState(false);
   const [actualHome, setActualHome] = useState(actualHomeScore || 0);
   const [actualAway, setActualAway] = useState(actualAwayScore || 0);
-  
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  /**
+   * Get round display text
+   */
+  const getRoundDisplay = () => {
+    switch (round) {
+      case "playin_first": return "Play-In First Round"
+      case "playin_second": return "Play-In Second Round"
+      case "first": return "First Round";
+      case "second": return "Conference Semifinals";
+      case "conference_final": return "Conference Finals";
+      case "final": return "NBA Finals";
+      default: return `Round ${round}`;
+    }
+  };
 
   /**
    * Validate NBA Playoff series scoring rules
@@ -329,13 +341,41 @@ const MatchupPredictionCard = ({
         position: 'relative'
       }}
     >
-
-      <CardContent>
+      {/* Round Badge */}
+      <Chip
+        icon={<EmojiEvents fontSize="small" />}
+        label={getRoundDisplay()}
+        color="primary"
+        sx={{
+          position: 'absolute',
+          top: -12,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          fontWeight: 'bold',
+          zIndex: 1
+        }}
+      />
+      
+      {/* Status Chip */}
+      <Chip
+        label={getStatusText()}
+        color={getStatusColor()}
+        size="small"
+        sx={{
+          position: 'absolute',
+          top: 10,
+          right: 10,
+          fontWeight: 'medium'
+        }}
+      />
+      
+      <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pt: 4 }}>
         {/* Teams Display */}
         <TeamsDisplay 
           homeTeam={homeTeam} 
-          awayTeam={awayTeam} 
-          sx={{ mb: 2 }}
+          awayTeam={awayTeam}
+          round={round}
+          sx={{ mb: 2, width: '100%' }}
         />
 
         {/* Matchup content based on status */}

@@ -277,6 +277,7 @@ const PredictionsPage = () => {
         actualAwayScore={matchup.actualAwayScore}
         predictedHomeScore={matchup.predictedHomeScore}
         predictedAwayScore={matchup.predictedAwayScore}
+        round={matchup.round}
         onSubmitPrediction={handleSubmitPrediction}
         isAdmin={user?.is_admin}
         onUpdateScore={handleUpdateScore}
