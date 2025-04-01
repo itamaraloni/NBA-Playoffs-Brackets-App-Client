@@ -132,7 +132,7 @@ const PredictionsPage = () => {
 
   const handleUpdateScore = async (scoreUpdate) => {
     try {
-      await MatchupServices.updateMatchupScore(scoreUpdate);
+      const response = await MatchupServices.updateMatchupScore(scoreUpdate);
       
       // Show success notification
       if (window.notify) {
@@ -158,7 +158,9 @@ const PredictionsPage = () => {
         };
         
         // Determine if status should change
-        if (scoreUpdate.homeScore === 4 || scoreUpdate.awayScore === 4) {
+        if (response.status === 'completed' ||
+           (scoreUpdate.homeScore === 4 || scoreUpdate.awayScore === 4)
+        ) {
           const matchupToMove = inProgressCopy[matchupIndex];
           
           // Remove from in-progress
@@ -302,10 +304,12 @@ const PredictionsPage = () => {
     // Group by round
     const groupedByRound = {};
     matchups.completed.forEach(matchup => {
-      const round = matchup.round || 1;
+      const round = getRoundDisplay(matchup.round) || 'first';
+
       if (!groupedByRound[round]) {
         groupedByRound[round] = [];
       }
+
       groupedByRound[round].push(matchup);
     });
 
@@ -314,7 +318,7 @@ const PredictionsPage = () => {
       .sort(([roundA], [roundB]) => parseInt(roundA) - parseInt(roundB))
       .map(([round, matchupsList]) => (
         <Box key={`round-${round}`} sx={{ mb: 4, textAlign: 'center'}}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Round {round}</Typography>
+          <Typography variant="h6" sx={{ mb: 2 }}>{round}</Typography>
           {matchupsList.map((matchup, index) => (
             <MatchupPredictionCard
               key={`${matchup.id}-${index}`}
@@ -337,6 +341,21 @@ const PredictionsPage = () => {
         </Box>
       ));
   };
+
+    /**
+   * Get round display text
+   */
+    const getRoundDisplay = (round) => {
+      switch (round) {
+        case "playin_first": return "Play-In First Round"
+        case "playin_second": return "Play-In Second Round"
+        case "first": return "First Round";
+        case "second": return "Conference Semifinals";
+        case "conference_final": return "Conference Finals";
+        case "final": return "NBA Finals";
+        default: return `Round ${round}`;
+      }
+    };
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
