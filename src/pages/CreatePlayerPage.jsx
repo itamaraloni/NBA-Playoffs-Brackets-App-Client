@@ -70,7 +70,6 @@ const CreatePlayerPage = () => {
         localStorage.removeItem('leagueSetup');
 
         messageToDisplay = 'League created successfully';
-        console.log(`${messageToDisplay}:`, createLeagueResponse);
         leagueId = createLeagueResponse.league_id;
       }
       else {
@@ -78,7 +77,6 @@ const CreatePlayerPage = () => {
         localStorage.removeItem('joinLeagueId');
       }
 
-      console.log('selected avatar:', selectedAvatar);
       // create player id
       const createPlayerResponse = await LeagueServices.joinLeague({
         league_id: leagueId,
@@ -92,7 +90,6 @@ const CreatePlayerPage = () => {
         throw new Error('Failed to create player');
       }
 
-      console.log('Player created successfully:', createPlayerResponse);
       messageToDisplay = `${messageToDisplay ? messageToDisplay + ' and ' : ''}Player created successfully`;
       setAlert({
         open: true,
@@ -167,6 +164,7 @@ const CreatePlayerPage = () => {
           
           <Grid container spacing={2} sx={{ mb: 4 }}>
             {PLAYER_AVATARS.map((avatar) => (
+              avatar.id < 100 &&
               <Grid item xs={6} sm={4} key={avatar.id}>
                 <Card 
                   elevation={selectedAvatar === avatar.id ? 8 : 1}
