@@ -44,21 +44,36 @@ const UserServices = {
   },
   
   /**
-   * Get current user profile
+   * Get current user profile (basic information only)
    * @returns {Promise<Object>} User profile data
    */
   async getUserProfile() {
     try {
-      const data = await apiClient.get('/user/get_profile');
-      return transformUserProfile(data);
+      const data = await apiClient.get('/user/get_user_profile');
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get player profile data including statistics
+   * @returns {Promise<Object>} Player profile and statistics
+   */
+  async getPlayerProfile() {
+    try {
+      const data = await apiClient.get('/user/get_player_profile');
+      return transformPlayerProfile(data);
     } catch (error) {
       throw error;
     }
   },
   
   /**
-   * Update user profile
-   * @param {Object} profileData - Profile data to update
+   * Update user's championship or MVP picks
+   * @param {String} type - 'championship' or 'mvp'
+   * @param {String} selection - Selected team or player
+   * @param {String} playerId - Player ID
    * @returns {Promise<Object>} Updated profile
    */
   async updatePicks(type, selection, playerId) {
@@ -123,22 +138,19 @@ const UserServices = {
 };
 
 /**
- * Transform API user profile to UI format
+ * Transform API player profile to UI format
  * @param {Object} response - API response
  * @returns {Object} Transformed data
  */
-const transformUserProfile = (response) => {
+const transformPlayerProfile = (response) => {
   try {
-    // Extract data from response
     const data = response;
     
-    if (!data || !data.user) {
-      console.error("Invalid profile data structure", data);
+    if (!data || (!data.player && !data.league)) {
       return null;
     }
     
     return {
-      user: data.user,
       player: data.player ? {
         ...data.player,
         formattedPlayer: {
@@ -146,9 +158,9 @@ const transformUserProfile = (response) => {
           player_avatar: data.player.player_avatar,
           championshipPrediction: data.player.winning_team,
           mvpPrediction: data.player.mvp,
-          bullsEye: data.player.bullsEye || 0,
-          hits: data.player.hits || 0,
-          misses: data.player.misses || 0,
+          bullsEye: data.player.bullsEye || {},
+          hits: data.player.hits || {},
+          misses: data.player.misses || {},
           score: data.player.total_points,
           championship_team_points: data.player.championship_team_points,
           mvp_points: data.player.mvp_points
@@ -157,7 +169,7 @@ const transformUserProfile = (response) => {
       league: data.league
     };
   } catch (error) {
-    console.error("Error transforming user profile:", error);
+    console.error("Error transforming player profile:", error);
     return null;
   }
 };
