@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import StandaloneHeader from '../components/common/StandaloneHeader';
-import ScoringRules from '../components/common/ScoringRules';
 import {
   Box,
   Button,
@@ -13,12 +12,20 @@ import {
   CircularProgress,
   useTheme,
   useMediaQuery,
-  Grid
+  Grid,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import {
   Google,
-  SportsBasketball
+  SportsBasketball,
+  EmojiEvents,
+  Timeline,
+  Groups
 } from '@mui/icons-material';
+import { BsBullseye } from 'react-icons/bs';
 
 const LandingPage = () => {
   const theme = useTheme();
@@ -58,7 +65,7 @@ const LandingPage = () => {
       }}
       >
 
-      {/* Hedear Section */}  
+      {/* Header Section */}  
       <StandaloneHeader title="NBA Playoffs Predictor" showLogout={false} showHome={false} />
 
       {/* Hero Section */}
@@ -131,9 +138,50 @@ const LandingPage = () => {
                 }}
               >
                 <Typography variant="h5" component="h3" gutterBottom fontWeight="bold" align="center">
-                  How Scoring Works
+                  Why Join Our Community?
                 </Typography>
-                <ScoringRules />
+                
+                <List>
+                  <ListItem>
+                    <ListItemIcon>
+                      <EmojiEvents sx={{ color: theme.palette.secondary.main }} />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Compete to be the best amongst your friends or colleagues" 
+                      secondary="Last time your whole bracket was busted on the first round already? Not this time!"
+                    />
+                  </ListItem>
+
+                  <ListItem>
+                    <ListItemIcon>
+                      <BsBullseye style={{ color: theme.palette.secondary.main }} />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Place Your Predictions On Every Matchup This Playoff"
+                      secondary="Predict the winner of each play-in and playoff series" 
+                    />
+                  </ListItem>
+                  
+                  <ListItem>
+                    <ListItemIcon>
+                      <Groups sx={{ color: theme.palette.secondary.main }} />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Compete and Put yourself to the Test" 
+                      secondary="Compare your basketball knowledge or sheer luck?"
+                    />
+                  </ListItem>
+
+                  <ListItem>
+                    <ListItemIcon>
+                      <Timeline sx={{ color: theme.palette.secondary.main }} />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Track Your Performance" 
+                      secondary="View detailed stats on your prediction accuracy against your league members"
+                    />
+                  </ListItem>
+                </List>
               </Paper>
             </Grid>
           </Grid>
