@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '@mui/material';
 import TeamsDisplay from './common/MatchupTeamsDisplay';
 import ScoreCounter from './common/ScoreCounter';
 import MatchScoreDisplay from './common/MatchupScoreDisplay';
@@ -15,6 +16,9 @@ import {
 } from '@mui/material';
 import { RocketLaunch, EmojiEvents } from '@mui/icons-material';
 import MatchupServices from '../services/MatchupServices';
+import { Close } from '@mui/icons-material';
+import { BsBullseye } from 'react-icons/bs';
+import { TbCrystalBall } from 'react-icons/tb';
 
 /**
  * Card component displaying a playoff matchup with prediction functionality
@@ -42,6 +46,7 @@ const MatchupPredictionCard = ({
   const [actualHome, setActualHome] = useState(actualHomeScore || 0);
   const [actualAway, setActualAway] = useState(actualAwayScore || 0);
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const theme = useTheme();
 
   /**
    * Get round display text
@@ -367,42 +372,80 @@ const MatchupPredictionCard = ({
   /**
    * Render display for completed games
    */
-  const renderCompletedMatchup = () => (
-    <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-      <MatchScoreDisplay
-        label="Final Score"
-        homeTeam={homeTeam.name}
-        awayTeam={awayTeam.name}
-        homeScore={actualHomeScore}
-        awayScore={actualAwayScore}
-        round={round}
-        sx={{ mb: 1, width: '100%' }}
-      />
-
-      {predictedHomeScore !== null && predictedAwayScore !== null && (
+  const renderCompletedMatchup = () => {
+    const accuracy = getPredictionAccuracy();
+    
+    return (
+      <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
         <MatchScoreDisplay
-          label="Your Prediction"
+          label="Final Score"
           homeTeam={homeTeam.name}
           awayTeam={awayTeam.name}
-          homeScore={predictedHomeScore}
-          awayScore={predictedAwayScore}
+          homeScore={actualHomeScore}
+          awayScore={actualAwayScore}
           round={round}
-          sx={{ mt: 2, width: '100%' }}
+          sx={{ mb: 1, width: '100%' }}
         />
-      )}
-      
-      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
-        <Button
-          variant="outlined"
-          onClick={handleViewDetails}
-          size="small"
-          sx={{ width: { xs: '100%', sm: 'auto' }, minWidth: '200px' }}
-        >
-          View League Predictions
-        </Button>
+
+        {predictedHomeScore !== null && predictedAwayScore !== null && (
+          <>
+            <MatchScoreDisplay
+              label="Your Prediction"
+              homeTeam={homeTeam.name}
+              awayTeam={awayTeam.name}
+              homeScore={predictedHomeScore}
+              awayScore={predictedAwayScore}
+              round={round}
+              sx={{ mt: 2, width: '100%' }}
+            />
+            
+            {/* Accuracy Indicator */}
+            {accuracy.type !== 'none' && (
+              <Box 
+                sx={{
+                  mt: 2,
+                  px: 2,
+                  py: 0.5,
+                  borderRadius: '16px',
+                  backgroundColor: `${accuracy.color}20`,
+                  border: `1px solid ${accuracy.color}`,
+                  color: theme.palette.mode === 'dark' ? accuracy.color : accuracy.color,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                {accuracy.type === 'bullsEye' && <TbCrystalBall size={18} color={accuracy.color} />}
+                {accuracy.type === 'hit' && <BsBullseye size={18} color={accuracy.color} />}
+                {accuracy.type === 'miss' && <Close fontSize="small" sx={{ color: accuracy.color }} />}
+                <Typography variant="body2" fontWeight="medium" sx={{ color: accuracy.color }}>
+                  {accuracy.label}
+                </Typography>
+                
+                {/* Show points earned for hits and bullseye */}
+                {(accuracy.type === 'hit' || accuracy.type === 'bullsEye') && (
+                  <Typography variant="body2" sx={{ ml: 1, color: accuracy.color }}>
+                    (+{getPointsForPrediction(accuracy.type, round)})
+                  </Typography>
+                )}
+              </Box>
+            )}
+          </>
+        )}
+        
+        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+          <Button
+            variant="outlined"
+            onClick={handleViewDetails}
+            size="small"
+            sx={{ width: { xs: '100%', sm: 'auto' }, minWidth: '200px' }}
+          >
+            View League Predictions
+          </Button>
+        </Box>
       </Box>
-    </Box>
-  );
+    );
+  };
 
   /**
    * Render content based on matchup status
@@ -443,6 +486,78 @@ const MatchupPredictionCard = ({
       default: return status;
     }
   };
+
+  /**
+   * Determine prediction accuracy (bullsEye, hit, or miss)
+   */
+  const getPredictionAccuracy = () => {
+    // If no prediction made
+    if (predictedHomeScore === null || predictedAwayScore === null) {
+      return { type: 'none', label: 'No Prediction' };
+    }
+
+    // Get actual winner
+    const actualWinner = actualHomeScore > actualAwayScore ? homeTeam.name : awayTeam.name;
+    
+    // Get predicted winner
+    const predictedWinner = predictedHomeScore > predictedAwayScore ? homeTeam.name : awayTeam.name;
+    
+    // Miss - wrong winner
+    if (actualWinner !== predictedWinner) {
+      return { type: 'miss', label: 'Miss', color: theme.palette.error.main };
+    }
+    
+    // For play-in games, there's no concept of "exact score" (just winner)
+    if (round === 'play_in') {
+      return { type: 'hit', label: 'Hit', color: theme.palette.warning.main };
+    }
+    
+    // Bulls-Eye - correct winner and exact score
+    const actualScoreDiff = Math.abs(actualHomeScore - actualAwayScore);
+    const predictedScoreDiff = Math.abs(predictedHomeScore - predictedAwayScore);
+    
+    if (actualScoreDiff === predictedScoreDiff) {
+      return { type: 'bullsEye', label: 'Bulls-Eye', color: theme.palette.success.main };
+    }
+    
+    // Hit - correct winner but wrong score
+    return { type: 'hit', label: 'Hit', color: theme.palette.warning.main };
+  };
+
+    /**
+   * Calculate points earned based on prediction type and round
+   */
+    const getPointsForPrediction = (predictionType, round) => {
+      let hitPoints = 0;
+      let bullsEyePoints = 0;
+      
+      switch (round) {
+        case 'play_in':
+          hitPoints = 2;
+          bullsEyePoints = 2; // Play-in games don't have bullseye distinction
+          break;
+        case 'first':
+          hitPoints = 4;
+          bullsEyePoints = 6;
+          break;
+        case 'second':
+          hitPoints = 6;
+          bullsEyePoints = 9;
+          break;
+        case 'conference_final':
+          hitPoints = 8;
+          bullsEyePoints = 12;
+          break;
+        case 'final':
+          hitPoints = 10;
+          bullsEyePoints = 15;
+          break;
+        default:
+          return 0;
+      }
+      
+      return predictionType === 'bullsEye' ? bullsEyePoints : hitPoints;
+    };
 
   return (
     <Card 
