@@ -211,6 +211,7 @@ const PredictionsPage = () => {
   // This function is passed to MatchupPredictionCard and called when
   // "View League Predictions" button is clicked
   const handleViewDetails = async (matchup) => {
+    // Store the entire matchup object including the round
     setSelectedMatchup(matchup);
     setDialogOpen(true);
     
@@ -224,26 +225,27 @@ const PredictionsPage = () => {
         }
         return;
       }
-
-      // Fetch league predictions using matchup ID and league ID
+  
+      // Fetch league predictions
       const result = await MatchupServices.getMatchupPredictions(
         matchup.id,
         leagueId
       );
       
       setLeaguePredictions(result.predictions);
-
+      
       // Pass stats in the matchup object
+      // Preserve the round property explicitly when updating
       setSelectedMatchup(prevMatchup => ({
         ...prevMatchup,
+        round: matchup.round,
         predictionStats: result.stats
       }));
-
+  
     } catch (error) {
       console.error("Error fetching league predictions:", error);
       setLeaguePredictions([]);
       
-      // Show error notification
       if (window.notify) {
         window.notify.error('Failed to load league predictions');
       }

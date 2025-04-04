@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -41,7 +41,13 @@ const MatchupDetailsDialog = ({
   // If no matchup data, don't render
   if (!matchup) return null;
 
-  const { homeTeam, awayTeam, status, actualHomeScore, actualAwayScore } = matchup;
+  const { homeTeam, awayTeam, status, actualHomeScore, actualAwayScore, round } = matchup;
+  
+  // More robust play-in detection
+  const isPlayInByRound = round?.startsWith('playin_');
+  const isPlayInByScore = (actualHomeScore === 1 && actualAwayScore === 0) || 
+                          (actualHomeScore === 0 && actualAwayScore === 1);
+  const isPlayIn = isPlayInByRound && isPlayInByScore;
   
   /**
    * Determine prediction accuracy for completed matchups
@@ -49,6 +55,16 @@ const MatchupDetailsDialog = ({
   const getPredictionAccuracy = (prediction) => {
     if (status !== 'completed') return null;
 
+    // Special handling for Play-In games
+    if (isPlayIn) {
+      const actualWinner = actualHomeScore === 1 ? 'home' : 'away';
+      const predictedWinner = prediction.homeScore === 1 ? 'home' : 'away';
+      
+      // For Play-In games, it's either correct or wrong
+      return actualWinner === predictedWinner ? 'hit' : 'miss';
+    }
+    
+    // For regular playoff series
     const actualWinner = actualHomeScore > actualAwayScore ? 'home' : 'away';
     const predictedWinner = prediction.homeScore > prediction.awayScore ? 'home' : 'away';
     
@@ -144,6 +160,7 @@ const MatchupDetailsDialog = ({
           <MatchupTeamsDisplay
             homeTeam={homeTeam}
             awayTeam={awayTeam}
+            round={round}
           />
           
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
@@ -154,6 +171,7 @@ const MatchupDetailsDialog = ({
                 awayTeam={awayTeam.name}
                 homeScore={actualHomeScore}
                 awayScore={actualAwayScore}
+                round={round}
               />
             ) : status === 'in-progress' ? (
               <MatchupScoreDisplay
@@ -162,6 +180,7 @@ const MatchupDetailsDialog = ({
                 awayTeam={awayTeam.name}
                 homeScore={actualHomeScore}
                 awayScore={actualAwayScore}
+                round={round}
               />
             ) : (
               <Typography variant="subtitle1">Upcoming Matchup</Typography>
@@ -171,13 +190,14 @@ const MatchupDetailsDialog = ({
 
         <Divider sx={{ mb: 3 }} />
         
-        {/* Prediction Statistics - Now using separate component */}
+        {/* Prediction Statistics */}
         <MatchupPredictionsStats 
           stats={matchup?.predictionStats} 
           loading={loading} 
           homeTeam={homeTeam} 
           awayTeam={awayTeam}
           leaguePredictions={leaguePredictions}
+          round={round}
         />
         
         <Divider sx={{ mb: 3 }} />
@@ -192,6 +212,12 @@ const MatchupDetailsDialog = ({
             leaguePredictions.map((prediction, index) => {
               const accuracy = getPredictionAccuracy(prediction);
               const isCurrentPlayer = prediction.userName === localStorage.getItem('player_name'); 
+              
+              // Check if this prediction is for a play-in game
+              const isPredictionPlayIn = isPlayIn || 
+                ((prediction.homeScore === 0 || prediction.homeScore === 1) && 
+                (prediction.awayScore === 0 || prediction.awayScore === 1) && 
+                prediction.homeScore + prediction.awayScore === 1);
               
               return (
                 <ListItem 
@@ -239,13 +265,25 @@ const MatchupDetailsDialog = ({
                     }}>
                         {status === 'completed' && renderAccuracyIndicator(accuracy)}
                     
-                        <Typography variant="body1" sx={{ 
-                            fontWeight: 'bold',
-                            mb: { xs: status === 'completed' ? 1 : 0, sm: 0 },
-                            ml: { xs: 0, sm: status === 'completed' ? 1 : 0 }
-                        }}>
-                            {homeTeam.name} {prediction.homeScore} - {prediction.awayScore} {awayTeam.name}
-                        </Typography>
+                        {isPredictionPlayIn ? (
+                          // Display for Play-In games
+                          <Typography variant="body1" sx={{ 
+                              fontWeight: 'bold',
+                              mb: { xs: status === 'completed' ? 1 : 0, sm: 0 },
+                              ml: { xs: 0, sm: status === 'completed' ? 1 : 0 }
+                          }}>
+                              Picked: {prediction.homeScore === 1 ? homeTeam.name : awayTeam.name}
+                          </Typography>
+                        ) : (
+                          // Display for regular playoff series
+                          <Typography variant="body1" sx={{ 
+                              fontWeight: 'bold',
+                              mb: { xs: status === 'completed' ? 1 : 0, sm: 0 },
+                              ml: { xs: 0, sm: status === 'completed' ? 1 : 0 }
+                          }}>
+                              {homeTeam.name} {prediction.homeScore} - {prediction.awayScore} {awayTeam.name}
+                          </Typography>
+                        )}
                     </Box>
                   </Box>
                 </ListItem>

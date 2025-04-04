@@ -12,7 +12,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 /**
  * Chart component for prediction distribution
  */
-const PredictionDistributionChart = ({ data, homeTeam, awayTeam }) => {
+const PredictionDistributionChart = ({ data, homeTeam, awayTeam, isPlayIn }) => {
   const theme = useTheme();
   
   // Generate a colorful palette for the pie slices
@@ -31,9 +31,15 @@ const PredictionDistributionChart = ({ data, homeTeam, awayTeam }) => {
           borderRadius: 1,
           boxShadow: 1
         }}>
-          <Typography variant="body2" color="text.primary">
-            {homeTeam} {data.homeScore} - {data.awayScore} {awayTeam}
-          </Typography>
+          {isPlayIn ? (
+            <Typography variant="body2" color="text.primary">
+              {data.pickedTeam}
+            </Typography>
+          ) : (
+            <Typography variant="body2" color="text.primary">
+              {homeTeam} {data.homeScore} - {data.awayScore} {awayTeam}
+            </Typography>
+          )}
           <Typography variant="body2" color="text.secondary">
             {data.count} users ({Math.round(data.percentage)}%)
           </Typography>
@@ -74,37 +80,77 @@ const PredictionDistributionChart = ({ data, homeTeam, awayTeam }) => {
 /**
  * Component to display prediction statistics for a matchup
  */
-const MatchupPredictionStats = ({ stats, loading, homeTeam, awayTeam, leaguePredictions = [] }) => {
+const MatchupPredictionsStats = ({ stats, loading, homeTeam, awayTeam, leaguePredictions = [], round }) => {
+  // Get team names safely, whether objects or strings
+  const homeTeamName = typeof homeTeam === 'object' ? homeTeam.name : homeTeam;
+  const awayTeamName = typeof awayTeam === 'object' ? awayTeam.name : awayTeam;
+  
+  // More robust play-in detection using both round property and stats pattern
+  const isPlayInByRound = round?.startsWith('playin_');
+  
+  // Check if this looks like a play-in game based on predictions
+  const isPlayInByPredictions = leaguePredictions.length > 0 && 
+    leaguePredictions.every(p => 
+      (p.homeScore === 0 || p.homeScore === 1) && 
+      (p.awayScore === 0 || p.awayScore === 1) && 
+      p.homeScore + p.awayScore === 1
+    );
+  
+  const isPlayIn = isPlayInByRound && isPlayInByPredictions;
+  
   // Calculate prediction distribution from raw predictions
   const predictionDistribution = useMemo(() => {
     if (!leaguePredictions || leaguePredictions.length === 0) return [];
     
-    // Group predictions by their scores
-    const grouped = {};
-    leaguePredictions.forEach(prediction => {
-      const key = `${prediction.homeScore}-${prediction.awayScore}`;
-      if (!grouped[key]) {
-        grouped[key] = {
-          id: key,
-          homeScore: prediction.homeScore,
-          awayScore: prediction.awayScore,
-          count: 0
-        };
-      }
-      grouped[key].count++;
-    });
-    
-    // Convert to array and calculate percentages
-    const distribution = Object.values(grouped);
-    const totalCount = leaguePredictions.length;
-    
-    distribution.forEach(item => {
-      item.percentage = (item.count / totalCount) * 100;
-    });
-    
-    // Sort by count (descending)
-    return distribution.sort((a, b) => b.count - a.count);
-  }, [leaguePredictions]);
+    if (isPlayIn) {
+      // For Play-In games, simply show team picked distribution
+      const homeTeamCount = leaguePredictions.filter(p => p.homeScore === 1).length;
+      const awayTeamCount = leaguePredictions.filter(p => p.awayScore === 1).length;
+      const totalCount = leaguePredictions.length;
+      
+      return [
+        {
+          id: 'home',
+          pickedTeam: homeTeamName,
+          count: homeTeamCount,
+          percentage: (homeTeamCount / totalCount) * 100
+        },
+        {
+          id: 'away',
+          pickedTeam: awayTeamName,
+          count: awayTeamCount,
+          percentage: (awayTeamCount / totalCount) * 100
+        }
+      ].filter(item => item.count > 0);
+    } else {
+      // For regular playoff series, group by score combination
+      const grouped = {};
+      leaguePredictions.forEach(prediction => {
+        const key = `${prediction.homeScore}-${prediction.awayScore}`;
+        if (!grouped[key]) {
+          grouped[key] = {
+            id: key,
+            homeScore: prediction.homeScore,
+            awayScore: prediction.awayScore,
+            count: 0
+          };
+        }
+        grouped[key].count++;
+      });
+      
+      // Convert to array and calculate percentages
+      const distribution = Object.values(grouped);
+      const totalCount = leaguePredictions.length;
+      
+      distribution.forEach(item => {
+        item.percentage = (item.count / totalCount) * 100;
+      });
+      
+      // Sort by count (descending)
+      return distribution.sort((a, b) => b.count - a.count);
+    }
+  }, [leaguePredictions, isPlayIn, homeTeamName, awayTeamName]);
+
   return (
     <>
       <Typography variant="h6" sx={{ mb: 2 }}>
@@ -131,18 +177,22 @@ const MatchupPredictionStats = ({ stats, loading, homeTeam, awayTeam, leaguePred
           <Grid item xs={12} sm={6} md={4}>
             <Paper elevation={1} sx={{ p: 2, textAlign: 'center', height: '100%' }}>
               <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                Team Win Distribution
+                {isPlayIn ? 'Team Selected Distribution' : 'Team Win Distribution'}
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
                 <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="body2">{homeTeam?.name}</Typography>
+                  <Typography variant="body2">{homeTeamName}</Typography>
                   <Typography variant="h5">{Math.round(stats.homeTeamWinPercentage)}%</Typography>
-                  <Typography variant="body2" color="text.secondary">{stats.homeTeamWinCount} picks</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {stats.homeTeamWinCount} picks
+                  </Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="body2">{awayTeam?.name}</Typography>
+                  <Typography variant="body2">{awayTeamName}</Typography>
                   <Typography variant="h5">{Math.round(stats.awayTeamWinPercentage)}%</Typography>
-                  <Typography variant="body2" color="text.secondary">{stats.awayTeamWinCount} picks</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {stats.awayTeamWinCount} picks
+                  </Typography>
                 </Box>
               </Box>
             </Paper>
@@ -151,13 +201,14 @@ const MatchupPredictionStats = ({ stats, loading, homeTeam, awayTeam, leaguePred
           <Grid item xs={12} md={4}>
             <Paper elevation={1} sx={{ p: 2, textAlign: 'center', height: '100%' }}>
               <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                Prediction Distribution
+                {isPlayIn ? 'Team Selection Distribution' : 'Prediction Distribution'}
               </Typography>
               {predictionDistribution.length > 0 ? (
                 <PredictionDistributionChart 
                   data={predictionDistribution}
-                  homeTeam={homeTeam?.name}
-                  awayTeam={awayTeam?.name}
+                  homeTeam={homeTeamName}
+                  awayTeam={awayTeamName}
+                  isPlayIn={isPlayIn}
                 />
               ) : (
                 <Typography variant="body1">No prediction data available</Typography>
@@ -174,4 +225,4 @@ const MatchupPredictionStats = ({ stats, loading, homeTeam, awayTeam, leaguePred
   );
 };
 
-export default MatchupPredictionStats;
+export default MatchupPredictionsStats;

@@ -121,7 +121,8 @@ const MatchupPredictionCard = ({
         actualHomeScore,
         actualAwayScore,
         predictedHomeScore,
-        predictedAwayScore
+        predictedAwayScore,
+        round
       });
     }
   };
@@ -243,16 +244,6 @@ const MatchupPredictionCard = ({
     // For regular playoff series (best of 7)
     return (
       <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        {predictedHomeScore !== null && predictedAwayScore !== null && (
-          <MatchScoreDisplay
-            label="Your Prediction"
-            homeTeam={homeTeam.name}
-            awayTeam={awayTeam.name}
-            homeScore={predictedHomeScore}
-            awayScore={predictedAwayScore}
-            sx={{ mb: 2 }}
-          />
-        )}
 
         <Typography variant="subtitle1" sx={{ mb: 1, textAlign: 'center', fontWeight: 500 }}>
           {predictedHomeScore !== null ? 'Update Your Prediction' : 'Make Your Prediction'}
@@ -310,7 +301,7 @@ const MatchupPredictionCard = ({
               onClick={handleActivateMatchup}
               sx={{ minWidth: '180px' }}
             >
-              Activate Prediction
+              Activate Matchup
             </Button>
           </Box>
         )}
@@ -329,6 +320,7 @@ const MatchupPredictionCard = ({
         awayTeam={awayTeam.name}
         homeScore={actualHomeScore}
         awayScore={actualAwayScore}
+        round={round}
         sx={{ mb: 1, width: '100%' }}
       />
 
@@ -339,6 +331,7 @@ const MatchupPredictionCard = ({
           awayTeam={awayTeam.name}
           homeScore={predictedHomeScore}
           awayScore={predictedAwayScore}
+          round={round}
           sx={{ mt: 2, width: '100%' }}
         />
       )}
@@ -382,6 +375,7 @@ const MatchupPredictionCard = ({
         awayTeam={awayTeam.name}
         homeScore={actualHomeScore}
         awayScore={actualAwayScore}
+        round={round}
         sx={{ mb: 1, width: '100%' }}
       />
 
@@ -392,6 +386,7 @@ const MatchupPredictionCard = ({
           awayTeam={awayTeam.name}
           homeScore={predictedHomeScore}
           awayScore={predictedAwayScore}
+          round={round}
           sx={{ mt: 2, width: '100%' }}
         />
       )}
