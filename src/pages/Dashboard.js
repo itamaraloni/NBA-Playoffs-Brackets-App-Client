@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -7,13 +7,18 @@ import {
   Snackbar,
   Alert,
   Button,
+  Box,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  CircularProgress
 } from '@mui/material';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import AppExplanation from '../components/AppExplanation';
 import { CreateLeagueSection, JoinLeagueSection } from '../components/CreateJoinLeagueComponents';
-import { LeagueStatsSection, UpcomingGamesSection } from '../components/DashboardComponents';
+import PlayerStatsCard from '../components/PlayerStatsCard';
+import EditPicksDialog from '../components/EditPicksDialog';
 import LeagueServices from '../services/LeagueServices';
+import UserServices from '../services/UserServices';
 
 const Dashboard = () => {
   const theme = useTheme();
@@ -22,8 +27,38 @@ const Dashboard = () => {
   const [leagueCode, setLeagueCode] = useState('');
   const [codeError, setCodeError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [playerProfile, setPlayerProfile] = useState(null);
+  const [playerProfileLoading, setPlayerProfileLoading] = useState(true);
+  const [playerProfileError, setPlayerProfileError] = useState(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editType, setEditType] = useState(null); // 'championship' or 'mvp'
+  
   const playerId = localStorage.getItem('player_id');
   const navigate = useNavigate();
+
+  // Fetch player profile if player ID exists
+  useEffect(() => {
+    const fetchPlayerProfile = async () => {
+      if (!playerId) {
+        setPlayerProfileLoading(false);
+        return;
+      }
+      
+      try {
+        setPlayerProfileLoading(true);
+        const data = await UserServices.getPlayerProfile();
+        setPlayerProfile(data);
+        setPlayerProfileError(null);
+      } catch (err) {
+        console.error('Error fetching player profile:', err);
+        setPlayerProfileError('Failed to load player statistics. Please try again.');
+      } finally {
+        setPlayerProfileLoading(false);
+      }
+    };
+    
+    fetchPlayerProfile();
+  }, [playerId]);
 
   const handleCreateLeague = () => {
     navigate('/create-league');
@@ -71,6 +106,50 @@ const Dashboard = () => {
     navigate('/create-player'); // Navigate after user acknowledges
   };
 
+  const handleEditPicks = (type) => {
+    setEditType(type);
+    setEditDialogOpen(true);
+  };
+
+  const handleSavePick = async (type, selection) => {
+    try {
+      setIsLoading(true);
+      console.log('Saving pick:', type, selection);
+      const updatePicksResponse = await UserServices.updatePicks(type, selection, playerId);
+      
+      if (updatePicksResponse.error) {
+        throw new Error(updatePicksResponse.error);
+      }
+
+      // Show success message
+      window.notify.success(`Your ${type === 'mvp' ? 'MVP' : 'Championship'} pick has been updated!`);
+      
+      // Refresh player profile data
+      const data = await UserServices.getPlayerProfile();
+      setPlayerProfile(data);
+      setEditDialogOpen(false);
+    } catch (err) {
+      console.error('Error updating prediction:', err);
+      setAlert({
+        open: true,
+        message: 'Failed to update prediction. Please try again.',
+        severity: 'error'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Loading state
+  if (playerProfileLoading && playerId) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4, textAlign: 'center' }}>
+        <CircularProgress />
+        <Typography sx={{ mt: 2 }}>Loading player data...</Typography>
+      </Container>
+    );
+  }
+
   // New user content (no player ID)
   const renderNewUserContent = () => (
     <Grid container spacing={3}>
@@ -93,16 +172,45 @@ const Dashboard = () => {
   );
 
   // Existing player content
-  const renderExistingPlayerContent = () => (
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={6}>
-        <LeagueStatsSection onViewLeagueClick={() => navigate('/league')} />
+  const renderExistingPlayerContent = () => {
+    // Handle error state for player profile
+    if (playerProfileError) {
+      return (
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          <Alert severity="error" sx={{ mb: 2, mx: 'auto', maxWidth: 500 }}>
+            {playerProfileError}
+          </Alert>
+          <Button 
+            variant="contained" 
+            onClick={() => window.location.reload()}
+            sx={{ mt: 2 }}
+          >
+            Retry
+          </Button>
+        </Box>
+      );
+    }
+    
+    return (
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <PlayerStatsCard 
+            playerData={playerProfile?.player}
+            leagueData={playerProfile?.league}
+            onEditPicks={handleEditPicks}
+            pointsIcon={<TrendingUpIcon />}
+          />
+        </Grid>
       </Grid>
-      <Grid item xs={12} md={6}>
-        <UpcomingGamesSection onViewGamesClick={() => navigate('/predictions')} />
-      </Grid>
-    </Grid>
-  );
+    );
+  };
+
+  // Format player data for EditPicksDialog
+  const formattedPlayerData = playerProfile?.player ? {
+    name: playerProfile.player.name,
+    championshipPrediction: playerProfile.player.winning_team,
+    mvpPrediction: playerProfile.player.mvp
+  } : null;
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -116,31 +224,39 @@ const Dashboard = () => {
       
       {playerId ? renderExistingPlayerContent() : renderNewUserContent()}
 
-      <Snackbar 
-          open={alert.open} 
-          autoHideDuration={6000} 
-          onClose={handleCloseAlert}
-          anchorOrigin={{ vertical: 'center', horizontal: 'center' }}
-        >
-          <Alert 
-            onClose={handleCloseAlert} 
-            severity={alert.severity}
-            sx={{ 
-              width: '100%',
-              maxWidth: '400px',
-              boxShadow: 3,
-              '& .MuiAlert-action': { alignItems: 'center' }
-            }}
-            action={
-              <Button color="inherit" size="small" onClick={handleCloseAlert}>
-                Click to continue
-              </Button>
-            }
-          >
-            {alert.message}
-          </Alert>
-      </Snackbar>
+      {/* Edit Picks Dialog */}
+      <EditPicksDialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        type={editType}
+        player={formattedPlayerData}
+        onSave={handleSavePick}
+      />
 
+      <Snackbar 
+        open={alert.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: 'center', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseAlert} 
+          severity={alert.severity}
+          sx={{ 
+            width: '100%',
+            maxWidth: '400px',
+            boxShadow: 3,
+            '& .MuiAlert-action': { alignItems: 'center' }
+          }}
+          action={
+            <Button color="inherit" size="small" onClick={handleCloseAlert}>
+              Click to continue
+            </Button>
+          }
+        >
+          {alert.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
