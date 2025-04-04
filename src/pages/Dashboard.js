@@ -12,7 +12,6 @@ import {
   useMediaQuery,
   CircularProgress
 } from '@mui/material';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import AppExplanation from '../components/AppExplanation';
 import { CreateLeagueSection, JoinLeagueSection } from '../components/CreateJoinLeagueComponents';
 import PlayerStatsCard from '../components/PlayerStatsCard';
@@ -198,7 +197,6 @@ const Dashboard = () => {
             playerData={playerProfile?.player}
             leagueData={playerProfile?.league}
             onEditPicks={handleEditPicks}
-            pointsIcon={<TrendingUpIcon />}
           />
         </Grid>
       </Grid>

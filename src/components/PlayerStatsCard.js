@@ -27,7 +27,6 @@ const PlayerStatsCard = ({
   playerData, 
   leagueData,
   onEditPicks, 
-  pointsIcon,
   elevation = 2 
 }) => {
   const theme = useTheme();
@@ -99,7 +98,6 @@ const PlayerStatsCard = ({
           >
             {canEdit && (
               <Button
-                variant="outlined"
                 color="primary"
                 size="small"
                 startIcon={<EditIcon />}
@@ -109,10 +107,9 @@ const PlayerStatsCard = ({
                   top: 8,
                   right: 8,
                   minWidth: 'auto',
-                  p: '4px 8px'
+                  p: '4px 4px'
                 }}
               >
-                Edit
               </Button>
             )}
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -147,7 +144,6 @@ const PlayerStatsCard = ({
           >
             {canEdit && (
               <Button
-                variant="outlined"
                 color="secondary"
                 size="small"
                 startIcon={<EditIcon />}
@@ -157,10 +153,9 @@ const PlayerStatsCard = ({
                   top: 8,
                   right: 8,
                   minWidth: 'auto',
-                  p: '4px 8px'
+                  p: '4px 4px'
                 }}
               >
-                Edit
               </Button>
             )}
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
