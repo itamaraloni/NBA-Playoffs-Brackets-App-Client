@@ -11,7 +11,8 @@ import {
   Alert,
   CircularProgress,
   useTheme,
-  Divider
+  Divider,
+  useMediaQuery
 } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
@@ -21,6 +22,7 @@ const CreateLeaguePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,16 +53,28 @@ const CreateLeaguePage = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <Container 
+      maxWidth="md" 
+      sx={{ 
+        py: { xs: 2, sm: 4 },
+        px: { xs: 2, sm: 3 }
+      }}
+    >
       <Paper 
         elevation={3} 
         sx={{ 
-          p: 4,
+          p: { xs: 2, sm: 4 },
           borderRadius: 2,
           bgcolor: 'background.paper'
         }}
       >
-        <Typography variant="h4" component="h1" gutterBottom align="center" fontWeight="bold">
+        <Typography 
+          variant={isMobile ? "h5" : "h4"} 
+          component="h1" 
+          gutterBottom 
+          align="center" 
+          fontWeight="bold"
+        >
           Create Your League
         </Typography>
         
@@ -81,9 +95,10 @@ const CreateLeaguePage = () => {
             placeholder="Enter your league name"
             inputProps={{ maxLength: 30 }}
             sx={{ mb: 3 }}
+            size={isMobile ? "small" : "medium"}
           />
           
-          <Divider sx={{ my: 3 }} />
+          <Divider sx={{ my: { xs: 2, sm: 3 } }} />
           
           <Typography variant="h6" component="h2" gutterBottom>
             Scoring Rules
@@ -92,15 +107,16 @@ const CreateLeaguePage = () => {
           <Paper 
             variant="outlined" 
             sx={{ 
-              p: 2, 
-              mb: 4, 
+              p: { xs: 1.5, sm: 2 }, 
+              mb: { xs: 3, sm: 4 }, 
               borderRadius: 2,
               bgcolor: theme.palette.mode === 'dark' 
                 ? 'rgba(66, 66, 66, 0.2)' 
-                : 'rgba(224, 242, 254, 0.2)'
+                : 'rgba(224, 242, 254, 0.2)',
+              overflowX: 'auto' // Allows horizontal scrolling on very small devices if needed
             }}
           >
-            <ScoringRules showTitle={false} />
+            <ScoringRules showTitle={false} isMobile={isMobile} />
           </Paper>
 
           {error && (
@@ -117,12 +133,12 @@ const CreateLeaguePage = () => {
             fullWidth
             variant="contained"
             color="primary"
-            size="large"
+            size={isMobile ? "medium" : "large"}
             disabled={isLoading}
-            endIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <ArrowForwardIcon />}
+            endIcon={isLoading ? <CircularProgress size={isMobile ? 16 : 20} color="inherit" /> : <ArrowForwardIcon />}
             sx={{ 
-              py: 1.5,
-              fontSize: '1rem',
+              py: { xs: 1, sm: 1.5 },
+              fontSize: { xs: '0.9rem', sm: '1rem' },
               fontWeight: 'bold'
             }}
           >
