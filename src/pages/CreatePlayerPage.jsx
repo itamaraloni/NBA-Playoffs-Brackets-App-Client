@@ -328,7 +328,7 @@ const CreatePlayerPage = () => {
         open={alert.open} 
         autoHideDuration={6000} 
         onClose={handleCloseAlert}
-        anchorOrigin={{ vertical: 'center', horizontal: 'center' }} // Center position
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }} // Center position
       >
         <Alert 
           onClose={handleCloseAlert} 

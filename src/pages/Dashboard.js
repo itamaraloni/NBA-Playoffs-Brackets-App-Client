@@ -30,7 +30,7 @@ const Dashboard = () => {
   const [playerProfileLoading, setPlayerProfileLoading] = useState(true);
   const [playerProfileError, setPlayerProfileError] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editType, setEditType] = useState(null); // 'championship' or 'mvp'
+  const [editType, setEditType] = useState('championship'); // 'championship' or 'mvp'
   
   const playerId = localStorage.getItem('player_id');
   const navigate = useNavigate();
@@ -235,7 +235,7 @@ const Dashboard = () => {
         open={alert.open} 
         autoHideDuration={6000} 
         onClose={handleCloseAlert}
-        anchorOrigin={{ vertical: 'center', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Alert 
           onClose={handleCloseAlert} 
