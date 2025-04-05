@@ -133,6 +133,7 @@ const LeaguePage = () => {
       {/* Player Detail Dialog */}
       <PlayerDetailDialog 
         player={selectedPlayer}
+        leagueName={leagueData.name}
         open={detailDialogOpen}
         onClose={() => setDetailDialogOpen(false)}
       />
