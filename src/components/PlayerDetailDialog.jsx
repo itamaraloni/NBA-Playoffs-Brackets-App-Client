@@ -89,8 +89,7 @@ PlayerDetailDialog.propTypes = {
     player_avatar: PropTypes.string,
     score: PropTypes.number,
     championship_team_points: PropTypes.number,
-    mvp_points: PropTypes.number,
-    round_predictions_points: PropTypes.number
+    mvp_points: PropTypes.number
   }),
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired

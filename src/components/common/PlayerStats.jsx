@@ -212,8 +212,7 @@ PlayerStats.propTypes = {
     misses: PropTypes.number,
     score: PropTypes.number,
     championship_team_points: PropTypes.number,
-    mvp_points: PropTypes.number,
-    round_predictions_points: PropTypes.number
+    mvp_points: PropTypes.number
   }).isRequired,
   showScoreBreakdown: PropTypes.bool,
   allowEditing: PropTypes.bool,
