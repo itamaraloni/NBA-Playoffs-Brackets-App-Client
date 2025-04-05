@@ -157,7 +157,7 @@ const LandingPage = () => {
                       <BsBullseye style={{ color: theme.palette.secondary.main }} />
                     </ListItemIcon>
                     <ListItemText 
-                      primary="Place Your Predictions On Every Matchup This Playoff"
+                      primary="Place Your Predictions"
                       secondary="Predict the winner of each play-in and playoff series" 
                     />
                   </ListItem>
@@ -168,7 +168,7 @@ const LandingPage = () => {
                     </ListItemIcon>
                     <ListItemText 
                       primary="Compete and Put yourself to the Test" 
-                      secondary="Compare your basketball knowledge or sheer luck?"
+                      secondary="Is predictings NBA series outcome requires basketball knowledge or is it sheer luck? You can put it to the test"
                     />
                   </ListItem>
 
