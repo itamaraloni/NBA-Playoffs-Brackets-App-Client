@@ -45,7 +45,7 @@ const Dashboard = () => {
       
       try {
         setPlayerProfileLoading(true);
-        const data = await UserServices.getPlayerProfile();
+        const data = await UserServices.getPlayerProfile(playerId);
         setPlayerProfile(data);
         setPlayerProfileError(null);
       } catch (err) {
@@ -124,7 +124,7 @@ const Dashboard = () => {
       window.notify.success(`Your ${type === 'mvp' ? 'MVP' : 'Championship'} pick has been updated!`);
       
       // Refresh player profile data
-      const data = await UserServices.getPlayerProfile();
+      const data = await UserServices.getPlayerProfile(playerId);
       setPlayerProfile(data);
       setEditDialogOpen(false);
     } catch (err) {

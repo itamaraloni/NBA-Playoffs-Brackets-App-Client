@@ -60,9 +60,9 @@ const UserServices = {
    * Get player profile data including statistics
    * @returns {Promise<Object>} Player profile and statistics
    */
-  async getPlayerProfile() {
+  async getPlayerProfile(playerId) {
     try {
-      const data = await apiClient.get('/user/get_player_profile');
+      const data = await apiClient.get(`/user/get_player_profile/${playerId}`);
       return transformPlayerProfile(data);
     } catch (error) {
       throw error;
