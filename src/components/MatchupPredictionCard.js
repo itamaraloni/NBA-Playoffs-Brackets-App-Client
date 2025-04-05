@@ -508,7 +508,7 @@ const MatchupPredictionCard = ({
     }
     
     // For play-in games, there's no concept of "exact score" (just winner)
-    if (round === 'play_in') {
+    if (round === "playin_first" || round === "playin_second") {
       return { type: 'hit', label: 'Hit', color: theme.palette.warning.main };
     }
     
@@ -524,40 +524,41 @@ const MatchupPredictionCard = ({
     return { type: 'hit', label: 'Hit', color: theme.palette.warning.main };
   };
 
-    /**
+  /**
    * Calculate points earned based on prediction type and round
    */
-    const getPointsForPrediction = (predictionType, round) => {
-      let hitPoints = 0;
-      let bullsEyePoints = 0;
-      
-      switch (round) {
-        case 'play_in':
-          hitPoints = 2;
-          bullsEyePoints = 2; // Play-in games don't have bullseye distinction
-          break;
-        case 'first':
-          hitPoints = 4;
-          bullsEyePoints = 6;
-          break;
-        case 'second':
-          hitPoints = 6;
-          bullsEyePoints = 9;
-          break;
-        case 'conference_final':
-          hitPoints = 8;
-          bullsEyePoints = 12;
-          break;
-        case 'final':
-          hitPoints = 10;
-          bullsEyePoints = 15;
-          break;
-        default:
-          return 0;
-      }
-      
-      return predictionType === 'bullsEye' ? bullsEyePoints : hitPoints;
-    };
+  const getPointsForPrediction = (predictionType, round) => {
+    let hitPoints = 0;
+    let bullsEyePoints = 0;
+    
+    switch (round) {
+      case "playin_first":
+      case "playin_second":
+        hitPoints = 2;
+        bullsEyePoints = 2; // Play-in games don't have bullseye distinction
+        break;
+      case 'first':
+        hitPoints = 4;
+        bullsEyePoints = 6;
+        break;
+      case 'second':
+        hitPoints = 6;
+        bullsEyePoints = 9;
+        break;
+      case 'conference_final':
+        hitPoints = 8;
+        bullsEyePoints = 12;
+        break;
+      case 'final':
+        hitPoints = 10;
+        bullsEyePoints = 15;
+        break;
+      default:
+        return 0;
+    }
+    
+    return predictionType === 'bullsEye' ? bullsEyePoints : hitPoints;
+  };
 
   return (
     <Card 
