@@ -66,6 +66,12 @@ const PredictionsPage = () => {
   // Load matchups on component mount
   useEffect(() => {
     const loadMatchups = async () => {
+      const playerId = localStorage.getItem('player_id');
+      if (!playerId) {
+        setLoading(false);
+        return; // Exit early without making API call
+      }
+
       try {
         setLoading(true);
         const data = await MatchupServices.getMatchups();
