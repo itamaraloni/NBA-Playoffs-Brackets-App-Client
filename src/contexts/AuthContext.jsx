@@ -23,61 +23,77 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Sign in with Google
+  // Sign in with Google with retry logic
   const signInWithGoogle = async () => {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1000;
+    let retryCount = 0;
+    
     try {
       setError(null);
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      // Sync with database
-      const userData = await syncUserWithDatabase(user);
+      // Add a small delay to ensure Firebase has completed its processes
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Get token and store user data
-      const idToken = await user.getIdToken();
-      UserServices.storeUserData(userData, idToken);
-      
-      // Update currentUser
-      setCurrentUser({
-        ...user,
-        userData: userData
-      });
-      
-      return result;
+      // Try syncing with retries
+      while (retryCount <= MAX_RETRIES) {
+        try {
+          // Sync with database (using original method, no retry there)
+          const userData = await UserServices.syncUserWithDatabase(user, retryCount);
+          
+          // Get token and store user data
+          const idToken = await user.getIdToken();
+          UserServices.storeUserData(userData, idToken);
+          
+          // Update currentUser
+          setCurrentUser({
+            ...user,
+            userData: userData
+          });
+          
+          return result;
+        } catch (err) {
+          // Only retry on network errors
+          if ((err.name === 'TypeError' || 
+               err.message.includes('ERR_CONNECTION_RESET') || 
+               err.message.includes('Failed to fetch')) && 
+              retryCount < MAX_RETRIES) {
+            
+            console.log(`Sync failed, retrying (${retryCount + 1}/${MAX_RETRIES})...`);
+            
+            if (window.notify && retryCount === 0) {
+              window.notify.warning("Connection issue detected. Retrying...");
+            }
+            
+            // Exponential backoff
+            const delay = RETRY_DELAY * Math.pow(2, retryCount);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            
+            retryCount++;
+            continue;
+          }
+          
+          // If we've exhausted retries or it's not a network error
+          throw err;
+        }
+      }
     } catch (err) {
       setError(err.message || "Error signing in with Google");
       
-      // Always prevent continuation to app
-      const errorHandler = new Promise((resolve, reject) => {
-        if (window.notify) {
-          window.notify.error("Error signing in with Google. Please try again.");
-        } else {
-          alert("Error signing in with Google. Please try again.");
-        }
-        
-        // Delay navigation to ensure notification is seen
-        setTimeout(() => {
-          window.location.href = '/landing';
-          reject(err); // Important: reject the promise to prevent further execution
-        }, 2500);
-      });
+      if (window.notify) {
+        window.notify.error("Error signing in with Google. Please try again.");
+      }
       
-      // This ensures the promise chain stops here
-      await errorHandler;
-      throw err; // Re-throw to ensure calling code knows authentication failed
+      setTimeout(() => {
+        window.location.href = '/landing';
+      }, 2500);
+      
+      throw err;
     }
   };
-
-// Syncing with database
-const syncUserWithDatabase = async (user) => {
-  if (!user) return;
-  try {
-    return await UserServices.syncUserWithDatabase(user);
-  } catch (error) {
-    throw error;
-  }
-};
 
   // Sign out
   const logout = async () => {
