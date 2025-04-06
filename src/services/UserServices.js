@@ -7,7 +7,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
  */
 const UserServices = {
   /**
-   * Sync user with database after Firebase authentication
+   * Sync user with database after Firebase authentication with retry logic
    * @param {Object} user - Firebase user object
    * @returns {Promise<Object>} User data from backend
    */
@@ -18,8 +18,8 @@ const UserServices = {
       // Get the Firebase token for backend authentication
       const idToken = await user.getIdToken();
       
-      // Call backend API directly (not using apiClient yet since token isn't in localStorage)
-      const response = await fetch(`${API_BASE_URL}/user/check`, {
+      // Use ApiClient's fetchWithRetry but with custom headers for this request
+      const response = await apiClient.fetchWithRetry(`${API_BASE_URL}/user/check`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -31,12 +31,8 @@ const UserServices = {
         })
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to sync user with database');
-      }
-      
-      const userData = await response.json();
-      return userData;
+      // Use ApiClient's handleResponse method
+      return apiClient.handleResponse(response);
     } catch (error) {
       console.error("Error syncing user with database:", error);
       throw error;
