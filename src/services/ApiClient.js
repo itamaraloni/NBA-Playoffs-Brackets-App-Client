@@ -1,9 +1,15 @@
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
 
 /**
- * Base API client using fetch
+ * Base API client using fetch with retry logic
  */
 const apiClient = {
+  // Maximum number of retries for failed requests
+  MAX_RETRIES: 3,
+  
+  // Delay between retries in ms (increases with backoff)
+  RETRY_DELAY: 1000,
+  
   /**
    * Get default headers including auth token if available
    */
@@ -35,6 +41,7 @@ const apiClient = {
         errorData = await response.json();
         errorMessage = errorData.message || errorData.error || errorMessage;
         errorCode = errorData.code;
+        console.log(`Error message: ${errorMessage} | Error code: ${errorCode}`);
       } catch (e) {
         // Response wasn't JSON, use default error message
       }
@@ -82,10 +89,41 @@ const apiClient = {
   },
   
   /**
-   * GET request
+   * Makes a fetch request with retry capability
+   * @param {string} url - The URL to fetch
+   * @param {Object} options - Fetch options
+   * @param {number} retryCount - Current retry count (used internally)
+   * @returns {Promise<Response>} - Fetch response
+   */
+  async fetchWithRetry(url, options, retryCount = 0) {
+    try {
+      console.log(`Try fetching ${url} (attempt ${retryCount + 1})`);
+      const response = await fetch(url, options);
+      return response;
+    } catch (error) {
+      // Only retry on network errors (not HTTP error responses)
+      if (error.name === 'TypeError' || error.message.includes('ERR_CONNECTION_RESET')) {
+        if (retryCount < this.MAX_RETRIES) {
+          console.log(`Request failed, retrying (${retryCount + 1}/${this.MAX_RETRIES})...`);
+          
+          // Exponential backoff
+          const delay = this.RETRY_DELAY * Math.pow(2, retryCount);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          
+          return this.fetchWithRetry(url, options, retryCount + 1);
+        }
+      }
+      
+      // If we've exhausted retries or it's not a network error, rethrow
+      throw error;
+    }
+  },
+  
+  /**
+   * GET request with retry logic
    */
   async get(endpoint) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
@@ -94,10 +132,10 @@ const apiClient = {
   },
   
   /**
-   * POST request
+   * POST request with retry logic
    */
   async post(endpoint, data) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
@@ -107,10 +145,10 @@ const apiClient = {
   },
   
   /**
-   * PUT request
+   * PUT request with retry logic
    */
   async put(endpoint, data) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
       method: 'PUT',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
@@ -120,10 +158,10 @@ const apiClient = {
   },
   
   /**
-   * DELETE request
+   * DELETE request with retry logic
    */
   async delete(endpoint) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
       method: 'DELETE',
       headers: this.getHeaders(),
     });
