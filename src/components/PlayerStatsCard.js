@@ -27,6 +27,7 @@ const PlayerStatsCard = ({
   playerData, 
   leagueData,
   onEditPicks, 
+  allowEditing = true,
   elevation = 2 
 }) => {
   const theme = useTheme();
@@ -36,7 +37,7 @@ const PlayerStatsCard = ({
   // Calculate if user can edit picks (deadline April 14, 2025)
   const currentDate = new Date();
   const editDeadline = new Date('2025-04-14T23:59:59');
-  const canEdit = currentDate < editDeadline;
+  const canEdit = currentDate < editDeadline && allowEditing;
 
   return (
     <Paper
@@ -96,7 +97,7 @@ const PlayerStatsCard = ({
               position: 'relative'
             }}
           >
-            {canEdit && (
+            {canEdit && onEditPicks && (
               <Button
                 color="primary"
                 size="small"
@@ -151,7 +152,7 @@ const PlayerStatsCard = ({
               position: 'relative'
             }}
           >
-            {canEdit && (
+            {canEdit && onEditPicks && (
               <Button
                 color="secondary"
                 size="small"
@@ -212,6 +213,7 @@ PlayerStatsCard.propTypes = {
   playerData: PropTypes.object,
   leagueData: PropTypes.object,
   onEditPicks: PropTypes.func,
+  allowEditing: PropTypes.bool,
   pointsIcon: PropTypes.node,
   elevation: PropTypes.number
 };

@@ -82,6 +82,7 @@ const PlayerDetailDialog = ({ player, leagueName, open, onClose }) => {
             playerData={playerData || player}
             leagueData={{ name: leagueName }}
             elevation={0}
+            allowEditing={false}
           />
         )}
       </DialogContent>
