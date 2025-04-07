@@ -55,8 +55,26 @@ const LeaguePage = () => {
   // Copy league code to clipboard
   const copyLeagueCode = () => {
     if (leagueData?.code) {
-      navigator.clipboard.writeText(leagueData.code);
-      setOpenSnackbar(true);
+      try {
+        // Create a temporary text field
+        const textField = document.createElement('textarea');
+        textField.value = leagueData.code;
+        textField.setAttribute('readonly', '');
+        textField.style.position = 'absolute';
+        textField.style.left = '-9999px';
+        document.body.appendChild(textField);
+        
+        // Select the text and copy
+        textField.select();
+        document.execCommand('copy');
+        
+        // Clean up
+        document.body.removeChild(textField);
+        
+        setOpenSnackbar(true);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
     }
   };
 
