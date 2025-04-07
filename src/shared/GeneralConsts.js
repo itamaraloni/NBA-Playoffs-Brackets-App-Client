@@ -1,14 +1,14 @@
 // NBA Teams with scoring
 export const NBA_TEAMS_WITH_POINTS = [
-  { name: 'Boston Celtics', points: 10 },
-  { name: 'Oklahoma City Thunder', points: 12 },
-  { name: 'Cleveland Cavaliers', points: 14 },
-  { name: 'Los Angeles Lakers', points: 16 },
-  { name: 'Denver Nuggets', points: 18 },
-  { name: 'Golden State Warriors', points: 20 },
-  { name: 'New York Knicks', points: 22 },
-  { name: 'Minnesota Timberwolves', points: 24 },
-  { name: 'Milwaukee Bucks', points: 26 }
+  { name: 'Boston Celtics', points: 10, logo: "/resources/team-logos/boston-celtics.png" },
+  { name: 'Oklahoma City Thunder', points: 12, logo: "/resources/team-logos/oklahoma-city-thunder.png" },
+  { name: 'Cleveland Cavaliers', points: 14, logo: "/resources/team-logos/cleveland-cavaliers.png" },
+  { name: 'Los Angeles Lakers', points: 16, logo: "/resources/team-logos/los-angeles-lakers.png" },
+  { name: 'Denver Nuggets', points: 18, logo: "/resources/team-logos/denver-nuggets.png" },
+  { name: 'Golden State Warriors', points: 20, logo: "/resources/team-logos/golden-state-warriors.png" },
+  { name: 'New York Knicks', points: 22, logo: "/resources/team-logos/new-york-knicks.png" },
+  { name: 'Minnesota Timberwolves', points: 24, logo: "/resources/team-logos/minnesota-timberwolves.png" },
+  { name: 'Milwaukee Bucks', points: 26, logo: "/resources/team-logos/milwaukee-bucks.png" }
 ];
 
 // For backward compatibility
@@ -16,22 +16,22 @@ export const NBA_TEAMS = NBA_TEAMS_WITH_POINTS.map(team => team.name);
 
 // MVP Candidates with scoring
 export const MVP_CANDIDATES_WITH_POINTS = [
-  { name: 'Shai Gilgeous-Alexander', points: 10 },
-  { name: 'Jayson Tatum', points: 12 },
-  { name: 'Donovan Mitchell', points: 14 },
-  { name: 'Jaylen Brown', points: 16 },
-  { name: 'Nikola Jokić', points: 18 },
-  { name: 'Stephen Curry', points: 20 },
-  { name: 'Luka Dončić', points: 22 },
-  { name: 'Jalen Williams', points: 24 },
-  { name: 'LeBron James', points: 26 },
-  { name: 'Darius Garland', points: 28 },
-  { name: 'Evan Mobley', points: 30 },
-  { name: 'Jalen Brunson', points: 32 },
-  { name: 'Giannis Antetokounmpo', points: 34 },
-  { name: 'Anthony Edwards', points: 36 },
-  { name: 'Kevin Durant', points: 38 },
-  { name: 'Damian Lillard', points: 40 },
+  { name: 'Shai Gilgeous-Alexander', points: 10, avatar: "/resources/nba-players-avatars/SGA.png" },
+  { name: 'Jayson Tatum', points: 12, avatar: "/resources/nba-players-avatars/tatum.png" },
+  { name: 'Donovan Mitchell', points: 14, avatar: "/resources/nba-players-avatars/donovan.png" },
+  { name: 'Jaylen Brown', points: 16, avatar: "/resources/nba-players-avatars/jaylen-brown.png" },
+  { name: 'Nikola Jokić', points: 18, avatar: "/resources/nba-players-avatars/jokic.png" },
+  { name: 'Stephen Curry', points: 20, avatar: "/resources/nba-players-avatars/steph.png" },
+  { name: 'Luka Dončić', points: 22, avatar: "/resources/nba-players-avatars/luka-doncic.png" },
+  { name: 'Jalen Williams', points: 24, avatar: "/resources/nba-players-avatars/jalen-williams.png" },
+  { name: 'LeBron James', points: 26, avatar: "/resources/nba-players-avatars/lebron.png" },
+  { name: 'Darius Garland', points: 28, avatar: "/resources/nba-players-avatars/garland.png" },
+  { name: 'Evan Mobley', points: 30, avatar: "/resources/nba-players-avatars/mobley.png" },
+  { name: 'Jalen Brunson', points: 32, avatar: "/resources/nba-players-avatars/jalen-brunson.png" },
+  { name: 'Giannis Antetokounmpo', points: 34, avatar: "/resources/nba-players-avatars/giannis.png" },
+  { name: 'Anthony Edwards', points: 36, avatar: "/resources/nba-players-avatars/ant.png" },
+  { name: 'Kevin Durant', points: 38, avatar: "/resources/nba-players-avatars/KD.png" },
+  { name: 'Damian Lillard', points: 40, avatar: "/resources/nba-players-avatars/dame.png" },
   { name: 'Other', points: 50 }
 ];
 
