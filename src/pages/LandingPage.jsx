@@ -66,7 +66,7 @@ const LandingPage = () => {
       >
 
       {/* Header Section */}  
-      <StandaloneHeader title="NBA Playoffs Predictor" showLogout={false} showHome={false} />
+      <StandaloneHeader title="Playoff Prophet" showLogout={false} showHome={false} />
 
       {/* Hero Section */}
       <Box 

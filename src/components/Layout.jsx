@@ -155,7 +155,7 @@ const Layout = ({ children, onLogout }) => {
             component="div"
             sx={{ flexGrow: 1 }}
           >
-            NBA Playoffs Predictor
+            Playoff Prophet
           </Typography>
           <ThemeToggle />
         </Toolbar>
