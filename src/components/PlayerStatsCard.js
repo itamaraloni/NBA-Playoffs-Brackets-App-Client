@@ -18,7 +18,7 @@ import {
   TrendingUp as TrendingUpIcon
 } from '@mui/icons-material';
 import PredictionStatsTable from './PredictionStatsTable';
-import { PLAYER_AVATARS } from '../shared/GeneralConsts';
+import { PLAYER_AVATARS, NBA_TEAMS_WITH_POINTS, MVP_CANDIDATES_WITH_POINTS } from '../shared/GeneralConsts';
 
 /**
  * Component for showing player stats in dashboard
@@ -112,18 +112,27 @@ const PlayerStatsCard = ({
               >
               </Button>
             )}
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <TrophyIcon sx={{ color: 'gold', mr: 1 }} />
               <Typography variant="body1" fontWeight="medium">
                 Championship Pick
               </Typography>
             </Box>
-            <Chip 
-              label={playerData.winning_team || 'Not selected'} 
-              color="primary" 
-              variant="outlined" 
-              sx={{ fontWeight: 'medium', fontSize: '0.95rem' }}
-            />
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+              {playerData.winning_team && 
+                <Avatar 
+                  src={NBA_TEAMS_WITH_POINTS.find(t => t.name === playerData.winning_team)?.logo} 
+                  alt={playerData.winning_team}
+                  sx={{ width: 40, height: 40, mr: 1 }}
+                />
+              }
+              <Chip 
+                label={playerData.winning_team || 'Not selected'} 
+                color="primary" 
+                variant="outlined" 
+                sx={{ fontWeight: 'medium', fontSize: '0.95rem' }}
+              />
+            </Box>
             {playerData.championship_team_points !== undefined && (
               <Typography variant="body2" fontWeight="medium" sx={{ mt: 1.5, color: theme.palette.primary.main }}>
                 {playerData.championship_team_points} points earned
@@ -158,18 +167,27 @@ const PlayerStatsCard = ({
               >
               </Button>
             )}
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <MvpIcon sx={{ color: 'gold', mr: 1 }} />
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <TrophyIcon sx={{ color: 'gold', mr: 1 }} />
               <Typography variant="body1" fontWeight="medium">
                 MVP Pick
               </Typography>
             </Box>
-            <Chip 
-              label={playerData.mvp || 'Not selected'} 
-              color="secondary" 
-              variant="outlined" 
-              sx={{ fontWeight: 'medium', fontSize: '0.95rem' }}
-            />
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+              {playerData.mvp && 
+                <Avatar 
+                  src={MVP_CANDIDATES_WITH_POINTS.find(p => p.name === playerData.mvp)?.avatar} 
+                  alt={playerData.mvp}
+                  sx={{ width: 40, height: 40, mr: 1 }}
+                />
+              }
+              <Chip 
+                label={playerData.mvp || 'Not selected'} 
+                color="secondary" 
+                variant="outlined" 
+                sx={{ fontWeight: 'medium', fontSize: '0.95rem' }}
+              />
+            </Box>
             {playerData.mvp_points !== undefined && (
               <Typography variant="body2" fontWeight="medium" sx={{ mt: 1.5, color: theme.palette.secondary.main }}>
                 {playerData.mvp_points} points earned
