@@ -226,7 +226,7 @@ const CreatePlayerPage = () => {
           </Typography>
           
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            This can later be updated in your profile settings, until the playoffs begin and the bets are closed.
+            This can later be updated in your dashboard, until the playoffs begin and the bets are closed.
           </Typography>
           
           <Grid container spacing={3}>
