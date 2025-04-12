@@ -64,9 +64,9 @@ export function AuthProvider({ children }) {
             
             console.log(`Sync failed, retrying (${retryCount + 1}/${MAX_RETRIES})...`);
             
-            if (window.notify && retryCount === 0) {
-              window.notify.warning("Connection issue detected. Retrying...");
-            }
+            // if (window.notify && retryCount === 0) {
+            //   window.notify.warning("Connection issue detected. Retrying...");
+            // }
             
             // Exponential backoff
             const delay = RETRY_DELAY * Math.pow(2, retryCount);
