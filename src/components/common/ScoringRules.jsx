@@ -96,13 +96,13 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
             <ListItemIcon>
               <TrophyIcon color="primary" />
             </ListItemIcon>
-            <ListItemText primary="Correct championship team prediction: 50 points" />
+            <ListItemText primary="Correct championship team prediction" />
           </ListItem>
           <Collapse in={expanded.championship} timeout="auto" unmountOnExit>
             <Box sx={{ pl: 9, pr: 2, pb: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                The baseline reward is 10 points, it represents the most favorable team to win the championship depending on real-life odds.
-                The teams after and their reward is based on this same odds.
+              The points you earn for predicting the championship team are adjusted based on that team's odds to win;
+              selecting a heavy favorite yields fewer points, while correctly predicting an underdog rewards you with more points.
               </Typography>
             </Box>
           </Collapse>
@@ -124,13 +124,13 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
             <ListItemIcon>
               <MvpIcon color="secondary" />
             </ListItemIcon>
-            <ListItemText primary="Correct MVP prediction: 30 points" />
+            <ListItemText primary="Correct MVP prediction" />
           </ListItem>
           <Collapse in={expanded.mvp} timeout="auto" unmountOnExit>
             <Box sx={{ pl: 9, pr: 2, pb: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                The baseline reward is 10 points, it represents the most favorable player to win the prize depending on real-life odds.
-                The players after and their reward is based on this same odds.
+              The points you earn for predicting the MVP are adjusted based on that player's odds to win;
+              selecting a heavy favorite yields fewer points, while correctly predicting an underdog rewards you with more points.
               </Typography>
             </Box>
           </Collapse>
