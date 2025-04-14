@@ -24,65 +24,59 @@ function AppContent() {
   
   return (
     <Router>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/landing" element={<LandingPage />} />
-        
-        {/* Protected routes */}
-        <Route element={<ProtectedRoute />}>
-          {/* Create pages with minimal header */}
-          <Route path="/create-league" element={
-            <>
-              <StandaloneHeader title="Create League" onLogout={handleLogout} />
-              <div className="container mx-auto mt-8 px-4">
-                <CreateLeaguePage />
-              </div>
-            </>
-          } />
-          
-          <Route path="/create-player" element={
-            <>
-              <StandaloneHeader title="Create Player" onLogout={handleLogout} />
-              <div className="container mx-auto mt-8 px-4">
-                <CreatePlayerPage />
-              </div>
-            </>
-          } />
-          
-          {/* App routes with Layout */}
-          <Route path="/dashboard" element={
-            <Layout onLogout={handleLogout}>
-              <Dashboard />
-            </Layout>
-          } />
-          
-          <Route path="/predictions" element={
-            <Layout onLogout={handleLogout}>
-              <PredictionsPage />
-            </Layout>
-          } />
-          
-          <Route path="/league" element={
-            <Layout onLogout={handleLogout}>
-              <LeaguePage />
-            </Layout>
-          } />
-          
-          {/* Profile route */}
-          <Route path="/profile" element={
-            <Layout onLogout={handleLogout}>
-              <ProfilePage />
-            </Layout>
-          } />
-        </Route>
-        
-        {/* Redirect based on authentication status */}
-        <Route 
-          path="/" 
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/landing" replace />} 
-        />
-        <Route path="*" element={<Navigate to="/landing" replace />} />
-      </Routes>
+<Routes>
+  {/* Public landing page now at "/" */}
+  <Route path="/" element={<LandingPage />} />
+
+  {/* Protected routes */}
+  <Route element={<ProtectedRoute />}>
+    <Route path="/create-league" element={
+      <>
+        <StandaloneHeader title="Create League" onLogout={handleLogout} />
+        <div className="container mx-auto mt-8 px-4">
+          <CreateLeaguePage />
+        </div>
+      </>
+    } />
+    
+    <Route path="/create-player" element={
+      <>
+        <StandaloneHeader title="Create Player" onLogout={handleLogout} />
+        <div className="container mx-auto mt-8 px-4">
+          <CreatePlayerPage />
+        </div>
+      </>
+    } />
+
+    <Route path="/dashboard" element={
+      <Layout onLogout={handleLogout}>
+        <Dashboard />
+      </Layout>
+    } />
+
+    <Route path="/predictions" element={
+      <Layout onLogout={handleLogout}>
+        <PredictionsPage />
+      </Layout>
+    } />
+
+    <Route path="/league" element={
+      <Layout onLogout={handleLogout}>
+        <LeaguePage />
+      </Layout>
+    } />
+
+    <Route path="/profile" element={
+      <Layout onLogout={handleLogout}>
+        <ProfilePage />
+      </Layout>
+    } />
+  </Route>
+
+  {/* Redirect anything unknown to "/" (landing) */}
+  <Route path="*" element={<Navigate to="/" replace />} />
+</Routes>
+
     </Router>
   );
 }

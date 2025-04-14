@@ -63,7 +63,7 @@ const apiClient = {
           
           // Small delay to allow notification to appear before redirect
           setTimeout(() => {
-            window.location.href = '/landing';
+            window.location.href = '/';
           }, 1000);
           
           return; // Stop execution

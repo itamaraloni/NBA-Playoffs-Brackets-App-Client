@@ -12,7 +12,7 @@ const ProtectedRoute = () => {
   
   // If user is not authenticated, redirect to landing page
   // Otherwise, render the child routes
-  return isAuthenticated ? <Outlet /> : <Navigate to="/landing" replace />;
+  return isAuthenticated ? <Outlet /> : <Navigate to="/" replace />;
 };
 
 export default ProtectedRoute;

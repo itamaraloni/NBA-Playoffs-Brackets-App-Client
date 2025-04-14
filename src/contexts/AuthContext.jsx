@@ -88,7 +88,7 @@ export function AuthProvider({ children }) {
       }
       
       setTimeout(() => {
-        window.location.href = '/landing';
+        window.location.href = '/';
       }, 2500);
       
       throw err;
@@ -108,7 +108,7 @@ export function AuthProvider({ children }) {
       setCurrentUser(null);
       
       // Redirect user
-      window.location.href = '/landing';
+      window.location.href = '/';
     } catch (err) {
       setError(err.message);
       console.error("Error signing out", err);
