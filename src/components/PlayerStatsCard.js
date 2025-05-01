@@ -36,7 +36,7 @@ const PlayerStatsCard = ({
   
   // Calculate if user can edit picks (deadline April 14, 2025)
   const currentDate = new Date();
-  const editDeadline = new Date('2025-04-14T23:59:59');
+  const editDeadline = new Date('2025-04-15T22:59:59');
   const canEdit = currentDate < editDeadline && allowEditing;
 
   return (
