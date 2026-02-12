@@ -23,7 +23,7 @@ import { TbCrystalBall } from 'react-icons/tb';
 /**
  * Card component displaying a playoff matchup with prediction functionality
  */
-const MatchupPredictionCard = ({ 
+const MatchupPredictionCard = ({
   homeTeam,
   awayTeam,
   matchupId,
@@ -34,7 +34,7 @@ const MatchupPredictionCard = ({
   predictedAwayScore = null,
   round = 1,
   onSubmitPrediction,
-  isAdmin = localStorage.getItem('is_admin') === 'true',
+  isAdmin = false,
   onUpdateScore,
   onViewDetails,
   onActivateMatchup
