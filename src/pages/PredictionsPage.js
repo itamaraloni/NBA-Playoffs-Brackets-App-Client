@@ -59,7 +59,7 @@ const PredictionsPage = () => {
   const [selectedMatchup, setSelectedMatchup] = useState(null);
   const [leaguePredictions, setLeaguePredictions] = useState([]);
   
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -289,7 +289,7 @@ const PredictionsPage = () => {
         predictedAwayScore={matchup.predictedAwayScore}
         round={matchup.round}
         onSubmitPrediction={handleSubmitPrediction}
-        isAdmin={user?.is_admin}
+        isAdmin={isAdmin}
         onUpdateScore={handleUpdateScore}
         onViewDetails={handleViewDetails}
         onActivateMatchup={handleMatchupActivated}
@@ -340,7 +340,7 @@ const PredictionsPage = () => {
               predictedAwayScore={matchup.predictedAwayScore}
               round={matchup.round}
               onSubmitPrediction={handleSubmitPrediction}
-              isAdmin={user?.is_admin}
+              isAdmin={isAdmin}
               onUpdateScore={handleUpdateScore}
               onViewDetails={handleViewDetails}
               onActivateMatchup={handleMatchupActivated}

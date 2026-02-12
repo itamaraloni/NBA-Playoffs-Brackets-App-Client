@@ -121,11 +121,7 @@ const UserServices = {
     if (token) {
       localStorage.setItem('auth_token', token);
     }
-    
-    if (userData?.is_admin) {
-      localStorage.setItem('is_admin', userData.is_admin);
-    }
-    
+
     if (userData?.player?.player_id) {
       localStorage.setItem('player_id', userData.player.player_id);
     }
@@ -133,7 +129,7 @@ const UserServices = {
     if (userData?.player?.player_name) {
       localStorage.setItem('player_name', userData.player.player_name);
     }
-    
+
     if (userData?.league?.league_id) {
       localStorage.setItem('league_id', userData.league.league_id);
     }
