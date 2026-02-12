@@ -32,6 +32,24 @@ Frontend for Playoff Prophet — React 18 + MUI 6 SPA for NBA Playoffs predictio
 
 ---
 
+## Frontend Work — Educational Feedback
+
+**User Request:** The primary developer (darchock) is less experienced with React and frontend development. When working on client repo issues, provide more informative and educational feedback:
+
+- **Explain the "why"** — Don't just make changes, explain why this approach is better/correct
+- **Reference React concepts** — When using hooks, context, or patterns, briefly explain what they do
+- **Show alternatives** — If there are multiple ways to solve something, mention them and explain the trade-offs
+- **Point out best practices** — Call out when following or deviating from React/MUI conventions
+- **Explain side effects** — Describe how changes affect component lifecycle, re-renders, or state flow
+- **Educational comments** — When code might be unclear, add brief inline comments explaining the pattern
+
+**Example:** Instead of just "Added useCallback to prevent re-renders", say:
+> "Added `useCallback` to memoize the `handleSubmit` function. This prevents the function from being recreated on every render, which would cause child components that receive it as a prop to re-render unnecessarily. This is a performance optimization common in React when passing callbacks to child components."
+
+This guideline applies to all frontend work — code changes, PR reviews, planning, and debugging.
+
+---
+
 ## Codebase Rules & Patterns
 
 ### Component Architecture
