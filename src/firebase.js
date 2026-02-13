@@ -9,13 +9,13 @@ import { getFirestore } from 'firebase/firestore';
 // The web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCOL8f1IhtBMxZdtDnMFBZMo_m2zbW2pJE",
-  authDomain: "nba-playoff-prediction-app.firebaseapp.com",
-  projectId: "nba-playoff-prediction-app",
-  storageBucket: "nba-playoff-prediction-app.firebasestorage.app",
-  messagingSenderId: "1018832016110",
-  appId: "1:1018832016110:web:eed594e0a93fdad004d9ff",
-  measurementId: "G-TSY2NDE5RP"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase

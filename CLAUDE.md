@@ -71,6 +71,22 @@ This guideline applies to all frontend work — code changes, PR reviews, planni
 - **Constants:** UPPER_SNAKE_CASE (`PLAYER_AVATARS`, `NBA_TEAMS_WITH_POINTS`)
 - **File extensions:** `.js` and `.jsx` are both used — match the convention of the file you're editing. For new files, prefer `.jsx` for components
 
+### Environment Variables
+
+- **REACT_APP_API_URL** — Backend API endpoint (dev: localhost:5000, prod: api.playoffprophet.com)
+- **REACT_APP_FIREBASE_*** — Firebase config values (7 total, see .env.example for all)
+  - `REACT_APP_FIREBASE_API_KEY` — Firebase API key
+  - `REACT_APP_FIREBASE_AUTH_DOMAIN` — Firebase auth domain
+  - `REACT_APP_FIREBASE_PROJECT_ID` — Firebase project ID
+  - `REACT_APP_FIREBASE_STORAGE_BUCKET` — Firebase storage bucket
+  - `REACT_APP_FIREBASE_MESSAGING_SENDER_ID` — Firebase messaging sender ID
+  - `REACT_APP_FIREBASE_APP_ID` — Firebase app ID
+  - `REACT_APP_FIREBASE_MEASUREMENT_ID` — Firebase measurement ID (analytics)
+- All env vars use Create React App's `REACT_APP_*` prefix (required for access via `process.env`)
+- To set up locally: copy `.env.example` to `.env` and fill in your values
+- Never commit `.env` — it's gitignored and contains environment-specific secrets
+- Changing `.env` requires restarting the dev server (`npm start`)
+
 ### Styling
 
 - **MUI `sx` prop is the primary styling method** — do NOT introduce CSS modules, styled-components, or new CSS files
