@@ -196,6 +196,9 @@ export function AuthProvider({ children }) {
             const idToken = await user.getIdToken();
             const userData = await UserServices.syncUserWithDatabase(user, retryCount);
 
+            // Store token so apiClient can use it for subsequent calls
+            UserServices.storeUserData(userData, idToken);
+
             // Set admin status from server response
             setIsAdmin(userData?.is_admin || false);
 
