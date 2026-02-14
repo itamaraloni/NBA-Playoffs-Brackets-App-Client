@@ -113,8 +113,21 @@ const UserServices = {
   },
   
   /**
+   * Get all leagues and players for the authenticated user
+   * @returns {Promise<Object>} Players array with league info
+   */
+  async getUserLeagues() {
+    try {
+      const data = await apiClient.get('/user/leagues');
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
    * Store user data in localStorage
-   * @param {Object} userData - User data from backend
+   * @param {Object} userData - User data from backend (only is_admin for auth verification)
    * @param {String} token - Authentication token
    */
   storeUserData(userData, token) {
@@ -122,17 +135,8 @@ const UserServices = {
       localStorage.setItem('auth_token', token);
     }
 
-    if (userData?.player?.player_id) {
-      localStorage.setItem('player_id', userData.player.player_id);
-    }
-
-    if (userData?.player?.player_name) {
-      localStorage.setItem('player_name', userData.player.player_name);
-    }
-
-    if (userData?.league?.league_id) {
-      localStorage.setItem('league_id', userData.league.league_id);
-    }
+    // Note: is_admin is NOT stored in localStorage (security - see PR #13/issue #1)
+    // Note: player/league data no longer stored here - managed by AuthContext via getUserLeagues()
   }
 };
 

@@ -99,10 +99,11 @@ This guideline applies to all frontend work — code changes, PR reviews, planni
 
 - **Global state:** React Context only (AuthContext for auth, ThemeContext for theme). No Redux or other state libraries
 - **Page-level data:** `useState` in page components, fetched in `useEffect`
-- **localStorage keys in use:** `auth_token`, `is_admin`, `player_id`, `player_name`, `league_id`, `theme-mode`, `joinLeagueId`
-- When adding new persistent state, use localStorage directly — match the existing flat key pattern
+- **localStorage keys in use:** `auth_token`, `active_player_id`, `theme-mode`, `joinLeagueId`
+- `active_player_id` stores the user's last-selected league player as UX convenience (survives page reload). AuthContext is the source of truth — localStorage is just a hint. See ADR-003
 - `theme-mode` is preserved on logout; all other keys are cleared
-- **PENDING MIGRATION:** `auth_token` in localStorage is an XSS risk. Planned move to httpOnly cookies (requires backend changes). `is_admin` will also move to server-side verification only. Once these migrations land, update this section and the API & Services section accordingly
+- **Removed keys:** `player_id`, `player_name`, `league_id`, `is_admin` — these were replaced by AuthContext state (`activePlayer`, `isAdmin`)
+- **PENDING MIGRATION:** `auth_token` in localStorage is an XSS risk. Planned move to httpOnly cookies (requires backend changes)
 
 ### API & Services
 
@@ -149,8 +150,9 @@ useEffect(() => {
 1. Google OAuth popup via Firebase `signInWithPopup()`
 2. Token obtained via `user.getIdToken()` → stored as `auth_token` in localStorage
 3. Backend sync via `UserServices.syncUserWithDatabase()`
-4. `AuthContext` provides: `currentUser`, `isAuthenticated`, `signInWithGoogle()`, `logout()`
+4. `AuthContext` provides: `currentUser`, `isAuthenticated`, `isAdmin`, `userPlayers`, `activePlayer`, `switchActivePlayer()`, `signInWithGoogle()`, `logout()`
 5. `useAuth()` hook to access auth state in any component
+6. After auth sync, `fetchAndSetPlayerData()` calls `/user/leagues` to populate `userPlayers` and restore `activePlayer` from localStorage hint
 
 ### Scoring & Rounds (reference for UI logic)
 
