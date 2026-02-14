@@ -18,10 +18,12 @@ import PlayerStatsCard from '../components/PlayerStatsCard';
 import EditPicksDialog from '../components/EditPicksDialog';
 import LeagueServices from '../services/LeagueServices';
 import UserServices from '../services/UserServices';
+import { useAuth } from '../contexts/AuthContext';
 
 const Dashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { activePlayer, userPlayers } = useAuth();
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
   const [leagueCode, setLeagueCode] = useState('');
   const [codeError, setCodeError] = useState('');
@@ -31,8 +33,8 @@ const Dashboard = () => {
   const [playerProfileError, setPlayerProfileError] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editType, setEditType] = useState('championship'); // 'championship' or 'mvp'
-  
-  const playerId = localStorage.getItem('player_id');
+
+  const playerId = activePlayer?.player_id;
   const navigate = useNavigate();
 
   // Fetch player profile if player ID exists
@@ -220,7 +222,11 @@ const Dashboard = () => {
         NBA Playoff Predictions
       </Typography>
       
-      {playerId ? renderExistingPlayerContent() : renderNewUserContent()}
+      {/* Show player stats if user has an active league */}
+      {playerId && renderExistingPlayerContent()}
+
+      {/* Always show create/join options — users need this to join additional leagues */}
+      {renderNewUserContent()}
 
       {/* Edit Picks Dialog */}
       <EditPicksDialog

@@ -13,20 +13,22 @@ import ScoringRules from '../components/common/ScoringRules';
 import League from '../components/League';
 import PlayerDetailDialog from '../components/PlayerDetailDialog';
 import LeagueServices from '../services/LeagueServices';
+import { useAuth } from '../contexts/AuthContext';
 
 const LeaguePage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { activePlayer } = useAuth();
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [leagueData, setLeagueData] = useState(null);
   const [error, setError] = useState(null);
-  
-  // Get player_id and league_id from localStorage
-  const currentPlayerId = localStorage.getItem('player_id');
-  const leagueId = localStorage.getItem('league_id');
+
+  // Get player_id and league_id from active player context
+  const currentPlayerId = activePlayer?.player_id;
+  const leagueId = activePlayer?.league_id;
   
   // Fetch league data from API using service
   useEffect(() => {
@@ -47,10 +49,10 @@ const LeaguePage = () => {
     if (leagueId) {
       fetchLeagueData();
     } else {
-      setError('No league selected. Please join or create a league.');
+      setError('No league selected. Please join or create a league from the Dashboard.');
       setLoading(false);
     }
-  }, [leagueId]);
+  }, [leagueId]); // Re-fetch when active player/league changes
   
   // Copy league code to clipboard
   const copyLeagueCode = () => {
