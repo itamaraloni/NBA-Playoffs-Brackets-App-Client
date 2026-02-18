@@ -74,6 +74,10 @@ const LeagueSwitcher = () => {
 
     try {
       const response = await LeagueServices.validateLeagueCode(joinCode);
+      if (userPlayers.some(p => p.league_id === response.league_id)) {
+        setJoinError("You're already a member of this league.");
+        return;
+      }
       localStorage.setItem('joinLeagueId', response.league_id);
       setJoinDialogOpen(false);
       navigate('/create-player');

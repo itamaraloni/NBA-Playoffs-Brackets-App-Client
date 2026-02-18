@@ -84,7 +84,13 @@ const Dashboard = () => {
     try {
       // Call the actual API to validate the league code
       const response = await LeagueServices.validateLeagueCode(leagueCode);
-      
+
+      // Block if already a member of this league
+      if (userPlayers.some(p => p.league_id === response.league_id)) {
+        setCodeError("You're already a member of this league.");
+        return;
+      }
+
       // If we get here, the code is valid - store the league ID
       localStorage.setItem('joinLeagueId', response.league_id);
 

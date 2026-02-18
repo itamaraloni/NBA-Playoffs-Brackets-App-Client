@@ -105,7 +105,11 @@ const CreatePlayerPage = () => {
       });
     } catch (error) {
       console.error('Error creating player:', error);
-      setError('Failed to create player. Please try again.');
+      if (error.status === 409) {
+        setError(error.message);
+      } else {
+        setError('Failed to create player. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
