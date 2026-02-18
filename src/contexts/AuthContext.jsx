@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
    * Uses localStorage 'active_player_id' as a hint to restore the user's
    * last selected league across page reloads. Falls back to first player.
    */
-  const fetchAndSetPlayerData = async () => {
+  const fetchAndSetPlayerData = useCallback(async () => {
     try {
       const leaguesData = await UserServices.getUserLeagues();
       const players = leaguesData?.players || [];
@@ -62,7 +62,7 @@ export function AuthProvider({ children }) {
       setUserPlayers([]);
       setActivePlayer(null);
     }
-  };
+  }, []);
 
   /**
    * Switch the active player/league. Updates React state and persists
@@ -266,9 +266,10 @@ export function AuthProvider({ children }) {
     error,
     isAuthenticated,
     isAdmin,
-    userPlayers,        // All user's players across leagues
-    activePlayer,       // Currently selected player (contains player_id, league_id, etc.)
-    switchActivePlayer, // Method to switch between leagues
+    userPlayers,          // All user's players across leagues
+    activePlayer,         // Currently selected player (contains player_id, league_id, etc.)
+    switchActivePlayer,   // Method to switch between leagues
+    refreshLeagueData: fetchAndSetPlayerData, // Re-fetch all leagues (call after joining/creating)
     signInWithGoogle,
     logout
   };

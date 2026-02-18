@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import {
   Box,
   Button,
@@ -30,6 +31,7 @@ import { NBA_TEAMS_WITH_POINTS, MVP_CANDIDATES_WITH_POINTS, PLAYER_AVATARS } fro
 const CreatePlayerPage = () => {
   const navigate = useNavigate();
   const theme = useTheme();
+  const { refreshLeagueData } = useAuth();
   const [playerName, setPlayerName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
@@ -91,15 +93,16 @@ const CreatePlayerPage = () => {
       }
 
       messageToDisplay = `${messageToDisplay ? messageToDisplay + ' and ' : ''}Player created successfully`;
+
+      // Set active_player_id before refreshing so AuthContext restores to the new player
+      localStorage.setItem('active_player_id', createPlayerResponse.player_id);
+      await refreshLeagueData();
+
       setAlert({
         open: true,
         message: messageToDisplay,
         severity: 'success'
       });
-
-      // Store player id and League id in localStorage
-      localStorage.setItem('player_id', createPlayerResponse.player_id);
-      localStorage.setItem('league_id', leagueId);
     } catch (error) {
       console.error('Error creating player:', error);
       setError('Failed to create player. Please try again.');
