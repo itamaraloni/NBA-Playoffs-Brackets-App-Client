@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import PredictionStatsTable from './PredictionStatsTable';
 import { PLAYER_AVATARS, NBA_TEAMS_WITH_POINTS, MVP_CANDIDATES_WITH_POINTS } from '../shared/GeneralConsts';
+import { PLAYIN_START_DATE } from '../shared/SeasonConfig';
 
 /**
  * Component for showing player stats in dashboard
@@ -34,10 +35,7 @@ const PlayerStatsCard = ({
   
   if (!playerData) return null;
   
-  // Calculate if user can edit picks (deadline April 14, 2025)
-  const currentDate = new Date();
-  const editDeadline = new Date('2025-04-15T22:59:59');
-  const canEdit = currentDate < editDeadline && allowEditing;
+  const canEdit = new Date() < PLAYIN_START_DATE && allowEditing;
 
   return (
     <Paper
@@ -169,7 +167,7 @@ const PlayerStatsCard = ({
               </Button>
             )}
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <TrophyIcon sx={{ color: 'gold', mr: 1 }} />
+              <MvpIcon sx={{ color: 'gold', mr: 1 }} />
               <Typography variant="body1" fontWeight="medium">
                 MVP Pick
               </Typography>
