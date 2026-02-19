@@ -21,6 +21,7 @@ import {
   MilitaryTech as MvpIcon
 } from '@mui/icons-material';
 import { NBA_TEAMS_WITH_POINTS, MVP_CANDIDATES_WITH_POINTS } from '../shared/GeneralConsts';
+import { PLAYIN_START_DATE } from '../shared/SeasonConfig';
 
 const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
   const theme = useTheme();
@@ -88,7 +89,7 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
       </DialogTitle>
       <DialogContent sx={{ pt: 3 }}>
         <Typography variant="body2" sx={{ mb: 2 }}>
-          You can edit your predictions until April 14, 2025, 11:59 PM.
+          You can edit your predictions until {PLAYIN_START_DATE.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}.
         </Typography>
         <Typography variant="body2" sx={{ mb: 3 }}>
           Current selection: <strong>{
