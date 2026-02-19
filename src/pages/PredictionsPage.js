@@ -59,22 +59,21 @@ const PredictionsPage = () => {
   const [selectedMatchup, setSelectedMatchup] = useState(null);
   const [leaguePredictions, setLeaguePredictions] = useState([]);
   
-  const { user, isAdmin } = useAuth();
+  const { isAdmin, activePlayer } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // Load matchups on component mount
+  // Load matchups on component mount or when active player changes
   useEffect(() => {
     const loadMatchups = async () => {
-      const playerId = localStorage.getItem('player_id');
-      if (!playerId) {
+      if (!activePlayer) {
         setLoading(false);
         return; // Exit early without making API call
       }
 
       try {
         setLoading(true);
-        const data = await MatchupServices.getMatchups();
+        const data = await MatchupServices.getMatchups(activePlayer.player_id);
         
         // Organize matchups by status
         const organized = {
@@ -94,7 +93,7 @@ const PredictionsPage = () => {
     };
 
     loadMatchups();
-  }, [user]);
+  }, [activePlayer]);
 
   const handleTabChange = (event, newValue) => {
     setTabIndex(newValue);
@@ -102,7 +101,7 @@ const PredictionsPage = () => {
 
   const handleSubmitPrediction = async (prediction) => {
     try {
-      const response = await MatchupServices.submitPrediction(prediction);
+      const response = await MatchupServices.submitPrediction(prediction, activePlayer.player_id);
       
       console.log('Prediction response:', response);
       // Show success notification
@@ -202,7 +201,7 @@ const PredictionsPage = () => {
    to re-render the updated data
   */
   const handleMatchupActivated = async () => {
-    const data = await MatchupServices.getMatchups();
+    const data = await MatchupServices.getMatchups(activePlayer.player_id);
     
     const organized = {
       upcoming: data.filter(m => m.status === 'upcoming'),
@@ -222,8 +221,8 @@ const PredictionsPage = () => {
     setDialogOpen(true);
     
     try {
-      const leagueId = localStorage.getItem('league_id');
-      
+      const leagueId = activePlayer?.league_id;
+
       if (!leagueId) {
         console.error("No league ID available");
         if (window.notify) {

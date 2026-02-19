@@ -23,6 +23,7 @@ import { TbCrystalBall } from 'react-icons/tb';
 import MatchupTeamsDisplay from './common/MatchupTeamsDisplay';
 import MatchupScoreDisplay from './common/MatchupScoreDisplay';
 import MatchupPredictionsStats from './MatchupPredictionsStats';
+import { useAuth } from '../contexts/AuthContext';
 
 /**
  * Dialog to display league predictions for a matchup
@@ -37,6 +38,7 @@ const MatchupDetailsDialog = ({
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+  const { activePlayer } = useAuth();
 
   // If no matchup data, don't render
   if (!matchup) return null;
@@ -211,7 +213,7 @@ const MatchupDetailsDialog = ({
           {leaguePredictions.length > 0 ? (
             leaguePredictions.map((prediction, index) => {
               const accuracy = getPredictionAccuracy(prediction);
-              const isCurrentPlayer = prediction.userName === localStorage.getItem('player_name'); 
+              const isCurrentPlayer = prediction.userName === activePlayer?.player_name;
               
               // Check if this prediction is for a play-in game
               const isPredictionPlayIn = isPlayIn || 

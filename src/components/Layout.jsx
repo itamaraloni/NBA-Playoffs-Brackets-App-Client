@@ -28,6 +28,7 @@ import {
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import ThemeToggle from '../theme/ThemeToggle';
+import LeagueSwitcher from './LeagueSwitcher';
 
 const DRAWER_WIDTH = 240;
 
@@ -157,6 +158,7 @@ const Layout = ({ children, onLogout }) => {
           >
             Playoff Prophet
           </Typography>
+          <LeagueSwitcher />
           <ThemeToggle />
         </Toolbar>
       </AppBar>

@@ -2,12 +2,13 @@ import apiClient from './ApiClient';
 
 const MatchupServices = {
   /**
-   * Get all matchup predictions for the current user
+   * Get all matchup predictions for the specified player
+   * @param {string} playerId - Player UUID to fetch predictions for
    * @returns {Promise<Object>} Object containing grouped predictions
    */
-  getMatchups: async () => {
+  getMatchups: async (playerId) => {
     try {
-      const response = await apiClient.get('/prediction/get_all_matchups_with_predictions');
+      const response = await apiClient.get(`/prediction/get_all_matchups_with_predictions?player_id=${playerId}`);
       
       // Process the API response to match the expected format in the PredictionsPage component
       const transformedData = [];
@@ -95,11 +96,13 @@ const MatchupServices = {
   /**
    * Submit a prediction for a matchup
    * @param {Object} prediction Prediction data
+   * @param {string} playerId Player UUID submitting the prediction
    * @returns {Promise<Object>} Success response
    */
-  submitPrediction: async (prediction) => {
+  submitPrediction: async (prediction, playerId) => {
     try {
       const response = await apiClient.post('/prediction/submit_prediction', {
+        player_id: playerId,
         matchup_id: prediction.matchupId,
         homeScore: prediction.homeScore,
         awayScore: prediction.awayScore
