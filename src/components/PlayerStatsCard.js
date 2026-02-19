@@ -167,7 +167,7 @@ const PlayerStatsCard = ({
               </Button>
             )}
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <TrophyIcon sx={{ color: 'gold', mr: 1 }} />
+              <MvpIcon sx={{ color: 'gold', mr: 1 }} />
               <Typography variant="body1" fontWeight="medium">
                 MVP Pick
               </Typography>
