@@ -1,6 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Paper, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
+
+/** Derives the logo path from the team name stored in the API response.
+ *  "Oklahoma City Thunder" → "/resources/team-logos/oklahoma-city-thunder.png" */
+function getLogoPath(teamName) {
+  return `/resources/team-logos/${teamName.toLowerCase().replace(/ /g, '-')}.png`;
+}
+
+/** Team logo circle — falls back to 3-letter abbreviation if the image 404s. */
+function TeamLogo({ name }) {
+  const theme = useTheme();
+  const [imgError, setImgError] = useState(false);
+
+  if (!imgError) {
+    return (
+      <Box
+        component="img"
+        src={getLogoPath(name)}
+        alt={name}
+        onError={() => setImgError(true)}
+        sx={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, objectFit: 'contain' }}
+      />
+    );
+  }
+
+  // Fallback: 3-letter abbreviation badge
+  return (
+    <Box sx={{
+      width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: '0.4375rem', fontWeight: 800, letterSpacing: '-0.3px',
+      background: theme.palette.action.selected,
+      color: theme.palette.text.primary,
+    }}>
+      {name?.slice(0, 3).toUpperCase()}
+    </Box>
+  );
+}
 
 /**
  * Renders a single team row inside a matchup card.
@@ -106,17 +143,7 @@ function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed }
           #{seed}
         </Typography>
       )}
-      {/* Team logo placeholder — 3-letter abbreviation */}
-      <Box sx={{
-        width: 24, height: 24, borderRadius: '50%',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '0.4375rem', fontWeight: 800, letterSpacing: '-0.3px',
-        flexShrink: 0,
-        background: theme.palette.action.selected,
-        color: theme.palette.text.primary,
-      }}>
-        {team.name?.slice(0, 3).toUpperCase()}
-      </Box>
+      <TeamLogo name={team.name} />
       <Typography sx={{
         fontSize: '0.6875rem', fontWeight: 600,
         flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
