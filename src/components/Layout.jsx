@@ -17,14 +17,15 @@ import {
   useTheme,
   Tooltip
 } from '@mui/material';
-import { 
+import {
   Menu as MenuIcon,
   Home as DashboardIcon,
   Group as MyLeagueIcon,
   Whatshot as PredictionsIcon,
   AccountCircle as ProfileIcon,
   Close as CloseIcon,
-  Logout as LogoutIcon
+  Logout as LogoutIcon,
+  AccountTree as BracketIcon,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import ThemeToggle from '../theme/ThemeToggle';
@@ -43,10 +44,11 @@ const Layout = ({ children, onLogout }) => {
   };
 
   const navigationItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+    { text: 'Dashboard',   icon: <DashboardIcon />,  path: '/dashboard'   },
     { text: 'Predictions', icon: <PredictionsIcon />, path: '/predictions' },
-    { text: 'My League', icon: <MyLeagueIcon />, path: '/league' },
-    { text: 'Profile', icon: <ProfileIcon />, path: '/profile' },
+    { text: 'Bracket',     icon: <BracketIcon />,     path: '/bracket'     },
+    { text: 'My League',   icon: <MyLeagueIcon />,    path: '/league'      },
+    { text: 'Profile',     icon: <ProfileIcon />,     path: '/profile'     },
   ];
 
   const drawer = (

@@ -14,6 +14,7 @@ import LeaguePage from './pages/LeaguePage';
 import ProfilePage from './pages/ProfilePage';
 import CreateLeaguePage from './pages/CreateLeaguePage';
 import CreatePlayerPage from './pages/CreatePlayerPage';
+import BracketPage from './pages/BracketPage';
 
 function AppContent() {
   const { logout, isAuthenticated } = useAuth();
@@ -69,6 +70,12 @@ function AppContent() {
     <Route path="/profile" element={
       <Layout onLogout={handleLogout}>
         <ProfilePage />
+      </Layout>
+    } />
+
+    <Route path="/bracket" element={
+      <Layout onLogout={handleLogout}>
+        <BracketPage />
       </Layout>
     } />
   </Route>
