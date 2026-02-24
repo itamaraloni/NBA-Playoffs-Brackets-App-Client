@@ -28,6 +28,9 @@ function enrichMatchup(m) {
     actualWinnerIsTeam1: isPlayed && m.actual_winner_team_id    === m.team_1?.team_id,
     // TBD: either team slot is not yet determined (pre-play-in)
     isTbd: !m.team_1 || !m.team_2,
+    // TODO(Phase 4): server returns is_correct (snake_case) — map it here so BracketMatchup
+    // can use m.isCorrect for the score bar result color once actual results are available.
+    isCorrect: m.is_correct ?? null,
   };
 }
 
@@ -70,7 +73,7 @@ function transformBracketData(apiResponse) {
     isLocked:            apiResponse.is_locked,
     east:  groupByRound(apiResponse.conferences.east),
     west:  groupByRound(apiResponse.conferences.west),
-    final: enrichMatchup({ ...apiResponse.final, isPlayin: false }),
+    final: enrichMatchup(apiResponse.final),
   };
 }
 
@@ -80,25 +83,17 @@ const BracketServices = {
    * Omit playerId to fetch your own bracket; include it to view another player's.
    */
   async getBracket(playerId, leagueId) {
-    try {
-      const params = new URLSearchParams({ league_id: leagueId });
-      if (playerId) params.append('player_id', playerId);
-      const data = await apiClient.get(`/bracket/get_player_bracket?${params.toString()}`);
-      return transformBracketData(data);
-    } catch (error) {
-      throw error;
-    }
+    const params = new URLSearchParams({ league_id: leagueId });
+    if (playerId) params.append('player_id', playerId);
+    const data = await apiClient.get(`/bracket/get_player_bracket?${params.toString()}`);
+    return transformBracketData(data);
   },
 
   /** Lightweight status check — does not fetch all 21 matchups. */
   async getBracketStatus(playerId, leagueId) {
-    try {
-      const params = new URLSearchParams({ league_id: leagueId });
-      if (playerId) params.append('player_id', playerId);
-      return await apiClient.get(`/bracket/status?${params.toString()}`);
-    } catch (error) {
-      throw error;
-    }
+    const params = new URLSearchParams({ league_id: leagueId });
+    if (playerId) params.append('player_id', playerId);
+    return apiClient.get(`/bracket/status?${params.toString()}`);
   },
 
   /**
@@ -106,15 +101,11 @@ const BracketServices = {
    * picks: array of 21 pick objects (built by flattenBracketPicks in Phase 1-F-c)
    */
   async submitBracket(playerId, leagueId, picks) {
-    try {
-      return await apiClient.post('/bracket/submit', {
-        player_id: playerId,
-        league_id: leagueId,
-        picks,
-      });
-    } catch (error) {
-      throw error;
-    }
+    return apiClient.post('/bracket/submit', {
+      player_id: playerId,
+      league_id: leagueId,
+      picks,
+    });
   },
 };
 

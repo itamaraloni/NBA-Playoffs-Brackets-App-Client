@@ -4,6 +4,8 @@ import { alpha } from '@mui/material/styles';
 import ConferenceBracket from './ConferenceBracket';
 import BracketMatchup from './BracketMatchup';
 
+const FINALS_PTS = 30;
+
 /**
  * Progress bar + deadline strip shown above the bracket on all screen sizes.
  */
@@ -90,7 +92,7 @@ function FinalsSection({ finalMatchup, isLocked }) {
           fontSize: '0.5625rem', fontWeight: 700,
           letterSpacing: '0.1em', color: 'rgba(245,158,11,0.7)',
         }}>
-          30 pts
+          {FINALS_PTS} pts
         </Typography>
       </Box>
       <Box sx={{ width: '100%' }}>
@@ -151,6 +153,13 @@ const BracketView = ({ bracket, isLocked, predictedMatchups, totalMatchups, dead
                 color: '#f59e0b',
               }}>
                 NBA Finals
+              </Typography>
+              <Typography sx={{
+                display: 'block',
+                fontSize: '0.5625rem', fontWeight: 700,
+                letterSpacing: '0.1em', color: 'rgba(245,158,11,0.7)',
+              }}>
+                {FINALS_PTS} pts
               </Typography>
             </Box>
             <BracketMatchup matchup={bracket.final} isLocked={isLocked} isFinals />

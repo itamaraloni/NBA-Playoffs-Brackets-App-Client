@@ -73,10 +73,10 @@ const BracketPage = () => {
   return (
     <BracketView
       bracket={bracketState}
-      isLocked={serverBracket.isLocked}
-      predictedMatchups={serverBracket.predictedMatchups}
-      totalMatchups={serverBracket.totalMatchups}
-      deadline={serverBracket.deadline}
+      isLocked={bracketState.isLocked}
+      predictedMatchups={bracketState.predictedMatchups}
+      totalMatchups={bracketState.totalMatchups}
+      deadline={bracketState.deadline}
     />
   );
 };
