@@ -159,22 +159,24 @@ function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed }
  * BracketMatchup — the individual matchup card.
  *
  * Props:
- *   matchup  — enriched matchup object from BracketServices.transformBracketData
- *   isLocked — whether the bracket deadline has passed
- *   isFinals — apply gold accent styling for the NBA Finals card
- *
- * Phase 1-F-b: display-only (no onClick). Phase 1-F-c will add onMatchupClick prop.
+ *   matchup        — enriched matchup object from BracketServices.transformBracketData
+ *   isLocked       — whether the bracket deadline has passed
+ *   isFinals       — apply gold accent styling for the NBA Finals card
+ *   onMatchupClick — (matchup) => void; when provided and matchup.can_edit, card is clickable
  */
-const BracketMatchup = ({ matchup: m, isLocked, isFinals }) => {
+const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick }) => {
   const theme = useTheme();
 
   if (!m) return null;
+
+  // Clickable when: a handler is provided AND can_edit is true AND bracket is not locked
+  const isClickable = Boolean(onMatchupClick && m.can_edit && !isLocked);
 
   const cardSx = {
     borderRadius: '10px',
     overflow: 'hidden',
     opacity: m.isTbd ? 0.38 : 1,
-    cursor: 'default',
+    cursor: isClickable ? 'pointer' : 'default',
     border: isFinals
       ? '1px solid rgba(245,158,11,0.22)'
       : `1px solid ${theme.palette.divider}`,
@@ -182,6 +184,10 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals }) => {
       ? '0 4px 20px rgba(245,158,11,0.1), 0 2px 10px rgba(0,0,0,0.15)'
       : theme.shadows[1],
     transition: 'transform 0.15s, box-shadow 0.15s',
+    '&:hover': isClickable ? {
+      transform: 'translateY(-1px)',
+      boxShadow: theme.shadows[4],
+    } : {},
   };
 
   // predWinnerIsTeam1: true when pick points to team_1
@@ -200,7 +206,11 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals }) => {
   const actScore  = m.isPlayed ? m.actual_series_score : null;
 
   return (
-    <Paper elevation={0} sx={cardSx}>
+    <Paper
+      elevation={0}
+      sx={cardSx}
+      onClick={isClickable ? () => onMatchupClick(m) : undefined}
+    >
       <TeamRow
         team={m.team_1}
         seed={m.team_1?.seed}
