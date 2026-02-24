@@ -109,6 +109,7 @@ const BracketRound = ({ label, pts, matchups, isPlayinCol, isLocked, mobile, onM
             key={`${m.round}-${m.conference}-${m.matchup_position}`}
             matchup={m}
             isLocked={isLocked}
+            onMatchupClick={onMatchupClick}
           />
         ))}
       </Box>
