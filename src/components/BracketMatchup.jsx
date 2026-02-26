@@ -170,7 +170,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick }) => {
   const cardSx = {
     borderRadius: '10px',
     overflow: 'hidden',
-    opacity: m.isTbd ? 0.38 : 1,
+    opacity: m.isTbd ? 0.38 : isLocked ? 0.6 : 1,
     cursor: isClickable ? 'pointer' : 'default',
     border: isFinals
       ? '1px solid rgba(245,158,11,0.22)'

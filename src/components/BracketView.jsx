@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Tabs, Tab, Typography, useTheme, useMediaQuery } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import ConferenceBracket from './ConferenceBracket';
@@ -7,20 +7,54 @@ import BracketMatchup from './BracketMatchup';
 const FINALS_PTS = 30;
 
 /**
- * Progress bar + deadline strip shown above the bracket on all screen sizes.
+ * Formats a millisecond duration into a human-readable countdown string.
+ * Examples: "3d 14h 22m", "5h 12m", "42m", "< 1m"
+ */
+function formatCountdown(ms) {
+  if (ms <= 0) return null;
+  const totalMinutes = Math.floor(ms / 60_000);
+  if (totalMinutes < 1) return '< 1m';
+  const days  = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const mins  = totalMinutes % 60;
+  if (days > 0) return `${days}d ${hours}h ${mins}m`;
+  if (hours > 0) return `${hours}h ${mins}m`;
+  return `${mins}m`;
+}
+
+/**
+ * Progress bar + deadline countdown strip shown above the bracket on all screen sizes.
+ * Countdown updates every 60 seconds. Text turns red when < 24 hours remain.
  */
 function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline }) {
   const theme = useTheme();
+  const [now, setNow] = useState(Date.now());
 
-  const deadlineStr = deadline
-    ? new Date(deadline).toLocaleDateString('en-US', {
-        month: 'short', day: 'numeric', year: 'numeric',
-      })
-    : null;
+  // Tick every 60 s while the bracket is still open
+  useEffect(() => {
+    if (isLocked || !deadline) return;
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, [isLocked, deadline]);
+
+  const remaining   = deadline ? new Date(deadline).getTime() - now : 0;
+  const isUrgent    = remaining > 0 && remaining < 24 * 60 * 60 * 1000; // < 24 h
+  const countdownStr = formatCountdown(remaining);
 
   const pct = totalMatchups > 0
     ? Math.round((predictedMatchups / totalMatchups) * 100)
     : 0;
+
+  // Determine deadline label text and color
+  let deadlineLabel = null;
+  let deadlineColor = 'text.secondary';
+  if (isLocked) {
+    deadlineLabel = '🔒 Bracket locked — deadline passed';
+    deadlineColor = 'error.main';
+  } else if (countdownStr) {
+    deadlineLabel = `🔓 Locks in ${countdownStr}`;
+    deadlineColor = isUrgent ? 'error.main' : 'text.secondary';
+  }
 
   return (
     <Box sx={{
@@ -50,12 +84,12 @@ function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline })
         </Box>
       </Box>
 
-      {deadlineStr && (
+      {deadlineLabel && (
         <Typography variant="body2" sx={{
-          fontSize: '0.8rem', whiteSpace: 'nowrap',
-          color: isLocked ? 'error.main' : 'text.secondary',
+          fontSize: '0.8rem', whiteSpace: 'nowrap', fontWeight: isUrgent || isLocked ? 600 : 400,
+          color: deadlineColor,
         }}>
-          {isLocked ? '🔒 Bracket locked' : `🔓 Locks ${deadlineStr}`}
+          {deadlineLabel}
         </Typography>
       )}
     </Box>
