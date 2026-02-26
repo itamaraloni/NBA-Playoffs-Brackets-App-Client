@@ -4,9 +4,11 @@ import {
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
+import GroupsIcon from '@mui/icons-material/Groups';
 import { useAuth } from '../contexts/AuthContext';
 import BracketView from '../components/BracketView';
 import PredictionDialog from '../components/PredictionDialog';
+import LeagueBracketsDialog from '../components/LeagueBracketsDialog';
 import BracketServices from '../services/BracketServices';
 import { applyPick, countPicks, picksMatch, flattenBracketPicks } from '../utils/bracketUtils';
 
@@ -35,6 +37,9 @@ const BracketPage = () => {
 
   // Submit in-flight guard
   const [submitting, setSubmitting] = useState(false);
+
+  // League brackets dialog
+  const [leagueBracketsOpen, setLeagueBracketsOpen] = useState(false);
 
   const { activePlayer } = useAuth();
 
@@ -195,9 +200,22 @@ const BracketPage = () => {
         </Alert>
       )}
 
-      {/* Submit button row — hidden when bracket is locked */}
-      {!bracketState.isLocked && (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+      {/* Action buttons row */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5, mb: 2 }}>
+        {/* View League Brackets — visible only when locked */}
+        {bracketState.isLocked && (
+          <Button
+            variant="outlined"
+            size="medium"
+            onClick={() => setLeagueBracketsOpen(true)}
+            startIcon={<GroupsIcon />}
+          >
+            League Brackets
+          </Button>
+        )}
+
+        {/* Submit button — hidden when bracket is locked */}
+        {!bracketState.isLocked && (
           <Button
             variant="contained"
             size="medium"
@@ -207,8 +225,8 @@ const BracketPage = () => {
           >
             {submitLabel}
           </Button>
-        </Box>
-      )}
+        )}
+      </Box>
 
       {/* Bracket display */}
       <BracketView
@@ -226,6 +244,14 @@ const BracketPage = () => {
         onClose={() => setDialogOpen(false)}
         matchup={selectedMatchup}
         onSubmit={handlePredictWinner}
+      />
+
+      {/* League brackets comparison dialog */}
+      <LeagueBracketsDialog
+        open={leagueBracketsOpen}
+        onClose={() => setLeagueBracketsOpen(false)}
+        leagueId={activePlayer.league_id}
+        currentPlayerId={activePlayer.player_id}
       />
     </>
   );

@@ -97,6 +97,16 @@ const BracketServices = {
   },
 
   /**
+   * Fetches lightweight bracket status for all players in a league.
+   * Only available after the deadline (returns 403 before).
+   * Used by LeagueBracketsDialog to show player list with submission status.
+   */
+  async getLeagueBracketStatus(leagueId) {
+    const data = await apiClient.get(`/bracket/get_league_bracket_status?league_id=${leagueId}`);
+    return data;
+  },
+
+  /**
    * Submits the full bracket atomically.
    * picks: array of 21 pick objects (built by flattenBracketPicks in Phase 1-F-c)
    */
