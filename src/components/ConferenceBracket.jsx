@@ -23,7 +23,7 @@ const ROUND_DEFS = [
  *   isLocked — passed down to cards
  *   mobile   — mobile layout: chronological order, full-width stacked
  */
-const ConferenceBracket = ({ conf, rounds, isLocked, mobile }) => {
+const ConferenceBracket = ({ conf, rounds, isLocked, mobile, onMatchupClick }) => {
   const theme = useTheme();
   const isEast   = conf === 'east';
   const title    = isEast ? 'Eastern Conference' : 'Western Conference';
@@ -42,6 +42,7 @@ const ConferenceBracket = ({ conf, rounds, isLocked, mobile }) => {
             matchups={rounds[key] ?? []}
             isPlayinCol={isPlayinCol}
             isLocked={isLocked}
+            onMatchupClick={onMatchupClick}
             mobile
           />
         ))}
@@ -73,6 +74,7 @@ const ConferenceBracket = ({ conf, rounds, isLocked, mobile }) => {
             matchups={rounds[key] ?? []}
             isPlayinCol={isPlayinCol}
             isLocked={isLocked}
+            onMatchupClick={onMatchupClick}
           />
         ))}
       </Box>
