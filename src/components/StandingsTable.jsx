@@ -41,12 +41,13 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
         </>
       );
     } else if (isTablet) {
-      // On tablet, add championship prediction
+      // On tablet, add championship prediction and bracket score
       return (
         <>
           <TableCell>Rank</TableCell>
           <TableCell>Player</TableCell>
           <TableCell>Championship</TableCell>
+          <TableCell align="right">Bracket</TableCell>
           <TableCell align="right">Score</TableCell>
         </>
       );
@@ -58,6 +59,7 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
           <TableCell>Player</TableCell>
           <TableCell>Championship</TableCell>
           <TableCell>MVP</TableCell>
+          <TableCell align="right">Bracket</TableCell>
           <TableCell align="right">Score</TableCell>
         </>
       );
@@ -147,6 +149,7 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
             </Box>
           </TableCell>
           <TableCell>{player.championshipPrediction}</TableCell>
+          <TableCell align="right">{player.bracketScore}</TableCell>
           <TableCell align="right">
             <Typography fontWeight="bold">{player.score}</Typography>
           </TableCell>
@@ -167,11 +170,11 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
           </TableCell>
           <TableCell>
             <Box display="flex" alignItems="center">
-            <Avatar 
-              sx={{ 
-                width: 32, 
-                height: 32, 
-                mr: 1, 
+            <Avatar
+              sx={{
+                width: 32,
+                height: 32,
+                mr: 1,
                 bgcolor: isCurrentPlayer ? theme.palette.primary.main : theme.palette.grey[300],
                 fontSize: '0.875rem'
               }}
@@ -188,6 +191,7 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
           </TableCell>
           <TableCell>{player.championshipPrediction}</TableCell>
           <TableCell>{player.mvpPrediction}</TableCell>
+          <TableCell align="right">{player.bracketScore}</TableCell>
           <TableCell align="right">
             <Typography fontWeight="bold">{player.score}</Typography>
           </TableCell>
@@ -243,6 +247,7 @@ StandingsTable.propTypes = {
       championshipPrediction: PropTypes.string,
       mvpPrediction: PropTypes.string,
       player_avatar: PropTypes.string,
+      bracketScore: PropTypes.number,
       score: PropTypes.number.isRequired
     })
   ).isRequired,
