@@ -10,6 +10,17 @@ import PredictionDialog from '../components/PredictionDialog';
 import BracketServices from '../services/BracketServices';
 import { applyPick, countPicks, picksMatch, flattenBracketPicks } from '../utils/bracketUtils';
 
+// PredictionDialog passes matchup.round (API key: 'playin_first', 'first', etc.)
+// but applyPick / bracketUtils work with component round keys ('playin', 'r1', etc.)
+const API_TO_COMPONENT_ROUND = {
+  playin_first:      'playin',
+  playin_second:     'survivor',
+  first:             'r1',
+  second:            'semis',
+  conference_final:  'cf',
+  final:             'final',
+};
+
 const BracketPage = () => {
   // serverBracket: last confirmed server state — used to detect unsaved changes
   // bracketState:  live working copy that diverges from serverBracket during editing
@@ -92,17 +103,6 @@ const BracketPage = () => {
     setSelectedMatchup(matchup);
     setDialogOpen(true);
   }, []);
-
-  // PredictionDialog passes matchup.round (API key: 'playin_first', 'first', etc.)
-  // but applyPick / bracketUtils work with component round keys ('playin', 'r1', etc.)
-  const API_TO_COMPONENT_ROUND = {
-    playin_first:      'playin',
-    playin_second:     'survivor',
-    first:             'r1',
-    second:            'semis',
-    conference_final:  'cf',
-    final:             'final',
-  };
 
   const handlePredictWinner = (round, conference, matchupPosition, winnerTeamId, seriesScoreLoser) => {
     const roundKey = API_TO_COMPONENT_ROUND[round] ?? round;
@@ -202,7 +202,7 @@ const BracketPage = () => {
             variant="contained"
             size="medium"
             onClick={handleSubmitBracket}
-            disabled={!isComplete || submitting}
+            disabled={!isComplete || submitting || isSubmitted}
             startIcon={submitIcon}
           >
             {submitLabel}

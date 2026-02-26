@@ -1,6 +1,8 @@
 /**
  * bracketUtils.js — Pure bracket state utilities for Phase 1-F-c interactive picking.
  *
+ * Exported: applyPick, countPicks, picksMatch, flattenBracketPicks.
+ *
  * All functions operate on the transformed bracket shape produced by
  * BracketServices.transformBracketData (component round keys, enriched matchup objects).
  *

@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Paper, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-
-/** Derives the logo path from the team name stored in the API response.
- *  "Oklahoma City Thunder" → "/resources/team-logos/oklahoma-city-thunder.png" */
-function getLogoPath(teamName) {
-  return `/resources/team-logos/${teamName.toLowerCase().replace(/ /g, '-')}.png`;
-}
+import { getLogoPath } from '../shared/teamUtils';
 
 /** Team logo circle — falls back to 3-letter abbreviation if the image 404s. */
 function TeamLogo({ name }) {

@@ -4,11 +4,7 @@ import {
   Button, Box, Typography, Chip, useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-
-/** Derives team logo path from name — same convention as BracketMatchup. */
-function getLogoPath(teamName) {
-  return `/resources/team-logos/${teamName.toLowerCase().replace(/ /g, '-')}.png`;
-}
+import { getLogoPath } from '../shared/teamUtils';
 
 const SERIES_OPTIONS = [
   { label: '4-0 (Sweep)', loserWins: 0 },
