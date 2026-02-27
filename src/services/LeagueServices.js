@@ -51,6 +51,7 @@ const transformPlayerData = (player) => ({
   score: player.total_points,
   championship_team_points: player.championship_team_points,
   mvp_points: player.mvp_points,
+  bracketScore: player.bracket_score || 0,
   bullsEye: player.bullsEye,
   hits: player.hits,
   misses: player.misses,
