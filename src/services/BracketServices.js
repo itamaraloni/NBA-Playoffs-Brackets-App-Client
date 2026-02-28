@@ -77,6 +77,20 @@ function transformBracketData(apiResponse) {
   };
 }
 
+/**
+ * Transforms the raw /bracket/status response to camelCase UI shape.
+ */
+function transformBracketStatus(data) {
+  return {
+    isBracketSubmitted: data.is_bracket_submitted,
+    bracketSubmittedAt: data.bracket_submitted_at,
+    predictedMatchups:  data.predicted_matchups,
+    totalMatchups:      data.total_matchups,
+    deadline:           data.deadline,
+    isLocked:           data.is_locked,
+  };
+}
+
 const BracketServices = {
   /**
    * Fetches and transforms the full bracket for a player.
@@ -93,7 +107,8 @@ const BracketServices = {
   async getBracketStatus(playerId, leagueId) {
     const params = new URLSearchParams({ league_id: leagueId });
     if (playerId) params.append('player_id', playerId);
-    return apiClient.get(`/bracket/status?${params.toString()}`);
+    const data = await apiClient.get(`/bracket/status?${params.toString()}`);
+    return transformBracketStatus(data);
   },
 
   /**
