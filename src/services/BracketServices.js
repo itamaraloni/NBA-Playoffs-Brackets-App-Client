@@ -77,6 +77,36 @@ function transformBracketData(apiResponse) {
   };
 }
 
+/**
+ * Transforms the raw /bracket/get_league_bracket_status response to camelCase UI shape.
+ */
+function transformLeagueBracketStatus(data) {
+  return {
+    leagueId: data.league_id,
+    players: (data.players || []).map(p => ({
+      playerId:          p.player_id,
+      playerName:        p.player_name,
+      playerAvatar:      p.player_avatar,
+      isBracketSubmitted: p.is_bracket_submitted,
+      bracketSubmittedAt: p.bracket_submitted_at,
+    })),
+  };
+}
+
+/**
+ * Transforms the raw /bracket/status response to camelCase UI shape.
+ */
+function transformBracketStatus(data) {
+  return {
+    isBracketSubmitted: data.is_bracket_submitted,
+    bracketSubmittedAt: data.bracket_submitted_at,
+    predictedMatchups:  data.predicted_matchups,
+    totalMatchups:      data.total_matchups,
+    deadline:           data.deadline,
+    isLocked:           data.is_locked,
+  };
+}
+
 const BracketServices = {
   /**
    * Fetches and transforms the full bracket for a player.
@@ -93,7 +123,18 @@ const BracketServices = {
   async getBracketStatus(playerId, leagueId) {
     const params = new URLSearchParams({ league_id: leagueId });
     if (playerId) params.append('player_id', playerId);
-    return apiClient.get(`/bracket/status?${params.toString()}`);
+    const data = await apiClient.get(`/bracket/status?${params.toString()}`);
+    return transformBracketStatus(data);
+  },
+
+  /**
+   * Fetches lightweight bracket status for all players in a league.
+   * Only available after the deadline (returns 403 before).
+   * Used by LeagueBracketsDialog to show player list with submission status.
+   */
+  async getLeagueBracketStatus(leagueId) {
+    const data = await apiClient.get(`/bracket/get_league_bracket_status?league_id=${leagueId}`);
+    return transformLeagueBracketStatus(data);
   },
 
   /**
