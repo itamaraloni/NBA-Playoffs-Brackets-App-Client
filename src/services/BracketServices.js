@@ -78,6 +78,22 @@ function transformBracketData(apiResponse) {
 }
 
 /**
+ * Transforms the raw /bracket/get_league_bracket_status response to camelCase UI shape.
+ */
+function transformLeagueBracketStatus(data) {
+  return {
+    leagueId: data.league_id,
+    players: (data.players || []).map(p => ({
+      playerId:          p.player_id,
+      playerName:        p.player_name,
+      playerAvatar:      p.player_avatar,
+      isBracketSubmitted: p.is_bracket_submitted,
+      bracketSubmittedAt: p.bracket_submitted_at,
+    })),
+  };
+}
+
+/**
  * Transforms the raw /bracket/status response to camelCase UI shape.
  */
 function transformBracketStatus(data) {
@@ -118,7 +134,7 @@ const BracketServices = {
    */
   async getLeagueBracketStatus(leagueId) {
     const data = await apiClient.get(`/bracket/get_league_bracket_status?league_id=${leagueId}`);
-    return data;
+    return transformLeagueBracketStatus(data);
   },
 
   /**

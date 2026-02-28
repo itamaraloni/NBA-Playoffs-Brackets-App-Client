@@ -57,7 +57,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
       setPlayersError(null);
       try {
         const data = await BracketServices.getLeagueBracketStatus(leagueId);
-        setPlayers(data.players || []);
+        setPlayers(data.players);
       } catch (err) {
         console.error('Failed to fetch league bracket status:', err);
         setPlayersError('Failed to load league brackets.');
@@ -80,7 +80,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
 
   // Load a player's full bracket
   const handlePlayerClick = useCallback(async (player) => {
-    if (!player.is_bracket_submitted) return;
+    if (!player.isBracketSubmitted) return;
 
     setSelectedPlayer(player);
     setLoadingBracket(true);
@@ -88,7 +88,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
     setBracketData(null);
 
     try {
-      const data = await BracketServices.getBracket(player.player_id, leagueId);
+      const data = await BracketServices.getBracket(player.playerId, leagueId);
       setBracketData(data);
     } catch (err) {
       console.error('Failed to load player bracket:', err);
@@ -134,22 +134,22 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
 
     // Sort: submitted first, then alphabetical
     const sorted = [...players].sort((a, b) => {
-      if (a.is_bracket_submitted !== b.is_bracket_submitted) {
-        return a.is_bracket_submitted ? -1 : 1;
+      if (a.isBracketSubmitted !== b.isBracketSubmitted) {
+        return a.isBracketSubmitted ? -1 : 1;
       }
-      return a.player_name.localeCompare(b.player_name);
+      return a.playerName.localeCompare(b.playerName);
     });
 
     return (
       <List disablePadding>
         {sorted.map((player) => {
-          const isCurrentUser = player.player_id === currentPlayerId;
+          const isCurrentUser = player.playerId === currentPlayerId;
 
           return (
             <ListItemButton
-              key={player.player_id}
+              key={player.playerId}
               onClick={() => handlePlayerClick(player)}
-              disabled={!player.is_bracket_submitted}
+              disabled={!player.isBracketSubmitted}
               sx={{
                 py: 1.5,
                 px: 2,
@@ -157,7 +157,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
                   ? alpha(theme.palette.primary.main, 0.06)
                   : 'transparent',
                 '&:hover': {
-                  bgcolor: player.is_bracket_submitted
+                  bgcolor: player.isBracketSubmitted
                     ? alpha(theme.palette.primary.main, 0.1)
                     : undefined,
                 },
@@ -166,7 +166,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
             >
               <ListItemAvatar>
                 <Avatar
-                  src={getAvatarSrc(player.player_avatar)}
+                  src={getAvatarSrc(player.playerAvatar)}
                   sx={{
                     width: 40,
                     height: 40,
@@ -175,7 +175,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
                       : theme.palette.grey[300],
                   }}
                 >
-                  {player.player_name?.charAt(0)}
+                  {player.playerName?.charAt(0)}
                 </Avatar>
               </ListItemAvatar>
               <ListItemText
@@ -185,7 +185,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
                       variant="body1"
                       fontWeight={isCurrentUser ? 600 : 400}
                     >
-                      {player.player_name}
+                      {player.playerName}
                     </Typography>
                     {isCurrentUser && (
                       <Typography
@@ -198,12 +198,12 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
                   </Box>
                 }
                 secondary={
-                  player.is_bracket_submitted && player.bracket_submitted_at
-                    ? `Submitted ${new Date(player.bracket_submitted_at).toLocaleDateString()}`
+                  player.isBracketSubmitted && player.bracketSubmittedAt
+                    ? `Submitted ${new Date(player.bracketSubmittedAt).toLocaleDateString()}`
                     : null
                 }
               />
-              {player.is_bracket_submitted ? (
+              {player.isBracketSubmitted ? (
                 <Chip
                   icon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
                   label="Submitted"
@@ -270,13 +270,13 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
         <ArrowBackIcon />
       </IconButton>
       <Avatar
-        src={getAvatarSrc(selectedPlayer.player_avatar)}
+        src={getAvatarSrc(selectedPlayer.playerAvatar)}
         sx={{ width: 28, height: 28 }}
       >
-        {selectedPlayer.player_name?.charAt(0)}
+        {selectedPlayer.playerName?.charAt(0)}
       </Avatar>
       <Typography variant="h6" noWrap>
-        {selectedPlayer.player_name}'s Bracket
+        {selectedPlayer.playerName}'s Bracket
       </Typography>
     </Box>
   ) : (
