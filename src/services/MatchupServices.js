@@ -147,6 +147,7 @@ const MatchupServices = {
       // Transform the response to match the expected format in the MatchupDetailsDialog
       const transformedPredictions = response.predictions.map(pred => ({
         userName: pred.player_name,
+        userAvatar: pred.player_avatar,
         homeScore: pred.prediction.home_team_score,
         awayScore: pred.prediction.away_team_score,
         hit: pred.prediction.hit,
