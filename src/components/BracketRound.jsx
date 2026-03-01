@@ -22,7 +22,7 @@ const COL_WIDTH = {
  *   isLocked    — passed down to BracketMatchup
  *   mobile      — renders a stacked grid layout instead of fixed-width column
  */
-const BracketRound = ({ label, pts, matchups, isPlayinCol, isLocked, mobile, onMatchupClick }) => {
+const BracketRound = ({ label, pts, matchups, isPlayinCol, isLocked, mobile, onMatchupClick, diffMap, roundKey }) => {
   const theme = useTheme();
 
   const pillSx = isPlayinCol
@@ -82,6 +82,7 @@ const BracketRound = ({ label, pts, matchups, isPlayinCol, isLocked, mobile, onM
               matchup={m}
               isLocked={isLocked}
               onMatchupClick={onMatchupClick}
+              diffState={diffMap?.[`${m.conference}-${roundKey}-${m.matchup_position}`] ?? null}
             />
           ))}
         </Box>
@@ -110,6 +111,7 @@ const BracketRound = ({ label, pts, matchups, isPlayinCol, isLocked, mobile, onM
             matchup={m}
             isLocked={isLocked}
             onMatchupClick={onMatchupClick}
+            diffState={diffMap?.[`${m.conference}-${roundKey}-${m.matchup_position}`] ?? null}
           />
         ))}
       </Box>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Paper, Typography, useTheme } from '@mui/material';
+import { Box, Paper, Tooltip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { getLogoPath } from '../shared/teamUtils';
 
@@ -159,13 +159,22 @@ function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed }
  *   isFinals       — apply gold accent styling for the NBA Finals card
  *   onMatchupClick — (matchup) => void; when provided and matchup.can_edit, card is clickable
  */
-const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick }) => {
+const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, diffState }) => {
   const theme = useTheme();
 
   if (!m) return null;
 
   // Clickable when: a handler is provided AND can_edit is true AND bracket is not locked
   const isClickable = Boolean(onMatchupClick && m.can_edit && !isLocked);
+
+  // Diff colour lookup — card-level border + background tint when comparing brackets
+  const DIFF_COLORS = {
+    exact:     { border: theme.palette.success.main,  bg: alpha(theme.palette.success.main, 0.10) },
+    partial:   { border: theme.palette.warning.main,  bg: alpha(theme.palette.warning.main, 0.10) },
+    different: { border: theme.palette.error.main,    bg: alpha(theme.palette.error.main, 0.10) },
+    diverged:  { border: theme.palette.grey[500],     bg: alpha(theme.palette.grey[500], 0.06) },
+  };
+  const diffColor = diffState ? DIFF_COLORS[diffState.state] : null;
 
   const cardSx = {
     borderRadius: '10px',
@@ -183,6 +192,12 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick }) => {
       transform: 'translateY(-1px)',
       boxShadow: theme.shadows[4],
     } : {},
+    // Diff overlay — coloured left border + subtle background tint
+    ...(diffColor && {
+      borderLeft: `3px solid ${diffColor.border}`,
+      background: diffColor.bg,
+      opacity: m.isTbd ? 0.38 : 1, // Full opacity in diff mode for better readability
+    }),
   };
 
   // predWinnerIsTeam1: true when pick points to team_1
@@ -200,7 +215,19 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick }) => {
     : null;
   const actScore  = m.isPlayed ? m.actual_series_score : null;
 
+  const tooltipText = diffState?.tooltip ?? '';
+
   return (
+    <Tooltip
+      title={tooltipText}
+      placement="top"
+      arrow
+      disableHoverListener={!tooltipText}
+      enterDelay={200}
+      slotProps={{
+        tooltip: { sx: { fontSize: '0.75rem', maxWidth: 260 } },
+      }}
+    >
     <Paper
       elevation={0}
       sx={cardSx}
@@ -252,6 +279,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick }) => {
         </Box>
       )}
     </Paper>
+    </Tooltip>
   );
 };
 
