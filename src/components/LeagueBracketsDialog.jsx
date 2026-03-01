@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   Dialog,
@@ -28,12 +28,13 @@ import { alpha } from '@mui/material/styles';
 import { PLAYER_AVATARS } from '../shared/GeneralConsts';
 import BracketServices from '../services/BracketServices';
 import BracketView from './BracketView';
+import { computeBracketDiff } from '../utils/bracketUtils';
 
 /**
  * Dialog for viewing league members' brackets after the deadline.
  * Shows a player list with bracket status; clicking a player loads their full bracket.
  */
-const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
+const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId, myBracket }) => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -47,6 +48,14 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
   const [bracketData, setBracketData] = useState(null);
   const [loadingBracket, setLoadingBracket] = useState(false);
   const [bracketError, setBracketError] = useState(null);
+
+  // Compute bracket diff when viewing another player's bracket
+  const diffResult = useMemo(() => {
+    if (!myBracket || !bracketData) return null;
+    if (selectedPlayer?.playerId === currentPlayerId) return null;
+    
+    return computeBracketDiff(myBracket, bracketData);
+  }, [myBracket, bracketData, selectedPlayer, currentPlayerId]);
 
   // Fetch league bracket status when dialog opens
   useEffect(() => {
@@ -253,6 +262,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
         totalMatchups={bracketData.totalMatchups}
         deadline={bracketData.deadline}
         onMatchupClick={undefined}
+        diffMap={diffResult?.slots ?? null}
       />
     );
   };
@@ -278,6 +288,15 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
       <Typography variant="h6" noWrap>
         {selectedPlayer.playerName}'s Bracket
       </Typography>
+      {diffResult && (
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ ml: 'auto', whiteSpace: 'nowrap', fontSize: '0.8rem' }}
+        >
+          {diffResult.summary.exact} exact / {diffResult.summary.sameWinner} same winner of {diffResult.summary.total}
+        </Typography>
+      )}
     </Box>
   ) : (
     <Typography variant="h6">League Brackets</Typography>
@@ -316,6 +335,33 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
         </IconButton>
       </DialogTitle>
       <Divider />
+      {/* Colour legend — only shown when viewing another player's bracket */}
+      {diffResult && (
+        <Box sx={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexWrap: 'wrap', gap: { xs: 1, sm: 2 },
+          px: 2, py: 1,
+          background: alpha(theme.palette.divider, 0.08),
+          borderBottom: `1px solid ${theme.palette.divider}`,
+        }}>
+          {[
+            { color: theme.palette.success.main, label: 'Exact match' },
+            { color: theme.palette.warning.main, label: 'Same winner' },
+            { color: theme.palette.error.main,   label: 'Different winner' },
+            { color: theme.palette.grey[500],     label: 'Not comparable' },
+          ].map(({ color, label }) => (
+            <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box sx={{
+                width: 10, height: 10, borderRadius: '2px',
+                background: color, flexShrink: 0,
+              }} />
+              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                {label}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      )}
       <DialogContent sx={{ p: selectedPlayer ? 2 : 0 }}>
         {selectedPlayer ? renderBracketView() : renderPlayerList()}
       </DialogContent>
@@ -328,6 +374,7 @@ LeagueBracketsDialog.propTypes = {
   onClose: PropTypes.func.isRequired,
   leagueId: PropTypes.string,
   currentPlayerId: PropTypes.string,
+  myBracket: PropTypes.object,
 };
 
 export default LeagueBracketsDialog;

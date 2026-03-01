@@ -271,3 +271,119 @@ export function flattenBracketPicks(bracketState) {
 
   return picks;
 }
+
+// ---------------------------------------------------------------------------
+// Bracket diff — compare two brackets slot-by-slot (Issue #32)
+// ---------------------------------------------------------------------------
+
+/** Diff state constants */
+const DIFF_EXACT     = 'exact';     // Same winner AND same series score (green)
+const DIFF_PARTIAL   = 'partial';   // Same winner, different series score (amber)
+const DIFF_DIFFERENT = 'different'; // Different winner, at least one team shared (red)
+const DIFF_DIVERGED  = 'diverged';  // Both teams differ entirely OR missing pick (grey)
+
+/**
+ * Computes the diff state + tooltip for a single matchup slot.
+ * Returns { state, tooltip } where tooltip is a human-readable explanation.
+ */
+function diffSlot(myM, theirM) {
+  // Missing pick on either side → diverged
+  if (!myM?.hasPick || !theirM?.hasPick) {
+    return { state: DIFF_DIVERGED, tooltip: 'Missing pick — not comparable' };
+  }
+
+  // Check team overlap — do the two brackets share at least one team in this slot?
+  const myTeams   = new Set([myM.team_1?.team_id, myM.team_2?.team_id].filter(Boolean));
+  const theirTeams = new Set([theirM.team_1?.team_id, theirM.team_2?.team_id].filter(Boolean));
+  let sharedCount = 0;
+  for (const id of myTeams) {
+    if (theirTeams.has(id)) sharedCount++;
+  }
+
+  // No teams in common → tree diverged entirely
+  if (sharedCount === 0) {
+    return { state: DIFF_DIVERGED, tooltip: 'Different bracket paths — not comparable' };
+  }
+
+  // Resolve winner names for tooltip
+  const myWinner    = myM.predicted_winner_team_id === myM.team_1?.team_id ? myM.team_1 : myM.team_2;
+  const theirWinner = theirM.predicted_winner_team_id === theirM.team_1?.team_id ? theirM.team_1 : theirM.team_2;
+
+  // Same winner?
+  if (myM.predicted_winner_team_id !== theirM.predicted_winner_team_id) {
+    return {
+      state: DIFF_DIFFERENT,
+      tooltip: `You picked ${myWinner?.name ?? '?'}, they picked ${theirWinner?.name ?? '?'}`,
+    };
+  }
+
+  // Same winner — for play-in rounds there's no series score, so it's always exact
+  const isPlayin = myM.isPlayin;
+  if (isPlayin) {
+    return { state: DIFF_EXACT, tooltip: `Both picked ${myWinner?.name ?? '?'}` };
+  }
+
+  // Compare series score
+  if (myM.predicted_series_score === theirM.predicted_series_score) {
+    return {
+      state: DIFF_EXACT,
+      tooltip: `Both picked ${myWinner?.name ?? '?'} in ${myM.predicted_series_score}`,
+    };
+  }
+  return {
+    state: DIFF_PARTIAL,
+    tooltip: `Both picked ${myWinner?.name ?? '?'} — you said ${myM.predicted_series_score}, they said ${theirM.predicted_series_score}`,
+  };
+}
+
+/**
+ * Compares two bracket states slot-by-slot and returns a diff map + summary.
+ *
+ * Both brackets must be in the transformed shape produced by
+ * BracketServices.transformBracketData (component round keys, enriched matchups).
+ *
+ * @param {Object} myBracket    - Viewer's own bracket state
+ * @param {Object} theirBracket - Other player's bracket state
+ * @returns {{ slots: Object, summary: { exact: number, sameWinner: number, total: number } }}
+ */
+export function computeBracketDiff(myBracket, theirBracket) {
+  if (!myBracket || !theirBracket) return null;
+
+  const slots = {};
+  let exact = 0;
+  let sameWinner = 0;
+  const ROUND_KEYS = ['playin', 'survivor', 'r1', 'semis', 'cf'];
+
+  for (const conf of ['east', 'west']) {
+    for (const roundKey of ROUND_KEYS) {
+      const myRound    = myBracket[conf]?.[roundKey] || [];
+      const theirRound = theirBracket[conf]?.[roundKey] || [];
+      const len = Math.max(myRound.length, theirRound.length);
+
+      for (let i = 0; i < len; i++) {
+        const myM    = myRound[i] || null;
+        const theirM = theirRound[i] || null;
+        const pos    = myM?.matchup_position ?? theirM?.matchup_position ?? (i + 1);
+        const slotKey = `${conf}-${roundKey}-${pos}`;
+
+        const diff = diffSlot(myM, theirM);
+        slots[slotKey] = diff;
+
+        if (diff.state === DIFF_EXACT)   { exact++; sameWinner++; }
+        if (diff.state === DIFF_PARTIAL) { sameWinner++; }
+      }
+    }
+  }
+
+  // Finals
+  const finalsDiff = diffSlot(myBracket.final, theirBracket.final);
+  const finalsPos = myBracket.final?.matchup_position ?? 1;
+  slots[`final-final-${finalsPos}`] = finalsDiff;
+  if (finalsDiff.state === DIFF_EXACT)   { exact++; sameWinner++; }
+  if (finalsDiff.state === DIFF_PARTIAL) { sameWinner++; }
+
+  return {
+    slots,
+    summary: { exact, sameWinner, total: 21 },
+  };
+}

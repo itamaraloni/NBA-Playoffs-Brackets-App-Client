@@ -252,6 +252,7 @@ const BracketPage = () => {
         onClose={() => setLeagueBracketsOpen(false)}
         leagueId={activePlayer.league_id}
         currentPlayerId={activePlayer.player_id}
+        myBracket={bracketState}
       />
     </>
   );

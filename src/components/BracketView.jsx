@@ -99,7 +99,7 @@ function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline })
 /**
  * The centered Finals column — trophy, title, points badge, and the Finals matchup card.
  */
-function FinalsSection({ finalMatchup, isLocked, onMatchupClick }) {
+function FinalsSection({ finalMatchup, isLocked, onMatchupClick, diffMap }) {
   return (
     <Box sx={{
       display: 'flex', flexDirection: 'column',
@@ -130,7 +130,7 @@ function FinalsSection({ finalMatchup, isLocked, onMatchupClick }) {
         </Typography>
       </Box>
       <Box sx={{ width: '100%' }}>
-        <BracketMatchup matchup={finalMatchup} isLocked={isLocked} isFinals onMatchupClick={onMatchupClick} />
+        <BracketMatchup matchup={finalMatchup} isLocked={isLocked} isFinals onMatchupClick={onMatchupClick} diffState={diffMap?.[`final-final-${finalMatchup?.matchup_position ?? 1}`] ?? null} />
       </Box>
     </Box>
   );
@@ -141,7 +141,7 @@ function FinalsSection({ finalMatchup, isLocked, onMatchupClick }) {
  * Desktop: West (5 cols) | Finals (center) | East (5 cols) in a horizontally scrollable row.
  * Mobile:  Tabs (West / Finals / East) each rendering their rounds vertically.
  */
-const BracketView = ({ bracket, isLocked, predictedMatchups, totalMatchups, deadline, onMatchupClick }) => {
+const BracketView = ({ bracket, isLocked, predictedMatchups, totalMatchups, deadline, onMatchupClick, diffMap }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileTab, setMobileTab] = useState(0);
@@ -171,7 +171,7 @@ const BracketView = ({ bracket, isLocked, predictedMatchups, totalMatchups, dead
         </Tabs>
 
         {mobileTab === 0 && (
-          <ConferenceBracket conf="west" rounds={bracket.west} isLocked={isLocked} onMatchupClick={onMatchupClick} mobile />
+          <ConferenceBracket conf="west" rounds={bracket.west} isLocked={isLocked} onMatchupClick={onMatchupClick} diffMap={diffMap} mobile />
         )}
         {mobileTab === 1 && (
           <Box sx={{ px: 2, maxWidth: 380, mx: 'auto' }}>
@@ -196,11 +196,11 @@ const BracketView = ({ bracket, isLocked, predictedMatchups, totalMatchups, dead
                 {FINALS_PTS} pts
               </Typography>
             </Box>
-            <BracketMatchup matchup={bracket.final} isLocked={isLocked} isFinals onMatchupClick={onMatchupClick} />
+            <BracketMatchup matchup={bracket.final} isLocked={isLocked} isFinals onMatchupClick={onMatchupClick} diffState={diffMap?.[`final-final-${bracket.final?.matchup_position ?? 1}`] ?? null} />
           </Box>
         )}
         {mobileTab === 2 && (
-          <ConferenceBracket conf="east" rounds={bracket.east} isLocked={isLocked} onMatchupClick={onMatchupClick} mobile />
+          <ConferenceBracket conf="east" rounds={bracket.east} isLocked={isLocked} onMatchupClick={onMatchupClick} diffMap={diffMap} mobile />
         )}
       </Box>
     );
@@ -218,9 +218,9 @@ const BracketView = ({ bracket, isLocked, predictedMatchups, totalMatchups, dead
           alignItems: 'flex-start',
           px: 1.5,
         }}>
-          <ConferenceBracket conf="west" rounds={bracket.west} isLocked={isLocked} onMatchupClick={onMatchupClick} />
-          <FinalsSection finalMatchup={bracket.final} isLocked={isLocked} onMatchupClick={onMatchupClick} />
-          <ConferenceBracket conf="east" rounds={bracket.east} isLocked={isLocked} onMatchupClick={onMatchupClick} />
+          <ConferenceBracket conf="west" rounds={bracket.west} isLocked={isLocked} onMatchupClick={onMatchupClick} diffMap={diffMap} />
+          <FinalsSection finalMatchup={bracket.final} isLocked={isLocked} onMatchupClick={onMatchupClick} diffMap={diffMap} />
+          <ConferenceBracket conf="east" rounds={bracket.east} isLocked={isLocked} onMatchupClick={onMatchupClick} diffMap={diffMap} />
         </Box>
       </Box>
     </Box>
