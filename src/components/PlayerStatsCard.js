@@ -132,11 +132,23 @@ const PlayerStatsCard = ({
                 sx={{ fontWeight: 'medium', fontSize: '0.95rem' }}
               />
             </Box>
-            {playerData.championship_team_points !== undefined && (
-              <Typography variant="body2" fontWeight="medium" sx={{ mt: 1.5, color: theme.palette.primary.main }}>
-                {playerData.championship_team_points} points earned
-              </Typography>
-            )}
+            {playerData.winning_team && (() => {
+              const status = playerData.championship_pick_status;
+              const pts = playerData.championship_team_points > 0
+                ? playerData.championship_team_points
+                : NBA_TEAMS_WITH_POINTS.find(t => t.name === playerData.winning_team)?.points;
+              return (
+                <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                  <Typography variant="body2" fontWeight="medium"
+                    color={status === 'scored' ? 'primary.main' : 'text.secondary'}>
+                    {status === 'scored' ? `${pts} pts earned` : `Worth ${pts ?? '?'} pts`}
+                  </Typography>
+                  {status === 'in_progress' && <Chip size="small" label="In Progress 🔁" />}
+                  {status === 'eliminated'  && <Chip size="small" label="Missed ❌" color="error" />}
+                  {status === 'scored'      && <Chip size="small" label="Prophet 🔮🧙🏼‍♂️✅" color="success" />}
+                </Box>
+              );
+            })()}
           </Paper>
         </Grid>
         
@@ -187,11 +199,23 @@ const PlayerStatsCard = ({
                 sx={{ fontWeight: 'medium', fontSize: '0.95rem' }}
               />
             </Box>
-            {playerData.mvp_points !== undefined && (
-              <Typography variant="body2" fontWeight="medium" sx={{ mt: 1.5, color: theme.palette.secondary.main }}>
-                {playerData.mvp_points} points earned
-              </Typography>
-            )}
+            {playerData.mvp && (() => {
+              const status = playerData.mvp_pick_status;
+              const pts = playerData.mvp_points > 0
+                ? playerData.mvp_points
+                : MVP_CANDIDATES_WITH_POINTS.find(p => p.name === playerData.mvp)?.points;
+              return (
+                <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                  <Typography variant="body2" fontWeight="medium"
+                    color={status === 'scored' ? 'secondary.main' : 'text.secondary'}>
+                    {status === 'scored' ? `${pts} pts earned` : `Worth ${pts ?? '?'} pts`}
+                  </Typography>
+                  {status === 'in_progress' && <Chip size="small" label="In Progress 🔁" />}
+                  {status === 'eliminated'  && <Chip size="small" label="Missed ❌" color="error" />}
+                  {status === 'scored'      && <Chip size="small" label="Prophet 🔮🧙🏼‍♂️✅" color="success" />}
+                </Box>
+              );
+            })()}
           </Paper>
         </Grid>
       </Grid>
