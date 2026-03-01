@@ -24,6 +24,7 @@ import MatchupTeamsDisplay from './common/MatchupTeamsDisplay';
 import MatchupScoreDisplay from './common/MatchupScoreDisplay';
 import MatchupPredictionsStats from './MatchupPredictionsStats';
 import { useAuth } from '../contexts/AuthContext';
+import { PLAYER_AVATARS } from '../shared/GeneralConsts';
 
 /**
  * Dialog to display league predictions for a matchup
@@ -241,8 +242,8 @@ const MatchupDetailsDialog = ({
                     flexDirection: { xs: 'column', sm: 'row' },
                     mb: { xs: 1, sm: 0 }
                   }}>
-                    <Avatar 
-                      src={prediction.userAvatar} 
+                    <Avatar
+                      src={PLAYER_AVATARS.find(a => a.id === prediction.userAvatar)?.src}
                       alt={prediction.userName}
                       sx={{ mr: { xs: 0, sm: 2 }, mb: { xs: 1, sm: 0 } }}
                     >
