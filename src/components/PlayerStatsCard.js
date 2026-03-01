@@ -141,11 +141,11 @@ const PlayerStatsCard = ({
                 <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                   <Typography variant="body2" fontWeight="medium"
                     color={status === 'scored' ? 'primary.main' : 'text.secondary'}>
-                    {status === 'scored' ? `${pts} pts earned` : `Worth ${pts ?? '?'} pts`}
+                    {status === 'scored' ? `+${pts} pts earned` : `Worth ${pts ?? '?'} pts`}
                   </Typography>
                   {status === 'in_progress' && <Chip size="small" label="In Progress 🔁" />}
                   {status === 'eliminated'  && <Chip size="small" label="Missed ❌" color="error" />}
-                  {status === 'scored'      && <Chip size="small" label="Prophet 🔮🧙🏼‍♂️✅" color="success" />}
+                  {status === 'scored'      && <Chip size="small" label="You're a Wizard Harry 🧙🏼‍♂️✅" color="success" />}
                 </Box>
               );
             })()}
@@ -208,11 +208,11 @@ const PlayerStatsCard = ({
                 <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                   <Typography variant="body2" fontWeight="medium"
                     color={status === 'scored' ? 'secondary.main' : 'text.secondary'}>
-                    {status === 'scored' ? `${pts} pts earned` : `Worth ${pts ?? '?'} pts`}
+                    {status === 'scored' ? `+${pts} pts earned` : `Worth ${pts ?? '?'} pts`}
                   </Typography>
                   {status === 'in_progress' && <Chip size="small" label="In Progress 🔁" />}
                   {status === 'eliminated'  && <Chip size="small" label="Missed ❌" color="error" />}
-                  {status === 'scored'      && <Chip size="small" label="Prophet 🔮🧙🏼‍♂️✅" color="success" />}
+                  {status === 'scored'      && <Chip size="small" label="You're a Wizard Harry 🧙🏼‍♂️✅" color="success" />}
                 </Box>
               );
             })()}
