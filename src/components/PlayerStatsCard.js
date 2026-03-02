@@ -22,19 +22,44 @@ import { PLAYER_AVATARS, NBA_TEAMS_WITH_POINTS, MVP_CANDIDATES_WITH_POINTS } fro
 import { PLAYIN_START_DATE } from '../shared/SeasonConfig';
 
 /**
+ * Sub-component for displaying pick status badge and points.
+ * Handles all status values: in_progress, eliminated, scored, unknown.
+ *
+ * @param {string} status - Pick status from server: 'in_progress' | 'eliminated' | 'scored' | 'unknown'
+ * @param {number} earnedPoints - Points already awarded (> 0 when scored)
+ * @param {number} lookupPoints - Points this pick is worth (from constants lookup)
+ * @param {string} accentColor - MUI theme color key for scored state (e.g. 'primary' or 'secondary')
+ */
+const PickStatusBadge = ({ status, earnedPoints, lookupPoints, accentColor }) => {
+  const pts = earnedPoints > 0 ? earnedPoints : lookupPoints;
+  return (
+    <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+      <Typography variant="body2" fontWeight="medium"
+        color={status === 'scored' ? `${accentColor}.main` : 'text.secondary'}>
+        {status === 'scored' ? `+${pts} pts earned` : `Worth ${pts ?? '?'} pts`}
+      </Typography>
+      {status === 'in_progress' && <Chip size="small" label="In Progress 🔁" />}
+      {status === 'eliminated' && <Chip size="small" label="Missed ❌" color="error" />}
+      {status === 'scored' && <Chip size="small" label="You're a Wizard Harry 🧙🏼‍♂️✅" color="success" />}
+      {status === 'unknown' && <Chip size="small" label="N/A" variant="outlined" />}
+    </Box>
+  );
+};
+
+/**
  * Component for showing player stats in dashboard
  */
-const PlayerStatsCard = ({ 
-  playerData, 
+const PlayerStatsCard = ({
+  playerData,
   leagueData,
-  onEditPicks, 
+  onEditPicks,
   allowEditing = true,
-  elevation = 2 
+  elevation = 2
 }) => {
   const theme = useTheme();
-  
+
   if (!playerData) return null;
-  
+
   const canEdit = new Date() < PLAYIN_START_DATE && allowEditing;
 
   return (
@@ -48,14 +73,14 @@ const PlayerStatsCard = ({
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <Avatar 
-          sx={{ 
+        <Avatar
+          sx={{
             bgcolor: theme.palette.primary.main,
             width: 48,
             height: 48,
             mr: 2
           }}
-          src={PLAYER_AVATARS.find(avatar => avatar.id === playerData.player_avatar)?.src}
+          src={PLAYER_AVATARS.find(avatar => avatar.id === playerData.playerAvatar)?.src}
           alt={playerData.name}
         >
           {playerData.name?.charAt(0)}
@@ -75,21 +100,21 @@ const PlayerStatsCard = ({
                 Total Points
                 </Typography>
                 <Typography variant="h5" color="success.main" fontWeight="bold" lineHeight={1.2}>
-                {playerData.total_points || 0}
+                {playerData.totalPoints || 0}
                 </Typography>
             </Box>
         </Box>
       </Box>
 
       <Divider sx={{ mb: 3 }} />
-      
+
       {/* Championship and MVP Predictions */}
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Paper 
-            variant="outlined" 
-            sx={{ 
-              p: 2.5, 
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 2.5,
               bgcolor: theme.palette.mode === 'dark' ? 'rgba(25, 118, 210, 0.08)' : 'rgba(232, 244, 253, 0.8)',
               borderColor: theme.palette.primary.main,
               position: 'relative'
@@ -101,7 +126,7 @@ const PlayerStatsCard = ({
                 size="small"
                 startIcon={<EditIcon />}
                 onClick={() => onEditPicks('championship')}
-                sx={{ 
+                sx={{
                   position: 'absolute',
                   top: 8,
                   right: 8,
@@ -118,33 +143,36 @@ const PlayerStatsCard = ({
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-              {playerData.winning_team && 
-                <Avatar 
-                  src={NBA_TEAMS_WITH_POINTS.find(t => t.name === playerData.winning_team)?.logo} 
-                  alt={playerData.winning_team}
+              {playerData.winningTeam &&
+                <Avatar
+                  src={NBA_TEAMS_WITH_POINTS.find(t => t.name === playerData.winningTeam)?.logo}
+                  alt={playerData.winningTeam}
                   sx={{ width: 40, height: 40, mr: 1 }}
                 />
               }
-              <Chip 
-                label={playerData.winning_team || 'Not selected'} 
-                color="primary" 
-                variant="outlined" 
+              <Chip
+                label={playerData.winningTeam || 'Not selected'}
+                color="primary"
+                variant="outlined"
                 sx={{ fontWeight: 'medium', fontSize: '0.95rem' }}
               />
             </Box>
-            {playerData.championship_team_points !== undefined && (
-              <Typography variant="body2" fontWeight="medium" sx={{ mt: 1.5, color: theme.palette.primary.main }}>
-                {playerData.championship_team_points} points earned
-              </Typography>
+            {playerData.winningTeam && (
+              <PickStatusBadge
+                status={playerData.championshipPickStatus}
+                earnedPoints={playerData.championshipTeamPoints}
+                lookupPoints={NBA_TEAMS_WITH_POINTS.find(t => t.name === playerData.winningTeam)?.points}
+                accentColor="primary"
+              />
             )}
           </Paper>
         </Grid>
-        
+
         <Grid item xs={12} md={6}>
-          <Paper 
-            variant="outlined" 
-            sx={{ 
-              p: 2.5, 
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 2.5,
               bgcolor: theme.palette.mode === 'dark' ? 'rgba(156, 39, 176, 0.08)' : 'rgba(243, 229, 245, 0.8)',
               borderColor: theme.palette.secondary.main,
               position: 'relative'
@@ -156,7 +184,7 @@ const PlayerStatsCard = ({
                 size="small"
                 startIcon={<EditIcon />}
                 onClick={() => onEditPicks('mvp')}
-                sx={{ 
+                sx={{
                   position: 'absolute',
                   top: 8,
                   right: 8,
@@ -173,24 +201,27 @@ const PlayerStatsCard = ({
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-              {playerData.mvp && 
-                <Avatar 
-                  src={MVP_CANDIDATES_WITH_POINTS.find(p => p.name === playerData.mvp)?.avatar} 
+              {playerData.mvp &&
+                <Avatar
+                  src={MVP_CANDIDATES_WITH_POINTS.find(p => p.name === playerData.mvp)?.avatar}
                   alt={playerData.mvp}
                   sx={{ width: 40, height: 40, mr: 1 }}
                 />
               }
-              <Chip 
-                label={playerData.mvp || 'Not selected'} 
-                color="secondary" 
-                variant="outlined" 
+              <Chip
+                label={playerData.mvp || 'Not selected'}
+                color="secondary"
+                variant="outlined"
                 sx={{ fontWeight: 'medium', fontSize: '0.95rem' }}
               />
             </Box>
-            {playerData.mvp_points !== undefined && (
-              <Typography variant="body2" fontWeight="medium" sx={{ mt: 1.5, color: theme.palette.secondary.main }}>
-                {playerData.mvp_points} points earned
-              </Typography>
+            {playerData.mvp && (
+              <PickStatusBadge
+                status={playerData.mvpPickStatus}
+                earnedPoints={playerData.mvpPoints}
+                lookupPoints={MVP_CANDIDATES_WITH_POINTS.find(p => p.name === playerData.mvp)?.points}
+                accentColor="secondary"
+              />
             )}
           </Paper>
         </Grid>
@@ -199,10 +230,10 @@ const PlayerStatsCard = ({
       <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
         Prediction Statistics By Round
       </Typography>
-      
+
       {/* Stats Table Component */}
       <PredictionStatsTable playerData={playerData} />
-      
+
     </Paper>
   );
 };

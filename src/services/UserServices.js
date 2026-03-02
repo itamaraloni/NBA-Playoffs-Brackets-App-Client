@@ -156,17 +156,25 @@ const transformPlayerProfile = (response) => {
     return {
       player: data.player ? {
         ...data.player,
+        // Explicit camelCase mappings for snake_case API fields
+        playerAvatar: data.player.player_avatar,
+        winningTeam: data.player.winning_team,
+        totalPoints: data.player.total_points,
+        championshipTeamPoints: data.player.championship_team_points,
+        mvpPoints: data.player.mvp_points,
+        championshipPickStatus: data.player.championship_pick_status,
+        mvpPickStatus: data.player.mvp_pick_status,
         formattedPlayer: {
           name: data.player.name,
-          player_avatar: data.player.player_avatar,
+          playerAvatar: data.player.player_avatar,
           championshipPrediction: data.player.winning_team,
           mvpPrediction: data.player.mvp,
           bullsEye: data.player.bullsEye || {},
           hits: data.player.hits || {},
           misses: data.player.misses || {},
           score: data.player.total_points,
-          championship_team_points: data.player.championship_team_points,
-          mvp_points: data.player.mvp_points
+          championshipTeamPoints: data.player.championship_team_points,
+          mvpPoints: data.player.mvp_points
         }
       } : null,
       league: data.league
