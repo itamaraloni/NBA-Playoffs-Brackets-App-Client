@@ -214,7 +214,7 @@ const Dashboard = () => {
   // Format player data for EditPicksDialog
   const formattedPlayerData = playerProfile?.player ? {
     name: playerProfile.player.name,
-    championshipPrediction: playerProfile.player.winning_team,
+    championshipPrediction: playerProfile.player.winningTeam,
     mvpPrediction: playerProfile.player.mvp
   } : null;
 
