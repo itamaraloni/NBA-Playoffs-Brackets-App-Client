@@ -33,7 +33,7 @@ export const MVP_CANDIDATES_WITH_POINTS = [
   { name: 'Jaylen Brown', team: 'Boston Celtics', points: 17, avatar: "/resources/nba-players-avatars/jaylen-brown.png" },
   { name: 'Nikola Jokić', team: 'Denver Nuggets', points: 18, avatar: "/resources/nba-players-avatars/jokic.png" },
   { name: 'Stephen Curry', team: 'Golden State Warriors', points: 20, avatar: "/resources/nba-players-avatars/steph.png" },
-  { name: 'Luka Dončić', team: 'Los Angeles Lakers', points: 23, avatar: "/resources/nba-players-avatars/luka-doncic.png" },
+  { name: 'Luka Dončić', team: 'Los Angeles Lakers', points: 23, avatar: "/resources/nba-players-avatars/luka-dončić.png" },
   { name: 'Jalen Williams', team: 'Oklahoma City Thunder', points: 25, avatar: "/resources/nba-players-avatars/jalen-williams.png" },
   { name: 'LeBron James', team: 'Los Angeles Lakers', points: 25, avatar: "/resources/nba-players-avatars/lebron.png" },
   { name: 'Darius Garland', team: 'Los Angeles Clippers', points: 27, avatar: "/resources/nba-players-avatars/garland.png" },
