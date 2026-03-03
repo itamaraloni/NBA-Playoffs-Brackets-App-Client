@@ -16,8 +16,8 @@ const ROUND_DEFS = [
 
 // NBA bracket layout: adjacent pairs feed into the same semis matchup.
 // Top half: pos 1 (1v8) + pos 4 (4v5) → semis pos 1
-// Bottom half: pos 2 (2v7) + pos 3 (3v6) → semis pos 2
-const R1_DISPLAY_ORDER = [1, 4, 2, 3];
+// Bottom half: pos 3 (3v6) + pos 2 (2v7) → semis pos 2
+const R1_DISPLAY_ORDER = [1, 4, 3, 2];
 
 function reorderForDisplay(matchups, roundKey) {
   if (roundKey !== 'r1' || matchups.length !== 4) return matchups;
