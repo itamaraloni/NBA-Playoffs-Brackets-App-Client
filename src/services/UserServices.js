@@ -159,7 +159,8 @@ const transformPlayerProfile = (response) => {
         // Explicit camelCase mappings for snake_case API fields
         playerAvatar: data.player.player_avatar,
         winningTeam: data.player.winning_team,
-        totalPoints: data.player.total_points,
+        totalPredictionPoints: data.player.total_prediction_points,
+        totalScore: data.player.total_score,
         championshipTeamPoints: data.player.championship_team_points,
         mvpPoints: data.player.mvp_points,
         championshipPickStatus: data.player.championship_pick_status,
@@ -172,7 +173,7 @@ const transformPlayerProfile = (response) => {
           bullsEye: data.player.bullsEye || {},
           hits: data.player.hits || {},
           misses: data.player.misses || {},
-          score: data.player.total_points,
+          score: data.player.total_score,
           championshipTeamPoints: data.player.championship_team_points,
           mvpPoints: data.player.mvp_points
         }

@@ -154,7 +154,7 @@ const LeagueSwitcher = () => {
               </ListItemIcon>
               <ListItemText
                 primary={`${player.player_name} | ${player.league_name}`}
-                secondary={`${player.total_points} points`}
+                secondary={`${player.total_score} points`}
               />
             </MenuItem>
           ))}
