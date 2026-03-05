@@ -100,7 +100,7 @@ const PlayerStatsCard = ({
                 Total Points
                 </Typography>
                 <Typography variant="h5" color="success.main" fontWeight="bold" lineHeight={1.2}>
-                {playerData.totalPoints || 0}
+                {playerData.totalScore || 0}
                 </Typography>
             </Box>
         </Box>
