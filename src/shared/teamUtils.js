@@ -8,3 +8,11 @@
 export function getLogoPath(teamName) {
   return `/resources/team-logos/${teamName.toLowerCase().replace(/ /g, '-')}.png`;
 }
+
+export function getShortTeamName(teamName) {
+  if (!teamName)
+    return null;
+
+  const parts = teamName.trim().split(/\s+/);
+  return parts[parts.length - 1] || teamName;
+}

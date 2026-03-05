@@ -1,9 +1,75 @@
 import React, { useState } from 'react';
-import { Box, Paper, Typography, useTheme } from '@mui/material';
+import { Box, Chip, Paper, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { getLogoPath } from '../shared/teamUtils';
+import { getLogoPath, getShortTeamName } from '../shared/teamUtils';
 
-/** Team logo circle — falls back to 3-letter abbreviation if the image 404s. */
+function getMatchupResultState(m) {
+  if (!m?.hasPick) return 'na';
+  if (!m?.isPlayed) return 'pending';
+
+  const isBullseye =
+    m.isCorrect === true &&
+    !m.isPlayin &&
+    Boolean(m.predicted_series_score) &&
+    Boolean(m.actual_series_score) &&
+    m.predicted_series_score === m.actual_series_score;
+
+  if (isBullseye) return 'bullseye';
+  if (m.isCorrect === true) return 'hit';
+  if (m.isCorrect === false) return 'miss';
+  return 'na';
+}
+
+function getResultChipConfig(state, theme) {
+  switch (state) {
+    case 'bullseye':
+      return {
+        label: 'Bulls-eye',
+        sx: {
+          color: theme.palette.success.main,
+          background: alpha(theme.palette.success.main, 0.14),
+          borderColor: alpha(theme.palette.success.main, 0.35),
+        },
+      };
+    case 'hit':
+      return {
+        label: 'Hit',
+        sx: {
+          color: theme.palette.success.main,
+          background: alpha(theme.palette.success.main, 0.14),
+          borderColor: alpha(theme.palette.success.main, 0.35),
+        },
+      };
+    case 'miss':
+      return {
+        label: 'Miss',
+        sx: {
+          color: theme.palette.error.main,
+          background: alpha(theme.palette.error.main, 0.14),
+          borderColor: alpha(theme.palette.error.main, 0.35),
+        },
+      };
+    case 'pending':
+      return {
+        label: 'Pending',
+        sx: {
+          color: theme.palette.warning.main,
+          background: alpha(theme.palette.warning.main, 0.14),
+          borderColor: alpha(theme.palette.warning.main, 0.35),
+        },
+      };
+    default:
+      return {
+        label: 'N/A',
+        sx: {
+          color: theme.palette.text.secondary,
+          background: alpha(theme.palette.text.primary, 0.08),
+          borderColor: theme.palette.divider,
+        },
+      };
+  }
+}
+
 function TeamLogo({ name }) {
   const theme = useTheme();
   const [imgError, setImgError] = useState(false);
@@ -20,129 +86,180 @@ function TeamLogo({ name }) {
     );
   }
 
-  // Fallback: 3-letter abbreviation badge
   return (
-    <Box sx={{
-      width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: '0.4375rem', fontWeight: 800, letterSpacing: '-0.3px',
-      background: theme.palette.action.selected,
-      color: theme.palette.text.primary,
-    }}>
+    <Box
+      sx={{
+        width: 24,
+        height: 24,
+        borderRadius: '50%',
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '0.4375rem',
+        fontWeight: 800,
+        letterSpacing: '-0.3px',
+        background: theme.palette.action.selected,
+        color: theme.palette.text.primary,
+      }}
+    >
       {name?.slice(0, 3).toUpperCase()}
     </Box>
   );
 }
 
-/**
- * Renders a single team row inside a matchup card.
- * Handles all visual states: TBD, predicted, correct, wrong, actual-winner overlay.
- */
 function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed }) {
   const theme = useTheme();
 
-  // TBD slot — team not yet determined
   if (!team) {
     return (
-      <Box sx={{
-        display: 'flex', alignItems: 'center',
-        px: '9px', minHeight: 36, py: '7px',
-      }}>
-        <Typography sx={{
-          fontSize: '0.6875rem', fontStyle: 'italic',
-          color: theme.palette.text.disabled,
-        }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', px: '9px', minHeight: 36, py: '7px' }}>
+        <Typography sx={{ fontSize: '0.6875rem', fontStyle: 'italic', color: theme.palette.text.disabled }}>
           TBD
         </Typography>
       </Box>
     );
   }
 
-  // Determine row background, left border, and state icon
   let rowBg = 'transparent';
-  let borderLeft = '2px solid transparent'; // keep layout stable
+  let borderLeft = '2px solid transparent';
   let icon = null;
 
   if (hasPick) {
     if (!isPlayed) {
-      // Pending prediction — highlight predicted winner in primary blue
       if (isPredWinner) {
         rowBg = alpha(theme.palette.primary.main, 0.15);
         icon = (
-          <Typography component="span" sx={{
-            fontSize: '0.6875rem', color: theme.palette.primary.light,
-            width: 14, textAlign: 'center', lineHeight: 1, flexShrink: 0,
-          }}>✓</Typography>
+          <Typography
+            component="span"
+            sx={{
+              fontSize: '0.6875rem',
+              color: theme.palette.primary.light,
+              width: 14,
+              textAlign: 'center',
+              lineHeight: 1,
+              flexShrink: 0,
+            }}
+          >
+            {'\u2713'}
+          </Typography>
         );
       }
     } else {
-      // Game played — show result vs prediction
       if (isPredWinner && isActualWinner) {
-        // Correct prediction
         rowBg = alpha(theme.palette.success.main, 0.16);
         borderLeft = `2px solid ${alpha(theme.palette.success.main, 0.4)}`;
         icon = (
-          <Typography component="span" sx={{
-            fontSize: '0.6875rem', color: theme.palette.success.light,
-            width: 14, textAlign: 'center', lineHeight: 1, flexShrink: 0,
-          }}>✓</Typography>
+          <Typography
+            component="span"
+            sx={{
+              fontSize: '0.6875rem',
+              color: theme.palette.success.light,
+              width: 14,
+              textAlign: 'center',
+              lineHeight: 1,
+              flexShrink: 0,
+            }}
+          >
+            {'\u2713'}
+          </Typography>
         );
       } else if (isPredWinner && !isActualWinner) {
-        // Wrong prediction — picked the loser
         rowBg = alpha(theme.palette.error.main, 0.16);
         borderLeft = `2px solid ${alpha(theme.palette.error.main, 0.4)}`;
         icon = (
-          <Typography component="span" sx={{
-            fontSize: '0.6875rem', color: theme.palette.error.light,
-            width: 14, textAlign: 'center', lineHeight: 1, flexShrink: 0,
-          }}>✗</Typography>
+          <Typography
+            component="span"
+            sx={{
+              fontSize: '0.6875rem',
+              color: theme.palette.error.light,
+              width: 14,
+              textAlign: 'center',
+              lineHeight: 1,
+              flexShrink: 0,
+            }}
+          >
+            {'\u2717'}
+          </Typography>
         );
       } else if (!isPredWinner && isActualWinner) {
-        // Actual winner (user picked wrong team — show who actually won)
         rowBg = alpha(theme.palette.success.main, 0.16);
         borderLeft = `2px solid ${alpha(theme.palette.success.main, 0.4)}`;
         icon = (
-          <Typography component="span" sx={{
-            fontSize: '0.6875rem', color: theme.palette.success.light,
-            width: 14, textAlign: 'center', lineHeight: 1, flexShrink: 0,
-          }}>✓</Typography>
+          <Typography
+            component="span"
+            sx={{
+              fontSize: '0.6875rem',
+              color: theme.palette.success.light,
+              width: 14,
+              textAlign: 'center',
+              lineHeight: 1,
+              flexShrink: 0,
+            }}
+          >
+            {'\u2713'}
+          </Typography>
         );
       }
     }
   } else if (isPlayed && isActualWinner) {
-    // No pick made, game played — still show actual winner in green
     rowBg = alpha(theme.palette.success.main, 0.16);
     borderLeft = `2px solid ${alpha(theme.palette.success.main, 0.4)}`;
     icon = (
-      <Typography component="span" sx={{
-        fontSize: '0.6875rem', color: theme.palette.success.light,
-        width: 14, textAlign: 'center', lineHeight: 1, flexShrink: 0,
-      }}>✓</Typography>
+      <Typography
+        component="span"
+        sx={{
+          fontSize: '0.6875rem',
+          color: theme.palette.success.light,
+          width: 14,
+          textAlign: 'center',
+          lineHeight: 1,
+          flexShrink: 0,
+        }}
+      >
+        {'\u2713'}
+      </Typography>
     );
   }
 
   return (
-    <Box sx={{
-      display: 'flex', alignItems: 'center', gap: '7px',
-      px: '9px', minHeight: 36, py: '7px',
-      background: rowBg,
-      borderLeft,
-      transition: 'background 0.15s',
-    }}>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '7px',
+        px: '9px',
+        minHeight: 36,
+        py: '7px',
+        background: rowBg,
+        borderLeft,
+        transition: 'background 0.15s',
+      }}
+    >
       {seed != null && (
-        <Typography sx={{
-          fontSize: '0.625rem', fontWeight: 700,
-          color: theme.palette.text.secondary,
-          minWidth: 18, flexShrink: 0,
-        }}>
+        <Typography
+          sx={{
+            fontSize: '0.625rem',
+            fontWeight: 700,
+            color: theme.palette.text.secondary,
+            minWidth: 18,
+            flexShrink: 0,
+          }}
+        >
           #{seed}
         </Typography>
       )}
       <TeamLogo name={team.name} />
-      <Typography sx={{
-        fontSize: '0.6875rem', fontWeight: 600,
-        flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-      }}>
+      <Typography
+        sx={{
+          fontSize: '0.6875rem',
+          fontWeight: 600,
+          flex: 1,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
         {team.name}
       </Typography>
       {icon}
@@ -150,21 +267,14 @@ function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed }
   );
 }
 
-/**
- * BracketMatchup — the individual matchup card.
- *
- * Props:
- *   matchup        — enriched matchup object from BracketServices.transformBracketData
- *   isLocked       — whether the bracket deadline has passed
- *   isFinals       — apply gold accent styling for the NBA Finals card
- *   onMatchupClick — (matchup) => void; when provided and matchup.can_edit, card is clickable
- */
 const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick }) => {
   const theme = useTheme();
 
   if (!m) return null;
 
-  // Clickable when: a handler is provided AND can_edit is true AND bracket is not locked
+  const resultState = getMatchupResultState(m);
+  const resultChip = getResultChipConfig(resultState, theme);
+
   const isClickable = Boolean(onMatchupClick && m.can_edit && !isLocked);
 
   const cardSx = {
@@ -172,40 +282,57 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick }) => {
     overflow: 'hidden',
     opacity: m.isTbd ? 0.38 : isLocked ? 0.6 : 1,
     cursor: isClickable ? 'pointer' : 'default',
-    border: isFinals
-      ? '1px solid rgba(245,158,11,0.22)'
-      : `1px solid ${theme.palette.divider}`,
+    border: isFinals ? '1px solid rgba(245,158,11,0.22)' : `1px solid ${theme.palette.divider}`,
     boxShadow: isFinals
       ? '0 4px 20px rgba(245,158,11,0.1), 0 2px 10px rgba(0,0,0,0.15)'
       : theme.shadows[1],
     transition: 'transform 0.15s, box-shadow 0.15s',
-    '&:hover': isClickable ? {
-      transform: 'translateY(-1px)',
-      boxShadow: theme.shadows[4],
-    } : {},
+    '&:hover': isClickable
+      ? {
+          transform: 'translateY(-1px)',
+          boxShadow: theme.shadows[4],
+        }
+      : {},
   };
 
-  // predWinnerIsTeam1: true when pick points to team_1
-  // isPredWinner for team2 = hasPick AND predWinnerIsTeam1 is false
-  const t1IsPredWinner   = m.predWinnerIsTeam1;
-  const t2IsPredWinner   = m.hasPick && !m.predWinnerIsTeam1;
+  const t1IsPredWinner = m.predWinnerIsTeam1;
+  const t2IsPredWinner = m.hasPick && !m.predWinnerIsTeam1;
   const t1IsActualWinner = m.actualWinnerIsTeam1;
   const t2IsActualWinner = m.isPlayed && !m.actualWinnerIsTeam1;
 
-  // Score bar — shown when user has a pick OR when the game has been played
   const showScoreBar = m.hasPick || m.isPlayed;
-  // For play-in rounds there is no series score (winner-takes-all)
-  const predScore = (m.hasPick && !m.isPlayin && m.predicted_series_score)
-    ? m.predicted_series_score
+  const predictedWinnerTeamName = m.hasPick
+    ? (m.predWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name)
     : null;
-  const actScore  = m.isPlayed ? m.actual_series_score : null;
+  const actualWinnerTeamName = m.isPlayed
+    ? (m.actualWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name)
+    : null;
+
+  const predValue = m.isPlayin
+    ? (m.hasPick ? getShortTeamName(predictedWinnerTeamName) : 'N/A')
+    : (m.predicted_series_score || '-');
+  const actValue = m.isPlayin
+    ? (m.isPlayed ? getShortTeamName(actualWinnerTeamName) : null)
+    : (m.isPlayed ? m.actual_series_score : null);
+  const resultChipLabel = actValue ? `${resultChip.label} • ${actValue}` : resultChip.label;
 
   return (
-    <Paper
-      elevation={0}
-      sx={cardSx}
-      onClick={isClickable ? () => onMatchupClick(m) : undefined}
-    >
+    <Paper elevation={0} sx={cardSx} onClick={isClickable ? () => onMatchupClick(m) : undefined}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: '9px', pt: '6px', pb: '2px' }}>
+        <Chip
+          size="small"
+          variant="outlined"
+          label={resultChipLabel}
+          sx={{
+            height: 18,
+            fontSize: '0.5625rem',
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+            '& .MuiChip-label': { px: '6px' },
+            ...resultChip.sx,
+          }}
+        />
+      </Box>
       <TeamRow
         team={m.team_1}
         seed={m.team_1?.seed}
@@ -226,29 +353,20 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick }) => {
       </Box>
 
       {showScoreBar && (
-        <Box sx={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          px: '9px', py: '3px',
-          background: theme.palette.mode === 'dark'
-            ? 'rgba(0,0,0,0.18)'
-            : 'rgba(0,0,0,0.04)',
-          borderTop: `1px solid ${theme.palette.divider}`,
-        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            px: '9px',
+            py: '3px',
+            background: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.18)' : 'rgba(0,0,0,0.04)',
+            borderTop: `1px solid ${theme.palette.divider}`,
+          }}
+        >
           <Typography sx={{ fontSize: '0.5625rem', color: theme.palette.text.secondary }}>
-            Pred: {predScore || '—'}
+            Pred: {predValue}
           </Typography>
-          {actScore && (
-            <Typography sx={{
-              fontSize: '0.5625rem', fontWeight: 700,
-              color: m.isCorrect === true
-                ? theme.palette.success.main
-                : m.isCorrect === false
-                  ? theme.palette.error.main
-                  : theme.palette.text.secondary,
-            }}>
-              Act: {actScore} {m.isCorrect === true ? '✓' : m.isCorrect === false ? '✗' : ''}
-            </Typography>
-          )}
         </Box>
       )}
     </Paper>
