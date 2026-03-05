@@ -15,13 +15,14 @@ const ROUND_KEY_MAP = {
  */
 function enrichMatchup(m) {
   const isPlayin  = m.round === 'playin_first' || m.round === 'playin_second';
-  const hasPick   = m.predicted_winner_team_id !== null;
-  const isPlayed  = m.actual_winner_team_id !== null;
+  const hasPick   = m.predicted_winner_team_id != null;
+  const isPlayed  = m.actual_winner_team_id != null;
 
   return {
     ...m,
     isPlayin,
     hasPick,
+    isPlayed,
     // true when the predicted winner is team_1 (used to highlight the correct row)
     predWinnerIsTeam1:   hasPick  && m.predicted_winner_team_id === m.team_1?.team_id,
     // true when the actual winner is team_1 (used to show result overlay)
