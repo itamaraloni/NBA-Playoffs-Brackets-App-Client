@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box, Button, CircularProgress, Alert, Typography,
 } from '@mui/material';
+import { useBlocker } from 'react-router-dom';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import GroupsIcon from '@mui/icons-material/Groups';
@@ -22,6 +23,8 @@ const API_TO_COMPONENT_ROUND = {
   conference_final:  'cf',
   final:             'final',
 };
+
+const UNSAVED_CHANGES_MESSAGE = 'You have unsaved bracket picks. Leave this page without submitting?';
 
 const BracketPage = () => {
   // serverBracket: last confirmed server state — used to detect unsaved changes
@@ -87,9 +90,11 @@ const BracketPage = () => {
     return !picksMatch(bracketState, serverBracket);
   }, [bracketState, serverBracket, predictedCount]);
 
+  const blocker = useBlocker(hasUnsavedChanges);
+
   // -------------------------------------------------------------------------
-  // Navigation guard — tab close / browser back button
-  // (In-app nav guard requires createBrowserRouter; skipped here — beforeunload covers the critical case)
+  // Navigation guard for tab close / browser refresh.
+  // In-app navigation is handled below via useBlocker.
   useEffect(() => {
     const handler = (e) => {
       if (hasUnsavedChanges) {
@@ -100,6 +105,15 @@ const BracketPage = () => {
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [hasUnsavedChanges]);
+
+  useEffect(() => {
+    if (blocker.state !== 'blocked') return;
+    if (window.confirm(UNSAVED_CHANGES_MESSAGE)) {
+      blocker.proceed();
+    } else {
+      blocker.reset();
+    }
+  }, [blocker]);
 
   // -------------------------------------------------------------------------
   // Handlers
@@ -258,3 +272,4 @@ const BracketPage = () => {
 };
 
 export default BracketPage;
+
