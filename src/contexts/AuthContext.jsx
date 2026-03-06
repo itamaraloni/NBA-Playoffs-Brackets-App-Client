@@ -7,6 +7,10 @@ import {
 } from 'firebase/auth';
 import { auth } from '../firebase';
 import UserServices from '../services/UserServices';
+import {
+  confirmBracketExitIfNeeded,
+  runWithBracketGuardBypass,
+} from '../utils/navigationGuards';
 
 // Create the authentication context
 const AuthContext = createContext();
@@ -69,6 +73,10 @@ export function AuthProvider({ children }) {
    * the selection in localStorage so it survives page reloads.
    */
   const switchActivePlayer = useCallback((playerId) => {
+    if (!confirmBracketExitIfNeeded()) {
+      return false;
+    }
+
     const player = userPlayers.find(p => p.player_id === playerId);
     if (player) {
       setActivePlayer(player);
@@ -77,7 +85,10 @@ export function AuthProvider({ children }) {
       if (window.notify) {
         window.notify.success(`Switched to ${player.league_name}`);
       }
+
+      return true;
     }
+    return false;
   }, [userPlayers]);
 
   // Sign in with Google with retry logic
@@ -157,6 +168,10 @@ export function AuthProvider({ children }) {
 
   // Sign out
   const logout = async () => {
+    if (!confirmBracketExitIfNeeded()) {
+      return false;
+    }
+
     try {
       setError(null);
       await signOut(auth);
@@ -174,7 +189,10 @@ export function AuthProvider({ children }) {
       localStorage.removeItem('active_player_id');
 
       // Redirect user
-      window.location.href = '/';
+      await runWithBracketGuardBypass(async () => {
+        window.location.href = '/';
+      });
+      return true;
     } catch (err) {
       setError(err.message);
       console.error("Error signing out", err);
