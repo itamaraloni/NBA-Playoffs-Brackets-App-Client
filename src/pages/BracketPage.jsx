@@ -12,7 +12,12 @@ import PredictionDialog from '../components/PredictionDialog';
 import LeagueBracketsDialog from '../components/LeagueBracketsDialog';
 import BracketServices from '../services/BracketServices';
 import { applyPick, countPicks, picksMatch, flattenBracketPicks } from '../utils/bracketUtils';
-
+import {
+  clearBracketUnsavedChangesFlag,
+  confirmBracketExitIfNeeded,
+  setBracketUnsavedChangesFlag,
+  shouldWarnOnBracketExit,
+} from '../utils/navigationGuards';
 // PredictionDialog passes matchup.round (API key: 'playin_first', 'first', etc.)
 // but applyPick / bracketUtils work with component round keys ('playin', 'r1', etc.)
 const API_TO_COMPONENT_ROUND = {
@@ -23,8 +28,6 @@ const API_TO_COMPONENT_ROUND = {
   conference_final:  'cf',
   final:             'final',
 };
-
-const UNSAVED_CHANGES_MESSAGE = 'You have unsaved bracket picks. Leave this page without submitting?';
 
 const BracketPage = () => {
   // serverBracket: last confirmed server state — used to detect unsaved changes
@@ -92,23 +95,28 @@ const BracketPage = () => {
 
   const blocker = useBlocker(hasUnsavedChanges);
 
+  useEffect(() => {
+    setBracketUnsavedChangesFlag(hasUnsavedChanges);
+    return () => clearBracketUnsavedChangesFlag();
+  }, [hasUnsavedChanges]);
+
   // -------------------------------------------------------------------------
   // Navigation guard for tab close / browser refresh.
   // In-app navigation is handled below via useBlocker.
   useEffect(() => {
     const handler = (e) => {
-      if (hasUnsavedChanges) {
+      if (shouldWarnOnBracketExit()) {
         e.preventDefault();
         e.returnValue = '';
       }
     };
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
-  }, [hasUnsavedChanges]);
+  }, []);
 
   useEffect(() => {
     if (blocker.state !== 'blocked') return;
-    if (window.confirm(UNSAVED_CHANGES_MESSAGE)) {
+    if (confirmBracketExitIfNeeded()) {
       blocker.proceed();
     } else {
       blocker.reset();
