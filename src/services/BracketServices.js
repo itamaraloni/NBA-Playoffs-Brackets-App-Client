@@ -17,16 +17,22 @@ function enrichMatchup(m) {
   const isPlayin  = m.round === 'playin_first' || m.round === 'playin_second';
   const hasPick   = m.predicted_winner_team_id != null;
   const isPlayed  = m.actual_winner_team_id != null;
+  const isMatchupExist = m.is_matchup_exist ?? true;
 
   return {
     ...m,
     isPlayin,
     hasPick,
     isPlayed,
+    isMatchupExist,
     // true when the predicted winner is team_1 (used to highlight the correct row)
     predWinnerIsTeam1:   hasPick  && m.predicted_winner_team_id === m.team_1?.team_id,
+    // true when the predicted winner is team_2
+    predWinnerIsTeam2:   hasPick  && m.predicted_winner_team_id === m.team_2?.team_id,
     // true when the actual winner is team_1 (used to show result overlay)
     actualWinnerIsTeam1: isPlayed && m.actual_winner_team_id    === m.team_1?.team_id,
+    // true when the actual winner is team_2
+    actualWinnerIsTeam2: isPlayed && m.actual_winner_team_id    === m.team_2?.team_id,
     // TBD: either team slot is not yet determined (pre-play-in)
     isTbd: !m.team_1 || !m.team_2,
     // TODO(Phase 4): server returns is_correct (snake_case) — map it here so BracketMatchup
