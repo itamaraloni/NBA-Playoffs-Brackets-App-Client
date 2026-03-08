@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Box, Chip, Paper, Typography, useTheme } from '@mui/material';
+import { Box, Chip, Paper, Tooltip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { getLogoPath, getShortTeamName } from '../shared/teamUtils';
 
 function getMatchupResultState(m) {
   if (!m?.hasPick) return 'na';
+  if (m?.isMatchupExist === false && !m?.isPlayed) return 'eliminated';
   if (!m?.isPlayed) return 'pending';
 
   const isBullseye =
@@ -58,6 +59,15 @@ function getResultChipConfig(state, theme) {
           borderColor: alpha(theme.palette.warning.main, 0.35),
         },
       };
+    case 'eliminated':
+      return {
+        label: 'Eliminated',
+        sx: {
+          color: theme.palette.error.main,
+          background: alpha(theme.palette.error.main, 0.12),
+          borderColor: alpha(theme.palette.error.main, 0.3),
+        },
+      };
     default:
       return {
         label: 'N/A',
@@ -67,6 +77,23 @@ function getResultChipConfig(state, theme) {
           borderColor: theme.palette.divider,
         },
       };
+  }
+}
+
+function getResultTooltip(state) {
+  switch (state) {
+    case 'bullseye':
+      return 'You got the winner and exact series score right.';
+    case 'hit':
+      return 'You got the winner right.';
+    case 'miss':
+      return 'This matchup happened, but your predicted winner was wrong.';
+    case 'pending':
+      return 'This matchup is still alive, but the real result is not decided yet.';
+    case 'eliminated':
+      return 'Your predicted matchup did not happen, so this bracket pick is eliminated.';
+    default:
+      return 'No pick was made for this matchup.';
   }
 }
 
@@ -274,6 +301,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick }) => {
 
   const resultState = getMatchupResultState(m);
   const resultChip = getResultChipConfig(resultState, theme);
+  const resultTooltip = getResultTooltip(resultState);
 
   const isClickable = Boolean(onMatchupClick && m.can_edit && !isLocked);
 
@@ -296,7 +324,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick }) => {
   };
 
   const t1IsPredWinner = m.predWinnerIsTeam1;
-  const t2IsPredWinner = m.hasPick && !m.predWinnerIsTeam1;
+  const t2IsPredWinner = m.predWinnerIsTeam2;
   const t1IsActualWinner = m.actualWinnerIsTeam1;
   const t2IsActualWinner = m.isPlayed && !m.actualWinnerIsTeam1;
 
@@ -319,19 +347,36 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick }) => {
   return (
     <Paper elevation={0} sx={cardSx} onClick={isClickable ? () => onMatchupClick(m) : undefined}>
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: '9px', pt: '6px', pb: '2px' }}>
-        <Chip
-          size="small"
-          variant="outlined"
-          label={resultChipLabel}
-          sx={{
-            height: 18,
-            fontSize: '0.5625rem',
-            fontWeight: 700,
-            letterSpacing: '0.02em',
-            '& .MuiChip-label': { px: '6px' },
-            ...resultChip.sx,
-          }}
-        />
+        <Tooltip
+          title={resultTooltip}
+          arrow
+          placement="top"
+          describeChild
+          enterTouchDelay={0}
+          leaveTouchDelay={3500}
+        >
+          <Box
+            component="span"
+            sx={{ display: 'inline-flex' }}
+            onClick={(event) => event.stopPropagation()}
+            onMouseDown={(event) => event.stopPropagation()}
+            onTouchStart={(event) => event.stopPropagation()}
+          >
+            <Chip
+              size="small"
+              variant="outlined"
+              label={resultChipLabel}
+              sx={{
+                height: 18,
+                fontSize: '0.5625rem',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                '& .MuiChip-label': { px: '6px' },
+                ...resultChip.sx,
+              }}
+            />
+          </Box>
+        </Tooltip>
       </Box>
       <TeamRow
         team={m.team_1}
