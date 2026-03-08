@@ -31,6 +31,8 @@ function enrichMatchup(m) {
     predWinnerIsTeam2:   hasPick  && m.predicted_winner_team_id === m.team_2?.team_id,
     // true when the actual winner is team_1 (used to show result overlay)
     actualWinnerIsTeam1: isPlayed && m.actual_winner_team_id    === m.team_1?.team_id,
+    // true when the actual winner is team_2
+    actualWinnerIsTeam2: isPlayed && m.actual_winner_team_id    === m.team_2?.team_id,
     // TBD: either team slot is not yet determined (pre-play-in)
     isTbd: !m.team_1 || !m.team_2,
     // TODO(Phase 4): server returns is_correct (snake_case) — map it here so BracketMatchup

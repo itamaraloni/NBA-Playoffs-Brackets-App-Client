@@ -5,7 +5,7 @@ import { getLogoPath, getShortTeamName } from '../shared/teamUtils';
 
 function getMatchupResultState(m) {
   if (!m?.hasPick) return 'na';
-  if (m?.isMatchupExist === false && !m?.isPlayed) return 'eliminated';
+  if (m?.isMatchupExist === false) return 'eliminated';
   if (!m?.isPlayed) return 'pending';
 
   const isBullseye =
@@ -326,7 +326,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick }) => {
   const t1IsPredWinner = m.predWinnerIsTeam1;
   const t2IsPredWinner = m.predWinnerIsTeam2;
   const t1IsActualWinner = m.actualWinnerIsTeam1;
-  const t2IsActualWinner = m.isPlayed && !m.actualWinnerIsTeam1;
+  const t2IsActualWinner = m.actualWinnerIsTeam2;
 
   const showScoreBar = m.hasPick || m.isPlayed;
   const predictedWinnerTeamName = m.hasPick
@@ -339,9 +339,11 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick }) => {
   const predValue = m.isPlayin
     ? (m.hasPick ? getShortTeamName(predictedWinnerTeamName) : 'N/A')
     : (m.predicted_series_score || '-');
-  const actValue = m.isPlayin
-    ? (m.isPlayed ? getShortTeamName(actualWinnerTeamName) : null)
-    : (m.isPlayed ? m.actual_series_score : null);
+  const isEliminated = resultState === 'eliminated';
+  const actValue = isEliminated ? null
+    : m.isPlayin
+      ? (m.isPlayed ? getShortTeamName(actualWinnerTeamName) : null)
+      : (m.isPlayed ? m.actual_series_score : null);
   const resultChipLabel = actValue ? `${resultChip.label} • ${actValue}` : resultChip.label;
 
   return (
