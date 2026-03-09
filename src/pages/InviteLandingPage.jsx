@@ -52,8 +52,10 @@ const InviteLandingPage = () => {
     try {
       setSigningIn(true);
       await signInWithGoogle();
-      // After sign-in, the component re-renders with isAuthenticated=true.
-      // The useEffect below handles navigation to create-player.
+      // After sign-in, the component re-renders with isAuthenticated=true
+      if (window.notify) {
+        window.notify.success('Signed in successfully!');
+      }
     } catch (err) {
       setError('Sign in failed. Please try again.');
     } finally {

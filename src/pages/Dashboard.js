@@ -16,17 +16,17 @@ import AppExplanation from '../components/AppExplanation';
 import { CreateLeagueSection, JoinLeagueSection } from '../components/CreateJoinLeagueComponents';
 import PlayerStatsCard from '../components/PlayerStatsCard';
 import EditPicksDialog from '../components/EditPicksDialog';
-import LeagueServices from '../services/LeagueServices';
 import UserServices from '../services/UserServices';
 import { useAuth } from '../contexts/AuthContext';
+import { extractTokenFromInput } from '../utils/inviteUtils';
 
 const Dashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { activePlayer, userPlayers } = useAuth();
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
-  const [leagueCode, setLeagueCode] = useState('');
-  const [codeError, setCodeError] = useState('');
+  const [inviteInput, setInviteInput] = useState('');
+  const [inputError, setInputError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [playerProfile, setPlayerProfile] = useState(null);
   const [playerProfileLoading, setPlayerProfileLoading] = useState(true);
@@ -65,52 +65,19 @@ const Dashboard = () => {
     navigate('/create-league');
   };
 
-  const handleJoinLeague = async () => {
-    if (!leagueCode.trim()) {
-      setCodeError('Please enter a league code');
+  const handleJoinLeague = () => {
+    const token = extractTokenFromInput(inviteInput);
+    if (!token) {
+      setInputError('Please paste an invite link or token');
       return;
     }
 
-    // Validate that the code is a 6-digit number
-    const codeRegex = /^\d{6}$/;
-    if (!codeRegex.test(leagueCode)) {
-      setCodeError('League code must be a 6-digit number');
-      return;
-    }
-
-    setIsLoading(true);
-    setCodeError('');
-
-    try {
-      // Call the actual API to validate the league code
-      const response = await LeagueServices.validateLeagueCode(leagueCode);
-
-      // Block if already a member of this league
-      if (userPlayers.some(p => p.league_id === response.league_id)) {
-        setCodeError("You're already a member of this league.");
-        return;
-      }
-
-      // If we get here, the code is valid - store the league ID
-      localStorage.setItem('joinLeagueId', response.league_id);
-
-      // Show success message
-      setAlert({
-        open: true,
-        message: 'League joined successfully! Proceeding to player creation.',
-        severity: 'success'
-      });
-    } catch (error) {
-      console.error('Error joining league:', error);
-      setCodeError(error.message || 'Error joining league. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    setInputError('');
+    navigate(`/invite/${token}`);
   };
 
   const handleCloseAlert = () => {
     setAlert({ ...alert, open: false });
-    navigate('/create-player'); // Navigate after user acknowledges
   };
 
   const handleEditPicks = (type) => {
@@ -164,11 +131,10 @@ const Dashboard = () => {
         <CreateLeagueSection onCreateClick={handleCreateLeague} />
       </Grid>
       <Grid item xs={12} md={6}>
-        <JoinLeagueSection 
-          leagueCode={leagueCode}
-          setLeagueCode={setLeagueCode}
-          codeError={codeError}
-          isLoading={isLoading}
+        <JoinLeagueSection
+          inviteInput={inviteInput}
+          setInviteInput={setInviteInput}
+          inputError={inputError}
           onJoinClick={handleJoinLeague}
         />
       </Grid>

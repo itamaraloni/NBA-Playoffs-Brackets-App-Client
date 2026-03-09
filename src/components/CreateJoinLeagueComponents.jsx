@@ -58,16 +58,15 @@ CreateLeagueSection.propTypes = {
 /**
  * Component for joining an existing league
  */
-export const JoinLeagueSection = ({ 
-  leagueCode, 
-  setLeagueCode, 
-  codeError, 
-  isLoading, 
+export const JoinLeagueSection = ({
+  inviteInput,
+  setInviteInput,
+  inputError,
   onJoinClick,
-  elevation = 2 
+  elevation = 2
 }) => {
   const theme = useTheme();
-  
+
   return (
     <Paper
       elevation={elevation}
@@ -84,40 +83,38 @@ export const JoinLeagueSection = ({
         Join a League
       </Typography>
       <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-        Enter the league code provided by your friends:
+        Paste an invite link or token from your league commissioner:
       </Typography>
-      
+
       <TextField
         fullWidth
         variant="outlined"
         size="small"
-        value={leagueCode}
-        onChange={(e) => setLeagueCode(e.target.value)}
-        placeholder="Enter league code"
-        error={!!codeError}
-        helperText={codeError}
+        value={inviteInput}
+        onChange={(e) => setInviteInput(e.target.value)}
+        placeholder="Paste invite link or token"
+        error={!!inputError}
+        helperText={inputError}
         sx={{ mb: 2 }}
       />
-      
+
       <Button
         variant="contained"
         color="success"
-        disabled={isLoading}
-        startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <JoinIcon />}
+        startIcon={<JoinIcon />}
         onClick={onJoinClick}
         sx={{ mt: 'auto' }}
       >
-        {isLoading ? 'Checking...' : 'Join League'}
+        Join League
       </Button>
     </Paper>
   );
 };
 
 JoinLeagueSection.propTypes = {
-  leagueCode: PropTypes.string.isRequired,
-  setLeagueCode: PropTypes.func.isRequired,
-  codeError: PropTypes.string,
-  isLoading: PropTypes.bool.isRequired,
+  inviteInput: PropTypes.string.isRequired,
+  setInviteInput: PropTypes.func.isRequired,
+  inputError: PropTypes.string,
   onJoinClick: PropTypes.func.isRequired,
   elevation: PropTypes.number
 };
