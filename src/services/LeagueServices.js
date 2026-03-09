@@ -24,20 +24,6 @@ const LeagueServices = {
   },
   
   /**
-   * Validates league code and returns its league id
-  */
- async validateLeagueCode(leagueCode) {
-   return await apiClient.get(`/league/validate_code/${leagueCode}`);
-  },
-
-  /**
-   * Join a league
-  */
-  async joinLeague(joinToLeagueData) {
-    return await apiClient.post('/league/join_player_to_league', joinToLeagueData);
-  },
-
-  /**
    * Preview an invite token (public endpoint — no auth required).
    * Uses raw fetch() instead of apiClient because this endpoint must work
    * for unauthenticated users, and apiClient attaches an Authorization

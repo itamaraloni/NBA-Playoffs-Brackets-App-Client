@@ -20,7 +20,7 @@ const AppExplanation = ({ elevation = 2 }) => {
     {
       number: 1,
       title: "Create or Join a League",
-      description: "Start your own league or join your friends using their league code"
+      description: "Start your own league or join your friends using an invite link"
     },
     {
       number: 2,
