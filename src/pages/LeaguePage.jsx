@@ -20,11 +20,13 @@ const LeaguePage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { activePlayer } = useAuth();
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [leagueData, setLeagueData] = useState(null);
   const [error, setError] = useState(null);
+  const [regenerating, setRegenerating] = useState(false);
 
   // Get player_id and league_id from active player context
   const currentPlayerId = activePlayer?.player_id;
@@ -54,29 +56,46 @@ const LeaguePage = () => {
     }
   }, [leagueId]); // Re-fetch when active player/league changes
   
-  // Copy league code to clipboard
-  const copyLeagueCode = () => {
-    if (leagueData?.code) {
-      try {
-        // Create a temporary text field
+  const isCommissioner = activePlayer?.is_commissioner;
+
+  // Copy invite link to clipboard
+  const copyInviteLink = () => {
+    if (leagueData?.inviteToken) {
+      const link = `${window.location.origin}/invite/${leagueData.inviteToken}`;
+      navigator.clipboard.writeText(link).then(() => {
+        setSnackbarMessage('Invite link copied to clipboard!');
+        setOpenSnackbar(true);
+      }).catch(() => {
+        // Fallback for older browsers
         const textField = document.createElement('textarea');
-        textField.value = leagueData.code;
-        textField.setAttribute('readonly', '');
+        textField.value = link;
         textField.style.position = 'absolute';
         textField.style.left = '-9999px';
         document.body.appendChild(textField);
-        
-        // Select the text and copy
         textField.select();
         document.execCommand('copy');
-        
-        // Clean up
         document.body.removeChild(textField);
-        
+        setSnackbarMessage('Invite link copied to clipboard!');
         setOpenSnackbar(true);
-      } catch (err) {
-        console.error('Failed to copy:', err);
+      });
+    }
+  };
+
+  // Regenerate invite link (commissioner only)
+  const handleRegenerateInvite = async () => {
+    try {
+      setRegenerating(true);
+      const response = await LeagueServices.regenerateInvite(leagueId);
+      setLeagueData(prev => ({ ...prev, inviteToken: response.invite_token }));
+      setSnackbarMessage('Invite link regenerated! Old links are now invalid.');
+      setOpenSnackbar(true);
+    } catch (err) {
+      console.error('Failed to regenerate invite:', err);
+      if (window.notify) {
+        window.notify.error(err.message || 'Failed to regenerate invite link');
       }
+    } finally {
+      setRegenerating(false);
     }
   };
 
@@ -137,11 +156,14 @@ const LeaguePage = () => {
       </Typography>
       
       {/* Use League component for main information */}
-      <League 
+      <League
         league={leagueData}
         currentPlayerId={currentPlayerId}
         showPlayers={false}
-        onCopyCode={copyLeagueCode}
+        onCopyInviteLink={copyInviteLink}
+        onRegenerateInvite={handleRegenerateInvite}
+        isCommissioner={isCommissioner}
+        regenerating={regenerating}
       />
       
       {/* Scoring Rules Section */}
@@ -166,7 +188,7 @@ const LeaguePage = () => {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert onClose={() => setOpenSnackbar(false)} severity="success" sx={{ width: '100%' }}>
-          League code copied to clipboard!
+          {snackbarMessage}
         </Alert>
       </Snackbar>
     </Container>
