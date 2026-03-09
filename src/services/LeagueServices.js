@@ -36,6 +36,47 @@ const LeagueServices = {
   async joinLeague(joinToLeagueData) {
     return await apiClient.post('/league/join_player_to_league', joinToLeagueData);
   },
+
+  /**
+   * Preview an invite token (public endpoint — no auth required).
+   * Uses raw fetch() instead of apiClient because this endpoint must work
+   * for unauthenticated users, and apiClient attaches an Authorization
+   * header that could cause issues with expired tokens.
+   */
+  async previewInvite(token) {
+    const baseUrl = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
+    const response = await fetch(`${baseUrl}/invite/${token}/preview`);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      const error = new Error(errorData?.error || `Error: ${response.status}`);
+      error.status = response.status;
+      throw error;
+    }
+
+    const data = await response.json();
+    return {
+      leagueName: data.league_name,
+      playerCount: data.player_count,
+      leagueId: data.league_id,
+    };
+  },
+
+  /**
+   * Join a league via invite token (authenticated).
+   * Sends player setup data (name, avatar, championship pick, MVP pick).
+   */
+  async joinViaInvite(token, playerData) {
+    return await apiClient.post(`/invite/${token}/join`, playerData);
+  },
+
+  /**
+   * Regenerate invite link for a league (commissioner only).
+   * Invalidates the old token and returns a new one.
+   */
+  async regenerateInvite(leagueId) {
+    return await apiClient.post(`/league/${leagueId}/invite/regenerate`);
+  },
 };
 
 /**
@@ -67,6 +108,7 @@ const transformLeagueData = (data) => ({
   name: data.name,
   isActive: true, // Assuming active by default
   code: String(data.code),
+  inviteToken: data.invite_token || null,
   playerCount: data.players.playerCount,
   players: data.players.data.map(transformPlayerData)
 });
