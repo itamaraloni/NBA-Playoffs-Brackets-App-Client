@@ -99,10 +99,11 @@ This guideline applies to all frontend work — code changes, PR reviews, planni
 
 - **Global state:** React Context only (AuthContext for auth, ThemeContext for theme). No Redux or other state libraries
 - **Page-level data:** `useState` in page components, fetched in `useEffect`
-- **localStorage keys in use:** `auth_token`, `active_player_id`, `theme-mode`, `joinLeagueId`
+- **localStorage keys in use:** `auth_token`, `active_player_id`, `theme-mode`
+- **sessionStorage keys in use:** `pendingInviteToken` (temporary, cleared after joining a league)
 - `active_player_id` stores the user's last-selected league player as UX convenience (survives page reload). AuthContext is the source of truth — localStorage is just a hint. See ADR-003
 - `theme-mode` is preserved on logout; all other keys are cleared
-- **Removed keys:** `player_id`, `player_name`, `league_id`, `is_admin` — these were replaced by AuthContext state (`activePlayer`, `isAdmin`)
+- **Removed keys:** `player_id`, `player_name`, `league_id`, `is_admin` — replaced by AuthContext state; `joinLeagueId` — replaced by invite-token flow
 - **PENDING MIGRATION:** `auth_token` in localStorage is an XSS risk. Planned move to httpOnly cookies (requires backend changes)
 
 ### API & Services
@@ -142,7 +143,7 @@ useEffect(() => {
 
 - React Router v7 — routes defined in `src/App.js`
 - All authenticated routes wrapped in `<ProtectedRoute>` and `<Layout>`
-- Public routes: `/` (LandingPage)
+- Public routes: `/` (LandingPage), `/invite/:token` (InviteLandingPage)
 - Pattern for new routes: add to `App.js`, create page in `src/pages/`, wrap in `<Layout>` for sidebar/nav
 
 ### Auth Flow
