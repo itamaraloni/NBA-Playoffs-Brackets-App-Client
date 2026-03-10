@@ -20,27 +20,22 @@ const LeagueServices = {
    * Create a new league
   */
  async createLeague(leagueSetupData) {
-   return await apiClient.post('/league/create_league', leagueSetupData);
+   const data = await apiClient.post('/league/create_league', leagueSetupData);
+   return {
+     message: data.message,
+     leagueId: data.league_id,
+     leagueCode: data.league_code,
+     inviteToken: data.invite_token,
+   };
   },
   
   /**
    * Preview an invite token (public endpoint — no auth required).
-   * Uses raw fetch() instead of apiClient because this endpoint must work
-   * for unauthenticated users, and apiClient attaches an Authorization
-   * header that could cause issues with expired tokens.
+   * Uses { auth: false } to skip the Authorization header so the request
+   * works for unauthenticated users without triggering expired-token issues.
    */
   async previewInvite(token) {
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
-    const response = await fetch(`${baseUrl}/invite/${token}/preview`);
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      const error = new Error(errorData?.error || `Error: ${response.status}`);
-      error.status = response.status;
-      throw error;
-    }
-
-    const data = await response.json();
+    const data = await apiClient.get(`/invite/${token}/preview`, { auth: false });
     return {
       leagueName: data.league_name,
       playerCount: data.player_count,
@@ -53,7 +48,12 @@ const LeagueServices = {
    * Sends player setup data (name, avatar, championship pick, MVP pick).
    */
   async joinViaInvite(token, playerData) {
-    return await apiClient.post(`/invite/${token}/join`, playerData);
+    const data = await apiClient.post(`/invite/${token}/join`, playerData);
+    return {
+      message: data.message,
+      playerId: data.player_id,
+      leagueId: data.league_id,
+    };
   },
 
   /**
@@ -61,7 +61,11 @@ const LeagueServices = {
    * Invalidates the old token and returns a new one.
    */
   async regenerateInvite(leagueId) {
-    return await apiClient.post(`/league/${leagueId}/invite/regenerate`);
+    const data = await apiClient.post(`/league/${leagueId}/invite/regenerate`);
+    return {
+      message: data.message,
+      inviteToken: data.invite_token,
+    };
   },
 };
 

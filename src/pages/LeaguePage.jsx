@@ -69,6 +69,7 @@ const LeaguePage = () => {
         // Fallback for older browsers
         const textField = document.createElement('textarea');
         textField.value = link;
+        textField.setAttribute('readonly', '');
         textField.style.position = 'absolute';
         textField.style.left = '-9999px';
         document.body.appendChild(textField);
@@ -86,7 +87,7 @@ const LeaguePage = () => {
     try {
       setRegenerating(true);
       const response = await LeagueServices.regenerateInvite(leagueId);
-      setLeagueData(prev => ({ ...prev, inviteToken: response.invite_token }));
+      setLeagueData(prev => ({ ...prev, inviteToken: response.inviteToken }));
       setSnackbarMessage('Invite link regenerated! Old links are now invalid.');
       setOpenSnackbar(true);
     } catch (err) {
