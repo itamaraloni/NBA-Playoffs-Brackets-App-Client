@@ -71,10 +71,6 @@ const InviteLandingPage = () => {
     navigate('/dashboard');
   };
 
-  const handleLogout = () => {
-    logout();
-  };
-
   // Show a loading spinner while auth state or preview is loading
   if (authLoading || loading) {
     return (
@@ -98,7 +94,7 @@ const InviteLandingPage = () => {
           title="League Invite"
           showLogout={isAuthenticated}
           showHome={isAuthenticated}
-          onLogout={handleLogout}
+          onLogout={logout}
         />
         <Container maxWidth="sm" sx={{ mt: 8 }}>
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -120,7 +116,7 @@ const InviteLandingPage = () => {
         title="League Invite"
         showLogout={isAuthenticated}
         showHome={isAuthenticated}
-        onLogout={handleLogout}
+        onLogout={logout}
       />
       <Container maxWidth="sm" sx={{ mt: 8 }}>
         <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>

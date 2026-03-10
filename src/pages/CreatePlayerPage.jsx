@@ -102,10 +102,6 @@ const CreatePlayerPage = () => {
       };
       const createPlayerResponse = await LeagueServices.joinViaInvite(token, playerData);
 
-      if (createPlayerResponse.message === 'error') {
-        throw new Error('Failed to create player');
-      }
-
       messageToDisplay = `${messageToDisplay ? messageToDisplay + ' and ' : ''}Player created successfully`;
 
       // Clean up sessionStorage now that the join succeeded
