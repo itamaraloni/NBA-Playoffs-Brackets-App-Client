@@ -20,21 +20,52 @@ const LeagueServices = {
    * Create a new league
   */
  async createLeague(leagueSetupData) {
-   return await apiClient.post('/league/create_league', leagueSetupData);
+   const data = await apiClient.post('/league/create_league', leagueSetupData);
+   return {
+     message: data.message,
+     leagueId: data.league_id,
+     leagueCode: data.league_code,
+     inviteToken: data.invite_token,
+   };
   },
   
   /**
-   * Validates league code and returns its league id
-  */
- async validateLeagueCode(leagueCode) {
-   return await apiClient.get(`/league/validate_code/${leagueCode}`);
+   * Preview an invite token (public endpoint — no auth required).
+   * Uses { auth: false } to skip the Authorization header so the request
+   * works for unauthenticated users without triggering expired-token issues.
+   */
+  async previewInvite(token) {
+    const data = await apiClient.get(`/invite/${token}/preview`, { auth: false });
+    return {
+      leagueName: data.league_name,
+      playerCount: data.player_count,
+      leagueId: data.league_id,
+    };
   },
 
   /**
-   * Join a league
-  */
-  async joinLeague(joinToLeagueData) {
-    return await apiClient.post('/league/join_player_to_league', joinToLeagueData);
+   * Join a league via invite token (authenticated).
+   * Sends player setup data (name, avatar, championship pick, MVP pick).
+   */
+  async joinViaInvite(token, playerData) {
+    const data = await apiClient.post(`/invite/${token}/join`, playerData);
+    return {
+      message: data.message,
+      playerId: data.player_id,
+      leagueId: data.league_id,
+    };
+  },
+
+  /**
+   * Regenerate invite link for a league (commissioner only).
+   * Invalidates the old token and returns a new one.
+   */
+  async regenerateInvite(leagueId) {
+    const data = await apiClient.post(`/league/${leagueId}/invite/regenerate`);
+    return {
+      message: data.message,
+      inviteToken: data.invite_token,
+    };
   },
 };
 
@@ -67,6 +98,7 @@ const transformLeagueData = (data) => ({
   name: data.name,
   isActive: true, // Assuming active by default
   code: String(data.code),
+  inviteToken: data.invite_token || null,
   playerCount: data.players.playerCount,
   players: data.players.data.map(transformPlayerData)
 });

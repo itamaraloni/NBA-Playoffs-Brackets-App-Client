@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Box,
@@ -30,8 +30,20 @@ import { NBA_TEAMS_WITH_POINTS, MVP_CANDIDATES_WITH_POINTS, PLAYER_AVATARS } fro
 
 const CreatePlayerPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
   const { refreshLeagueData } = useAuth();
+
+  // Invite token: try navigation state first, fall back to sessionStorage (survives page refresh)
+  const inviteToken = location.state?.inviteToken || sessionStorage.getItem('pendingInviteToken');
+
+  // Persist invite token in sessionStorage so it survives page refresh
+  useEffect(() => {
+    if (location.state?.inviteToken) {
+      sessionStorage.setItem('pendingInviteToken', location.state.inviteToken);
+    }
+  }, [location.state?.inviteToken]);
+
   const [playerName, setPlayerName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
@@ -53,49 +65,50 @@ const CreatePlayerPage = () => {
     setError(null);
 
     try {
-      let leagueId = localStorage.getItem('joinLeagueId');
+      let token = inviteToken;
       let messageToDisplay = '';
       const leagueSetup = localStorage.getItem('leagueSetup');
+
       if (leagueSetup) {
+        // Create-league flow: create the league, then join via its invite token
         const { name: leagueName } = JSON.parse(leagueSetup);
 
-        // Create league
         const createLeagueResponse = await LeagueServices.createLeague({
           league_name: leagueName,
         });
-        
+
         if (createLeagueResponse.message === 'error') {
           throw new Error('Failed to create league');
         }
-        
-        // clear league setup data
+
         localStorage.removeItem('leagueSetup');
-
         messageToDisplay = 'League created successfully';
-        leagueId = createLeagueResponse.league_id;
-      }
-      else {
-        // clear join league id
-        localStorage.removeItem('joinLeagueId');
+        token = createLeagueResponse.inviteToken;
       }
 
-      // create player id
-      const createPlayerResponse = await LeagueServices.joinLeague({
-        league_id: leagueId,
+      // Guard: ensure we have a valid invite token before calling the API
+      if (!token) {
+        setError('Your invite session has expired. Please use your invite link again to join a league.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Join via invite token (both create-league and join-league flows)
+      const playerData = {
         name: playerName,
         player_avatar: String(selectedAvatar),
         championship_team: selectedTeam,
         mvp: selectedMVP,
-      });
-
-      if (createPlayerResponse.error === 'error') {
-        throw new Error('Failed to create player');
-      }
+      };
+      const createPlayerResponse = await LeagueServices.joinViaInvite(token, playerData);
 
       messageToDisplay = `${messageToDisplay ? messageToDisplay + ' and ' : ''}Player created successfully`;
 
+      // Clean up sessionStorage now that the join succeeded
+      sessionStorage.removeItem('pendingInviteToken');
+
       // Set active_player_id before refreshing so AuthContext restores to the new player
-      localStorage.setItem('active_player_id', createPlayerResponse.player_id);
+      localStorage.setItem('active_player_id', createPlayerResponse.playerId);
       await refreshLeagueData();
 
       setAlert({

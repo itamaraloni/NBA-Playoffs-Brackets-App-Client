@@ -14,17 +14,19 @@ import {
 import {
   Group as UsersIcon,
   CalendarMonth as CalendarIcon,
-  ContentCopy as CopyIcon
+  ContentCopy as CopyIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import PlayerCard from './PlayerCard';
 
-const League = ({ 
-  league, 
+const League = ({
+  league,
   currentPlayerId = null,
   showPlayers = true,
-  onJoinLeague = null,
-  isPreview = false,
-  onCopyCode = null
+  onCopyInviteLink = null,
+  onRegenerateInvite = null,
+  isCommissioner = false,
+  regenerating = false
 }) => {
   const theme = useTheme();
   
@@ -75,37 +77,39 @@ const League = ({
           />
         </Box>
 
-        {/* Join League button */}
-        {onJoinLeague && (
-          <Button 
-            variant="contained" 
-            color="primary"
-            size="medium"
-            sx={{ mt: 2 }}
-            onClick={() => onJoinLeague(league?.id, league?.code)}
-          >
-            Join League
-          </Button>
-        )}
-        
-        {/* League code display for preview */}
-        {(isPreview || onCopyCode) && league?.code && (
-          <Paper variant="outlined" sx={{ mt: 2, p: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography variant="body2">
-              Join code: <Box component="span" sx={{ fontFamily: 'monospace', fontWeight: 'medium' }}>{league?.code}</Box>
-            </Typography>
-            
-            {onCopyCode && (
-              <Button 
-                size="small" 
-                variant="text" 
-                color="primary" 
-                startIcon={<CopyIcon />}
-                onClick={() => onCopyCode(league.code)}
-              >
-                Copy
-              </Button>
-            )}
+        {/* Invite link section */}
+        {onCopyInviteLink && league?.inviteToken && (
+          <Paper variant="outlined" sx={{ mt: 2, p: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+              <Typography variant="body2" sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                Invite link: <Box component="span" sx={{ fontFamily: 'monospace', fontWeight: 'medium' }}>
+                  {`${window.location.origin}/invite/${league.inviteToken}`}
+                </Box>
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+                <Button
+                  size="small"
+                  variant="text"
+                  color="primary"
+                  startIcon={<CopyIcon />}
+                  onClick={onCopyInviteLink}
+                >
+                  Copy
+                </Button>
+                {isCommissioner && onRegenerateInvite && (
+                  <Button
+                    size="small"
+                    variant="text"
+                    color="warning"
+                    startIcon={<RefreshIcon />}
+                    onClick={onRegenerateInvite}
+                    disabled={regenerating}
+                  >
+                    {regenerating ? 'Regenerating...' : 'Regenerate'}
+                  </Button>
+                )}
+              </Box>
+            </Box>
           </Paper>
         )}
       </CardContent>
@@ -143,14 +147,16 @@ League.propTypes = {
     name: PropTypes.string.isRequired,
     isActive: PropTypes.bool,
     code: PropTypes.string,
+    inviteToken: PropTypes.string,
     playerCount: PropTypes.number,
     players: PropTypes.arrayOf(PropTypes.object)
   }).isRequired,
   currentPlayerId: PropTypes.string,
   showPlayers: PropTypes.bool,
-  onJoinLeague: PropTypes.func,
-  isPreview: PropTypes.bool,
-  onCopyCode: PropTypes.func
+  onCopyInviteLink: PropTypes.func,
+  onRegenerateInvite: PropTypes.func,
+  isCommissioner: PropTypes.bool,
+  regenerating: PropTypes.bool
 };
 
 export default League;

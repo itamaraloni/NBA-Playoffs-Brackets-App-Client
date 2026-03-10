@@ -15,6 +15,7 @@ import ProfilePage from './pages/ProfilePage';
 import CreateLeaguePage from './pages/CreateLeaguePage';
 import CreatePlayerPage from './pages/CreatePlayerPage';
 import BracketPage from './pages/BracketPage';
+import InviteLandingPage from './pages/InviteLandingPage';
 
 function AppContent() {
   const { logout, isAuthenticated } = useAuth();
@@ -28,6 +29,9 @@ function AppContent() {
 <Routes>
   {/* Public landing page now at "/" */}
   <Route path="/" element={<LandingPage />} />
+
+  {/* Public invite landing page — must be before ProtectedRoute */}
+  <Route path="/invite/:token" element={<InviteLandingPage />} />
 
   {/* Protected routes */}
   <Route element={<ProtectedRoute />}>

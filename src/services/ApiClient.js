@@ -11,18 +11,21 @@ const apiClient = {
   RETRY_DELAY: 1000,
   
   /**
-   * Get default headers including auth token if available
+   * Get default headers including auth token if available.
+   * Pass { auth: false } to skip the Authorization header (for public endpoints).
    */
-  getHeaders() {
+  getHeaders(options = {}) {
     const headers = {
       'Content-Type': 'application/json',
     };
-    
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
+
+    if (options.auth !== false) {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
     }
-    
+
     return headers;
   },
   
@@ -120,14 +123,15 @@ const apiClient = {
   },
   
   /**
-   * GET request with retry logic
+   * GET request with retry logic.
+   * Pass { auth: false } in options to skip the Authorization header.
    */
-  async get(endpoint) {
+  async get(endpoint, options = {}) {
     const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
       method: 'GET',
-      headers: this.getHeaders(),
+      headers: this.getHeaders(options),
     });
-    
+
     return this.handleResponse(response);
   },
   

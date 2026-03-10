@@ -12,8 +12,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  CircularProgress
+  TextField
 } from '@mui/material';
 import {
   EmojiEvents as TrophyIcon,
@@ -23,15 +22,14 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import LeagueServices from '../services/LeagueServices';
+import { extractTokenFromInput } from '../utils/inviteUtils';
 
 const LeagueSwitcher = () => {
   const { userPlayers, activePlayer, switchActivePlayer } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
-  const [joinCode, setJoinCode] = useState('');
+  const [joinInput, setJoinInput] = useState('');
   const [joinError, setJoinError] = useState('');
-  const [joinLoading, setJoinLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleOpen = (event) => {
@@ -53,39 +51,21 @@ const LeagueSwitcher = () => {
   };
 
   const handleOpenJoinDialog = () => {
-    setJoinCode('');
+    setJoinInput('');
     setJoinError('');
     setJoinDialogOpen(true);
     handleClose();
   };
 
-  const handleJoinSubmit = async () => {
-    if (!joinCode.trim()) {
-      setJoinError('Please enter a league code');
-      return;
-    }
-    if (!/^\d{6}$/.test(joinCode)) {
-      setJoinError('League code must be a 6-digit number');
+  const handleJoinSubmit = () => {
+    const token = extractTokenFromInput(joinInput);
+    if (!token) {
+      setJoinError('Please paste an invite link or token');
       return;
     }
 
-    setJoinLoading(true);
-    setJoinError('');
-
-    try {
-      const response = await LeagueServices.validateLeagueCode(joinCode);
-      if (userPlayers.some(p => p.league_id === response.league_id)) {
-        setJoinError("You're already a member of this league.");
-        return;
-      }
-      localStorage.setItem('joinLeagueId', response.league_id);
-      setJoinDialogOpen(false);
-      navigate('/create-player');
-    } catch (error) {
-      setJoinError(error.message || 'Invalid league code. Please try again.');
-    } finally {
-      setJoinLoading(false);
-    }
+    setJoinDialogOpen(false);
+    navigate(`/invite/${token}`);
   };
 
   // Don't render if user has no leagues
@@ -186,32 +166,26 @@ const LeagueSwitcher = () => {
         <DialogTitle>Join a League</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Enter the 6-digit code provided by the league commissioner:
+            Paste an invite link or token from the league commissioner:
           </Typography>
           <TextField
             fullWidth
-            label="League Code"
-            value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value)}
+            label="Invite Link or Token"
+            value={joinInput}
+            onChange={(e) => setJoinInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleJoinSubmit()}
             error={!!joinError}
             helperText={joinError}
-            placeholder="000000"
-            inputProps={{ maxLength: 6 }}
+            placeholder="Paste invite link or token"
             autoFocus
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setJoinDialogOpen(false)} disabled={joinLoading}>
+          <Button onClick={() => setJoinDialogOpen(false)}>
             Cancel
           </Button>
-          <Button
-            variant="contained"
-            onClick={handleJoinSubmit}
-            disabled={joinLoading}
-            startIcon={joinLoading ? <CircularProgress size={16} color="inherit" /> : null}
-          >
-            {joinLoading ? 'Checking...' : 'Join'}
+          <Button variant="contained" onClick={handleJoinSubmit}>
+            Join
           </Button>
         </DialogActions>
       </Dialog>
