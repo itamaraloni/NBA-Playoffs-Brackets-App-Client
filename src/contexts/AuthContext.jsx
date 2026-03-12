@@ -190,9 +190,25 @@ export function AuthProvider({ children }) {
 
         while (retryCount <= MAX_RETRIES && !syncSucceeded) {
           try {
-            // Exchange Firebase token for session cookie via /auth/session-login.
-            // The server sets an httpOnly session cookie + CSRF token cookie automatically.
-            const userData = await UserServices.syncUserWithDatabase(user, retryCount);
+            let userData = null;
+            const hasCsrfCookie = document.cookie.includes('csrf_token=');
+
+            // If a session already exists (page reload), try lightweight check first
+            if (hasCsrfCookie) {
+              try {
+                userData = await UserServices.checkUserWithSession();
+              } catch (error) {
+                // If session is missing/invalid, fall back to session-login below
+                if (error.status !== 401 && error.status !== 403) {
+                  throw error;
+                }
+              }
+            }
+
+            if (!userData) {
+              // Exchange Firebase token for session cookie via /auth/session_login.
+              userData = await UserServices.syncUserWithDatabase(user, retryCount);
+            }
 
             // Set admin status from server response
             setIsAdmin(userData?.is_admin || false);
