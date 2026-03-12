@@ -31,11 +31,11 @@ const LeagueServices = {
   
   /**
    * Preview an invite token (public endpoint — no auth required).
-   * Uses { auth: false } to skip the Authorization header so the request
-   * works for unauthenticated users without triggering expired-token issues.
+   * Auth is handled via session cookie (sent automatically); server
+   * does not require auth for this endpoint.
    */
   async previewInvite(token) {
-    const data = await apiClient.get(`/invite/${token}/preview`, { auth: false });
+    const data = await apiClient.get(`/invite/${token}/preview`);
     return {
       leagueName: data.league_name,
       playerCount: data.player_count,

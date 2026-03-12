@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 /**
  * Base API client using fetch with retry logic
@@ -11,18 +11,29 @@ const apiClient = {
   RETRY_DELAY: 1000,
   
   /**
-   * Get default headers including auth token if available.
-   * Pass { auth: false } to skip the Authorization header (for public endpoints).
+   * Read a cookie value by name.
+   * Used to read the CSRF token from the non-httpOnly csrf_token cookie.
    */
-  getHeaders(options = {}) {
+  getCookie(name) {
+    const match = document.cookie.match(new RegExp('(^|;\\s*)' + name + '=([^;]*)'));
+    return match ? decodeURIComponent(match[2]) : null;
+  },
+
+  /**
+   * Get default headers for API requests.
+   * Includes CSRF token for state-changing requests (POST/PUT/DELETE).
+   * Auth is handled via httpOnly session cookie (sent automatically by the browser).
+   */
+  getHeaders(method) {
     const headers = {
       'Content-Type': 'application/json',
     };
 
-    if (options.auth !== false) {
-      const token = localStorage.getItem('auth_token');
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
+    // Include CSRF token for state-changing requests
+    if (method && !['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase())) {
+      const csrfToken = this.getCookie('csrf_token');
+      if (csrfToken) {
+        headers['X-CSRF-Token'] = csrfToken;
       }
     }
 
@@ -53,22 +64,28 @@ const apiClient = {
       if (response.status === 401) {
         try {
           console.log(`Auth error: ${errorMessage}`);
-          
+
+          // Clear server session cookie (fire and forget)
+          fetch(`${API_BASE_URL}/auth/logout`, {
+            method: 'POST',
+            credentials: 'include',
+          }).catch(() => {});
+
           // Save theme
           const theme = localStorage.getItem('theme-mode');
           localStorage.clear();
           if (theme) localStorage.setItem('theme-mode', theme);
-          
+
           // Show notification first, before potential redirect
           if (window.notify) {
             window.notify.warning('Your session has expired. Please log in again.');
           }
-          
+
           // Small delay to allow notification to appear before redirect
           setTimeout(() => {
             window.location.href = '/';
           }, 1000);
-          
+
           return; // Stop execution
         } catch (e) {
           console.error("Error in auth handling:", e);
@@ -101,7 +118,7 @@ const apiClient = {
   async fetchWithRetry(url, options, retryCount = 0) {
     try {
       console.log(`Try fetching ${url} (attempt ${retryCount + 1})`);
-      const response = await fetch(url, options);
+      const response = await fetch(url, { ...options, credentials: 'include' });
       return response;
     } catch (error) {
       // Only retry on network errors (not HTTP error responses)
@@ -123,53 +140,52 @@ const apiClient = {
   },
   
   /**
-   * GET request with retry logic.
-   * Pass { auth: false } in options to skip the Authorization header.
+   * GET request with retry logic
    */
-  async get(endpoint, options = {}) {
+  async get(endpoint) {
     const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
       method: 'GET',
-      headers: this.getHeaders(options),
+      headers: this.getHeaders('GET'),
     });
 
     return this.handleResponse(response);
   },
-  
+
   /**
    * POST request with retry logic
    */
   async post(endpoint, data) {
     const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
-      headers: this.getHeaders(),
+      headers: this.getHeaders('POST'),
       body: JSON.stringify(data),
     });
-    
+
     return this.handleResponse(response);
   },
-  
+
   /**
    * PUT request with retry logic
    */
   async put(endpoint, data) {
     const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
       method: 'PUT',
-      headers: this.getHeaders(),
+      headers: this.getHeaders('PUT'),
       body: JSON.stringify(data),
     });
-    
+
     return this.handleResponse(response);
   },
-  
+
   /**
    * DELETE request with retry logic
    */
   async delete(endpoint) {
     const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
       method: 'DELETE',
-      headers: this.getHeaders(),
+      headers: this.getHeaders('DELETE'),
     });
-    
+
     return this.handleResponse(response);
   },
 
