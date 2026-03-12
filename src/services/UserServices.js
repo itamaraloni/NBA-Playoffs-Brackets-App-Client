@@ -1,43 +1,44 @@
 import apiClient from './ApiClient';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 /**
  * User and authentication related service methods
  */
 const UserServices = {
   /**
-   * Sync user with database after Firebase authentication
+   * Sync user with database after Firebase authentication.
+   * Exchanges a Firebase ID token for an httpOnly session cookie via /auth/session-login.
+   * The server sets the session cookie and a JS-readable CSRF token cookie automatically.
    * @param {Object} user - Firebase user object
-   * @returns {Promise<Object>} User data from backend
+   * @param {number} retryCount - Current retry attempt (for logging)
+   * @returns {Promise<Object>} { is_admin: boolean }
    */
   async syncUserWithDatabase(user, retryCount) {
     if (!user) return null;
-    
+
     try {
-      // Get the Firebase token for backend authentication
+      // Get the Firebase ID token to exchange for a session cookie
       const idToken = await user.getIdToken();
 
-      const url = `${API_BASE_URL}/user/check`;
+      const url = `${API_BASE_URL}/auth/session-login`;
       console.log(`Try fetching ${url} (attempt ${retryCount + 1})`);
-      
-      // Call backend API directly (not using apiClient yet since token isn't in localStorage)
-      const response = await fetch(`${url}`, {
+
+      // Direct fetch (not apiClient) because this is the auth bootstrap —
+      // no session cookie exists yet, and we need credentials: 'include'
+      // so the browser stores the Set-Cookie response.
+      const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
-        },
-        body: JSON.stringify({
-          user_id: user.uid,
-          email: user.email
-        })
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id_token: idToken })
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to sync user with database');
       }
-      
+
+      // Response: { is_admin: bool } with 200 (existing user) or 201 (new user)
       const userData = await response.json();
       return userData;
     } catch (error) {
@@ -89,27 +90,27 @@ const UserServices = {
   },
   
   /**
-   * Logout user - clears localStorage while preserving theme
+   * Logout user — clears server session cookie and localStorage.
+   * Calls /auth/logout to revoke Firebase refresh tokens and clear httpOnly cookies.
    */
-  logout() {
-    // Save theme before clearing localStorage
+  async logout() {
+    try {
+      await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      // Log but don't throw — we still want to clear local state even if
+      // the server call fails (e.g. network offline)
+      console.error("Error calling /auth/logout:", error);
+    }
+
+    // Clear localStorage while preserving theme
     const theme = localStorage.getItem('theme-mode');
-    
-    // Clear localStorage
     localStorage.clear();
-    
-    // Restore theme
     if (theme) {
       localStorage.setItem('theme-mode', theme);
     }
-  },
-  
-  /**
-   * Check if user is authenticated
-   * @returns {Boolean} Authentication status
-   */
-  isAuthenticated() {
-    return localStorage.getItem('auth_token') !== null;
   },
   
   /**
@@ -125,19 +126,8 @@ const UserServices = {
     }
   },
 
-  /**
-   * Store user data in localStorage
-   * @param {Object} userData - User data from backend (only is_admin for auth verification)
-   * @param {String} token - Authentication token
-   */
-  storeUserData(userData, token) {
-    if (token) {
-      localStorage.setItem('auth_token', token);
-    }
-
-    // Note: is_admin is NOT stored in localStorage (security - see PR #13/issue #1)
-    // Note: player/league data no longer stored here - managed by AuthContext via getUserLeagues()
-  }
+  // storeUserData() removed — session cookie is set automatically by the browser
+  // from the /auth/session-login response. No localStorage token storage needed.
 };
 
 /**

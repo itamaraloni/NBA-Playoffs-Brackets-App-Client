@@ -99,12 +99,9 @@ export function AuthProvider({ children }) {
       // Try syncing with retries
       while (retryCount <= MAX_RETRIES) {
         try {
-          // Sync with database (using original method, no retry there)
+          // Exchange Firebase token for session cookie via /auth/session-login.
+          // The server sets an httpOnly session cookie + CSRF token cookie automatically.
           const userData = await UserServices.syncUserWithDatabase(user, retryCount);
-
-          // Get token and store user data
-          const idToken = await user.getIdToken();
-          UserServices.storeUserData(userData, idToken);
 
           // Set admin status from server response
           setIsAdmin(userData?.is_admin || false);
@@ -161,8 +158,8 @@ export function AuthProvider({ children }) {
       setError(null);
       await signOut(auth);
 
-      // Use the service for logout
-      UserServices.logout();
+      // Clear server session cookie + localStorage (now async — calls /auth/logout)
+      await UserServices.logout();
 
       // Clear authentication state
       setCurrentUser(null);
@@ -171,7 +168,6 @@ export function AuthProvider({ children }) {
       // Clear multi-league state
       setUserPlayers([]);
       setActivePlayer(null);
-      localStorage.removeItem('active_player_id');
 
       // Redirect user
       window.location.href = '/';
@@ -194,11 +190,9 @@ export function AuthProvider({ children }) {
 
         while (retryCount <= MAX_RETRIES && !syncSucceeded) {
           try {
-            const idToken = await user.getIdToken();
+            // Exchange Firebase token for session cookie via /auth/session-login.
+            // The server sets an httpOnly session cookie + CSRF token cookie automatically.
             const userData = await UserServices.syncUserWithDatabase(user, retryCount);
-
-            // Store token so apiClient can use it for subsequent calls
-            UserServices.storeUserData(userData, idToken);
 
             // Set admin status from server response
             setIsAdmin(userData?.is_admin || false);
