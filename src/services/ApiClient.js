@@ -1,3 +1,5 @@
+import { clearLocalStoragePreserveTheme } from '../utils/authStorage';
+
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 /**
@@ -65,16 +67,7 @@ const apiClient = {
         try {
           console.log(`Auth error: ${errorMessage}`);
 
-          // Clear server session cookie (fire and forget)
-          fetch(`${API_BASE_URL}/auth/logout`, {
-            method: 'POST',
-            credentials: 'include',
-          }).catch(() => {});
-
-          // Save theme
-          const theme = localStorage.getItem('theme-mode');
-          localStorage.clear();
-          if (theme) localStorage.setItem('theme-mode', theme);
+          clearLocalStoragePreserveTheme();
 
           // Show notification first, before potential redirect
           if (window.notify) {

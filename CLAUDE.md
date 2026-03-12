@@ -194,7 +194,7 @@ import { PLAYER_AVATARS } from '../shared/GeneralConsts';
 - Do NOT use inline styles (`style={}`) — use MUI `sx` prop instead
 - Do NOT bypass `apiClient` for API calls
 - Do NOT add new CSS files — use MUI theming and `sx`
-- Do NOT store sensitive data in localStorage beyond auth tokens
+- Do NOT store sensitive data in localStorage (auth tokens now use httpOnly cookies)
 
 ---
 

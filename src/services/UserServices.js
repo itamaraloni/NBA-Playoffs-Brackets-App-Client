@@ -1,4 +1,5 @@
 import apiClient from './ApiClient';
+import { clearLocalStoragePreserveTheme } from '../utils/authStorage';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -8,7 +9,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 const UserServices = {
   /**
    * Sync user with database after Firebase authentication.
-   * Exchanges a Firebase ID token for an httpOnly session cookie via /auth/session-login.
+   * Exchanges a Firebase ID token for an httpOnly session cookie via /auth/session_login.
    * The server sets the session cookie and a JS-readable CSRF token cookie automatically.
    * @param {Object} user - Firebase user object
    * @param {number} retryCount - Current retry attempt (for logging)
@@ -21,7 +22,7 @@ const UserServices = {
       // Get the Firebase ID token to exchange for a session cookie
       const idToken = await user.getIdToken();
 
-      const url = `${API_BASE_URL}/auth/session-login`;
+      const url = `${API_BASE_URL}/auth/session_login`;
       console.log(`Try fetching ${url} (attempt ${retryCount + 1})`);
 
       // Direct fetch (not apiClient) because this is the auth bootstrap —
@@ -45,6 +46,13 @@ const UserServices = {
       console.error("Error syncing user with database:", error);
       throw error;
     }
+  },
+
+  /**
+   * Lightweight auth check using existing cookies (no new session creation).
+   */
+  async checkUserWithSession() {
+    return apiClient.post('/user/check', {});
   },
   
   /**
@@ -95,9 +103,11 @@ const UserServices = {
    */
   async logout() {
     try {
+      const csrfToken = apiClient.getCookie('csrf_token');
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
+        headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
       });
     } catch (error) {
       // Log but don't throw — we still want to clear local state even if
@@ -105,12 +115,7 @@ const UserServices = {
       console.error("Error calling /auth/logout:", error);
     }
 
-    // Clear localStorage while preserving theme
-    const theme = localStorage.getItem('theme-mode');
-    localStorage.clear();
-    if (theme) {
-      localStorage.setItem('theme-mode', theme);
-    }
+    clearLocalStoragePreserveTheme();
   },
   
   /**
@@ -127,7 +132,7 @@ const UserServices = {
   },
 
   // storeUserData() removed — session cookie is set automatically by the browser
-  // from the /auth/session-login response. No localStorage token storage needed.
+  // from the /auth/session_login response. No localStorage token storage needed.
 };
 
 /**
