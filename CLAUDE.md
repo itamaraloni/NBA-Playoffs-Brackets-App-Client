@@ -99,17 +99,16 @@ This guideline applies to all frontend work — code changes, PR reviews, planni
 
 - **Global state:** React Context only (AuthContext for auth, ThemeContext for theme). No Redux or other state libraries
 - **Page-level data:** `useState` in page components, fetched in `useEffect`
-- **localStorage keys in use:** `auth_token`, `active_player_id`, `theme-mode`
+- **localStorage keys in use:** `active_player_id`, `theme-mode`
 - **sessionStorage keys in use:** `pendingInviteToken` (temporary, cleared after joining a league)
 - `active_player_id` stores the user's last-selected league player as UX convenience (survives page reload). AuthContext is the source of truth — localStorage is just a hint. See ADR-003
 - `theme-mode` is preserved on logout; all other keys are cleared
-- **Removed keys:** `player_id`, `player_name`, `league_id`, `is_admin` — replaced by AuthContext state; `joinLeagueId` — replaced by invite-token flow
-- **PENDING MIGRATION:** `auth_token` in localStorage is an XSS risk. Planned move to httpOnly cookies (requires backend changes)
+- **Removed keys:** `auth_token` — replaced by httpOnly session cookie; `player_id`, `player_name`, `league_id`, `is_admin` — replaced by AuthContext state; `joinLeagueId` — replaced by invite-token flow
 
 ### API & Services
 
-- **All API calls go through `apiClient`** (`src/services/ApiClient.js`) — never use `fetch` directly
-- apiClient handles: auth headers (`Authorization: Bearer <token>`), retry with exponential backoff (3 retries), connection monitoring, 401 auto-logout
+- **All API calls go through `apiClient`** (`src/services/ApiClient.js`) — never use `fetch` directly (exception: `UserServices.syncUserWithDatabase` and `logout` use direct fetch for auth bootstrap/teardown)
+- apiClient handles: session cookie auth (`credentials: 'include'`), CSRF token header for state-changing requests, retry with exponential backoff (3 retries), connection monitoring, 401 auto-logout
 - **Service modules** (`UserServices`, `LeagueServices`, `MatchupServices`) are plain objects with async methods — not classes
 - **Data transformation happens in services** — services convert snake_case API responses to camelCase UI objects before returning. Components should never deal with raw API response shapes
 - **Notifications:** use `window.notify.success()`, `.error()`, `.warning()`, `.info()` (React Toastify via `NotificationService.js`). Always guard with `if (window.notify)`
@@ -149,11 +148,13 @@ useEffect(() => {
 ### Auth Flow
 
 1. Google OAuth popup via Firebase `signInWithPopup()`
-2. Token obtained via `user.getIdToken()` → stored as `auth_token` in localStorage
-3. Backend sync via `UserServices.syncUserWithDatabase()`
-4. `AuthContext` provides: `currentUser`, `isAuthenticated`, `isAdmin`, `userPlayers`, `activePlayer`, `switchActivePlayer()`, `signInWithGoogle()`, `logout()`
-5. `useAuth()` hook to access auth state in any component
-6. After auth sync, `fetchAndSetPlayerData()` calls `/user/leagues` to populate `userPlayers` and restore `activePlayer` from localStorage hint
+2. Firebase ID token exchanged for httpOnly session cookie via `POST /auth/session-login` (server also sets a JS-readable `csrf_token` cookie)
+3. Backend sync via `UserServices.syncUserWithDatabase()` — no token stored in localStorage
+4. All subsequent API calls authenticated via session cookie (`credentials: 'include'`); CSRF token sent as `X-CSRF-Token` header on POST/PUT/DELETE
+5. `AuthContext` provides: `currentUser`, `isAuthenticated`, `isAdmin`, `userPlayers`, `activePlayer`, `switchActivePlayer()`, `signInWithGoogle()`, `logout()`
+6. `useAuth()` hook to access auth state in any component
+7. After auth sync, `fetchAndSetPlayerData()` calls `/user/leagues` to populate `userPlayers` and restore `activePlayer` from localStorage hint
+8. Logout calls `POST /auth/logout` (revokes Firebase refresh tokens, clears cookies) then clears React state
 
 ### Scoring & Rounds (reference for UI logic)
 
