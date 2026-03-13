@@ -26,10 +26,12 @@ import {
   Close as CloseIcon,
   Logout as LogoutIcon,
   AccountTree as BracketIcon,
+  AdminPanelSettings as AdminIcon,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import ThemeToggle from '../theme/ThemeToggle';
 import LeagueSwitcher from './LeagueSwitcher';
+import { useAuth } from '../contexts/AuthContext';
 
 const DRAWER_WIDTH = 240;
 
@@ -38,6 +40,7 @@ const Layout = ({ children, onLogout }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const { isAdmin } = useAuth();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -48,6 +51,7 @@ const Layout = ({ children, onLogout }) => {
     { text: 'Predictions', icon: <PredictionsIcon />, path: '/predictions' },
     { text: 'Bracket',     icon: <BracketIcon />,     path: '/bracket'     },
     { text: 'My League',   icon: <MyLeagueIcon />,    path: '/league'      },
+    ...(isAdmin ? [{ text: 'Admin', icon: <AdminIcon />, path: '/admin' }] : []),
     { text: 'Profile',     icon: <ProfileIcon />,     path: '/profile'     },
   ];
 

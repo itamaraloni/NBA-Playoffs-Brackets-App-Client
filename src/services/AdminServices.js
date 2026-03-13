@@ -1,0 +1,218 @@
+import apiClient from './ApiClient';
+
+/**
+ * Service layer for admin API endpoints.
+ * All methods transform snake_case API responses to camelCase for React components.
+ */
+const AdminServices = {
+  /**
+   * Fetch matchups with optional filters.
+   * @param {Object} filters - { status, round, conference }
+   * @returns {Promise<{ matchups: Array, total: number }>}
+   */
+  getMatchups: async (filters = {}) => {
+    try {
+      const params = new URLSearchParams();
+      if (filters.status) params.append('status', filters.status);
+      if (filters.round) params.append('round', filters.round);
+      if (filters.conference) params.append('conference', filters.conference);
+
+      const query = params.toString();
+      const endpoint = `/admin/matchups${query ? `?${query}` : ''}`;
+      const response = await apiClient.get(endpoint);
+
+      const matchups = response.matchups.map(m => ({
+        matchupId: m.matchup_id,
+        homeTeam: {
+          teamId: m.home_team.team_id,
+          name: m.home_team.name,
+          seed: m.home_team.seed,
+          conference: m.home_team.conference,
+          isActive: m.home_team.is_active,
+          logo: `/resources/team-logos/${m.home_team.name.toLowerCase().replace(/\s+/g, '-')}.png`,
+        },
+        awayTeam: {
+          teamId: m.away_team.team_id,
+          name: m.away_team.name,
+          seed: m.away_team.seed,
+          conference: m.away_team.conference,
+          isActive: m.away_team.is_active,
+          logo: `/resources/team-logos/${m.away_team.name.toLowerCase().replace(/\s+/g, '-')}.png`,
+        },
+        status: m.status,
+        homeTeamScore: m.home_team_score,
+        awayTeamScore: m.away_team_score,
+        round: m.round,
+        conference: m.conference,
+        bracketPosition: m.bracket_position,
+        createdAt: m.created_at,
+        updatedAt: m.updated_at,
+      }));
+
+      return { matchups, total: response.total };
+    } catch (error) {
+      console.error('Error fetching admin matchups:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Create a new matchup.
+   * @param {Object} data - { homeTeamId, awayTeamId, round, conference }
+   * @returns {Promise<Object>}
+   */
+  createMatchup: async (data) => {
+    try {
+      const response = await apiClient.post('/admin/matchups', {
+        home_team_id: data.homeTeamId,
+        away_team_id: data.awayTeamId,
+        round: data.round,
+        conference: data.conference,
+      });
+
+      return {
+        matchupId: response.matchup_id,
+        homeTeamName: response.home_team_name,
+        awayTeamName: response.away_team_name,
+        round: response.round,
+        conference: response.conference,
+        status: response.status,
+      };
+    } catch (error) {
+      console.error('Error creating matchup:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Activate an upcoming matchup to in_progress.
+   * @param {string} matchupId
+   * @returns {Promise<Object>}
+   */
+  activateMatchup: async (matchupId) => {
+    try {
+      const response = await apiClient.put(`/admin/matchups/${matchupId}/activate`);
+      return response;
+    } catch (error) {
+      console.error('Error activating matchup:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update matchup score. Server increments by the values sent.
+   * @param {string} matchupId
+   * @param {Object} scores - { homeTeamScore, awayTeamScore }
+   * @returns {Promise<Object>}
+   */
+  updateMatchupScore: async (matchupId, scores) => {
+    try {
+      const response = await apiClient.put(`/admin/matchups/${matchupId}/score`, {
+        home_team_score: scores.homeTeamScore,
+        away_team_score: scores.awayTeamScore,
+      });
+      return response;
+    } catch (error) {
+      console.error('Error updating matchup score:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get prediction statistics for a matchup (excludes bots).
+   * @param {string} matchupId
+   * @returns {Promise<Object>}
+   */
+  getPredictionStats: async (matchupId) => {
+    try {
+      const response = await apiClient.get(`/admin/matchups/${matchupId}/prediction-stats`);
+
+      return {
+        matchupId: response.matchup_id,
+        totalPredictions: response.total_predictions,
+        winnerSplit: {
+          home: {
+            count: response.winner_split.home.count,
+            percentage: response.winner_split.home.percentage,
+          },
+          away: {
+            count: response.winner_split.away.count,
+            percentage: response.winner_split.away.percentage,
+          },
+        },
+        scoreDistribution: response.score_distribution.map(d => ({
+          score: d.score,
+          count: d.count,
+          percentage: d.percentage,
+        })),
+      };
+    } catch (error) {
+      console.error('Error fetching prediction stats:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get champion and MVP pick distributions (excludes bots).
+   * @returns {Promise<Object>}
+   */
+  getPlayerStats: async () => {
+    try {
+      const response = await apiClient.get('/admin/stats/players');
+
+      return {
+        totalPlayers: response.total_players,
+        championDistribution: response.champion_distribution.map(d => ({
+          teamId: d.team_id,
+          teamName: d.team_name,
+          pickCount: d.pick_count,
+          percentage: d.percentage,
+        })),
+        mvpDistribution: response.mvp_distribution.map(d => ({
+          nbaPlayerId: d.nba_player_id,
+          playerName: d.player_name,
+          pickCount: d.pick_count,
+          percentage: d.percentage,
+        })),
+      };
+    } catch (error) {
+      console.error('Error fetching player stats:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Run data integrity health checks.
+   * @returns {Promise<Object>}
+   */
+  getHealthCheck: async () => {
+    try {
+      const response = await apiClient.get('/admin/health');
+
+      // Transform each check's records to camelCase
+      const transformCheck = (check) => ({
+        status: check.status,
+        count: check.count,
+        records: check.records,
+      });
+
+      return {
+        status: response.status,
+        totalIssues: response.total_issues,
+        checks: {
+          orphanedPredictions: transformCheck(response.checks.orphaned_predictions),
+          scoreMismatches: transformCheck(response.checks.score_mismatches),
+          unscoredPredictions: transformCheck(response.checks.unscored_predictions),
+          invalidMatchupScores: transformCheck(response.checks.invalid_matchup_scores),
+          staleChampionshipPoints: transformCheck(response.checks.stale_championship_points),
+          incorrectlyActiveTeams: transformCheck(response.checks.incorrectly_active_teams),
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching health check:', error);
+      throw error;
+    }
+  },
+};
+
+export default AdminServices;
