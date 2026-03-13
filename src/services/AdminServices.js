@@ -100,7 +100,8 @@ const AdminServices = {
   },
 
   /**
-   * Update matchup score. Server increments by the values sent.
+   * Update matchup score. Client sends absolute scores; server validates
+   * that exactly one team's score is incremented by 1 from the current value.
    * @param {string} matchupId
    * @param {Object} scores - { homeTeamScore, awayTeamScore }
    * @returns {Promise<Object>}
@@ -125,7 +126,7 @@ const AdminServices = {
    */
   getPredictionStats: async (matchupId) => {
     try {
-      const response = await apiClient.get(`/admin/matchups/${matchupId}/prediction-stats`);
+      const response = await apiClient.get(`/admin/matchups/${matchupId}/prediction_stats`);
 
       return {
         matchupId: response.matchup_id,
@@ -189,23 +190,45 @@ const AdminServices = {
     try {
       const response = await apiClient.get('/admin/health');
 
-      // Transform each check's records to camelCase
-      const transformCheck = (check) => ({
+      const transformCheck = (check, transformRecord) => ({
         status: check.status,
         count: check.count,
-        records: check.records,
+        records: check.records.map(transformRecord),
       });
 
       return {
         status: response.status,
         totalIssues: response.total_issues,
         checks: {
-          orphanedPredictions: transformCheck(response.checks.orphaned_predictions),
-          scoreMismatches: transformCheck(response.checks.score_mismatches),
-          unscoredPredictions: transformCheck(response.checks.unscored_predictions),
-          invalidMatchupScores: transformCheck(response.checks.invalid_matchup_scores),
-          staleChampionshipPoints: transformCheck(response.checks.stale_championship_points),
-          incorrectlyActiveTeams: transformCheck(response.checks.incorrectly_active_teams),
+          orphanedPredictions: transformCheck(response.checks.orphaned_predictions, (r) => ({
+            predictionId: r.prediction_id,
+            reason: r.reason,
+          })),
+          scoreMismatches: transformCheck(response.checks.score_mismatches, (r) => ({
+            playerName: r.player_name,
+            storedTotal: r.stored_total,
+            expectedTotal: r.expected_total,
+          })),
+          unscoredPredictions: transformCheck(response.checks.unscored_predictions, (r) => ({
+            predictionId: r.prediction_id,
+            predictedScore: r.predicted_score,
+            actualScore: r.actual_score,
+          })),
+          invalidMatchupScores: transformCheck(response.checks.invalid_matchup_scores, (r) => ({
+            matchupId: r.matchup_id,
+            round: r.round,
+            homeTeamScore: r.home_team_score,
+            awayTeamScore: r.away_team_score,
+          })),
+          staleChampionshipPoints: transformCheck(response.checks.stale_championship_points, (r) => ({
+            playerName: r.player_name,
+            teamName: r.team_name,
+            championshipTeamPoints: r.championship_team_points,
+          })),
+          incorrectlyActiveTeams: transformCheck(response.checks.incorrectly_active_teams, (r) => ({
+            teamName: r.team_name,
+            round: r.round,
+          })),
         },
       };
     } catch (error) {

@@ -33,22 +33,24 @@ import AdminServices from '../../services/AdminServices';
  */
 const PredictionStatsDialog = ({ open, onClose, matchupId }) => {
   const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!open || !matchupId) return;
 
+    setStats(null);
+
     const fetchStats = async () => {
       try {
-        setLoading(true);
+        setIsLoading(true);
         setError(null);
         const result = await AdminServices.getPredictionStats(matchupId);
         setStats(result);
       } catch (err) {
         setError(err.message || 'Failed to load prediction stats');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -59,7 +61,7 @@ const PredictionStatsDialog = ({ open, onClose, matchupId }) => {
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Prediction Stats</DialogTitle>
       <DialogContent>
-        {loading && (
+        {isLoading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress />
           </Box>
@@ -67,7 +69,7 @@ const PredictionStatsDialog = ({ open, onClose, matchupId }) => {
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-        {stats && !loading && (
+        {stats && !isLoading && (
           <Box>
             {/* Total predictions */}
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

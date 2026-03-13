@@ -39,20 +39,20 @@ const CreateMatchupDialog = ({ open, onClose, onCreate, teams }) => {
   const [round, setRound] = useState('');
   const [conference, setConference] = useState('');
   const [error, setError] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isValid = homeTeamId && awayTeamId && round && conference && homeTeamId !== awayTeamId;
 
   const handleSubmit = async () => {
     try {
       setError(null);
-      setSubmitting(true);
+      setIsSubmitting(true);
       await onCreate({ homeTeamId, awayTeamId, round, conference });
       handleClose();
     } catch (err) {
       setError(err.message || 'Failed to create matchup');
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -138,13 +138,13 @@ const CreateMatchupDialog = ({ open, onClose, onCreate, teams }) => {
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={submitting}>Cancel</Button>
+        <Button onClick={handleClose} disabled={isSubmitting}>Cancel</Button>
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={!isValid || submitting}
+          disabled={!isValid || isSubmitting}
         >
-          {submitting ? 'Creating...' : 'Create'}
+          {isSubmitting ? 'Creating...' : 'Create'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Tab, Tabs, Typography, Alert } from '@mui/material';
 
-import AdminServices from '../services/AdminServices';
 import MatchupManagementTab from '../components/admin/MatchupManagementTab';
 import StatsTab from '../components/admin/StatsTab';
 import HealthTab from '../components/admin/HealthTab';
+import AdminServices from '../services/AdminServices';
 
 /**
  * Top-level admin dashboard page.
@@ -16,31 +16,31 @@ const AdminPage = () => {
 
   // Matchup state
   const [matchups, setMatchups] = useState([]);
-  const [matchupsLoading, setMatchupsLoading] = useState(true);
+  const [isMatchupsLoading, setIsMatchupsLoading] = useState(true);
   const [matchupsError, setMatchupsError] = useState(null);
   const [filters, setFilters] = useState({ status: '', round: '', conference: '' });
 
   // Stats state (lazy loaded)
   const [stats, setStats] = useState(null);
-  const [statsLoading, setStatsLoading] = useState(false);
+  const [isStatsLoading, setIsStatsLoading] = useState(false);
   const [statsError, setStatsError] = useState(null);
 
   // Health state (lazy loaded)
   const [health, setHealth] = useState(null);
-  const [healthLoading, setHealthLoading] = useState(false);
+  const [isHealthLoading, setIsHealthLoading] = useState(false);
   const [healthError, setHealthError] = useState(null);
 
   // Fetch matchups with current filters
   const fetchMatchups = useCallback(async () => {
     try {
-      setMatchupsLoading(true);
+      setIsMatchupsLoading(true);
       setMatchupsError(null);
       const result = await AdminServices.getMatchups(filters);
       setMatchups(result.matchups);
     } catch (err) {
       setMatchupsError(err.message || 'Failed to load matchups');
     } finally {
-      setMatchupsLoading(false);
+      setIsMatchupsLoading(false);
     }
   }, [filters]);
 
@@ -53,28 +53,28 @@ const AdminPage = () => {
   const fetchStats = useCallback(async () => {
     if (stats) return; // Already loaded
     try {
-      setStatsLoading(true);
+      setIsStatsLoading(true);
       setStatsError(null);
       const result = await AdminServices.getPlayerStats();
       setStats(result);
     } catch (err) {
       setStatsError(err.message || 'Failed to load stats');
     } finally {
-      setStatsLoading(false);
+      setIsStatsLoading(false);
     }
   }, [stats]);
 
   // Fetch health when Health tab is selected (lazy)
   const fetchHealth = useCallback(async () => {
     try {
-      setHealthLoading(true);
+      setIsHealthLoading(true);
       setHealthError(null);
       const result = await AdminServices.getHealthCheck();
       setHealth(result);
     } catch (err) {
       setHealthError(err.message || 'Failed to load health check');
     } finally {
-      setHealthLoading(false);
+      setIsHealthLoading(false);
     }
   }, []);
 
@@ -87,14 +87,22 @@ const AdminPage = () => {
 
   // Matchup mutation callbacks — refresh list after success
   const handleActivateMatchup = async (matchupId) => {
-    await AdminServices.activateMatchup(matchupId);
-    if (window.notify) window.notify.success('Matchup activated');
-    await fetchMatchups();
+    try {
+      await AdminServices.activateMatchup(matchupId);
+      if (window.notify) window.notify.success('Matchup activated');
+      await fetchMatchups();
+    } catch (err) {
+      if (window.notify) window.notify.error(err.message || 'Failed to activate matchup');
+    }
   };
 
   const handleUpdateScore = async (matchupId, scores) => {
-    await AdminServices.updateMatchupScore(matchupId, scores);
-    await fetchMatchups();
+    try {
+      await AdminServices.updateMatchupScore(matchupId, scores);
+      await fetchMatchups();
+    } catch (err) {
+      if (window.notify) window.notify.error(err.message || 'Failed to update score');
+    }
   };
 
   const handleCreateMatchup = async (data) => {
@@ -137,7 +145,7 @@ const AdminPage = () => {
       {tabIndex === 0 && (
         <MatchupManagementTab
           matchups={matchups}
-          loading={matchupsLoading}
+          loading={isMatchupsLoading}
           error={matchupsError}
           filters={filters}
           onFiltersChange={setFilters}
@@ -152,7 +160,7 @@ const AdminPage = () => {
       {tabIndex === 1 && (
         <StatsTab
           stats={stats}
-          loading={statsLoading}
+          loading={isStatsLoading}
           error={statsError}
         />
       )}
@@ -161,7 +169,7 @@ const AdminPage = () => {
       {tabIndex === 2 && (
         <HealthTab
           health={health}
-          loading={healthLoading}
+          loading={isHealthLoading}
           error={healthError}
           onRefresh={fetchHealth}
         />
