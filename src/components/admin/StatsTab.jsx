@@ -41,7 +41,7 @@ const StatsTab = ({ stats, loading, error }) => {
 
       <Stack spacing={4}>
         {/* Champion distribution */}
-        <Paper variant="outlined" sx={{ p: 3 }}>
+        <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" sx={{ mb: 2 }}>
             Championship Picks
           </Typography>
@@ -73,7 +73,7 @@ const StatsTab = ({ stats, loading, error }) => {
         </Paper>
 
         {/* MVP distribution */}
-        <Paper variant="outlined" sx={{ p: 3 }}>
+        <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" sx={{ mb: 2 }}>
             MVP Picks
           </Typography>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Tab, Tabs, Typography, Alert } from '@mui/material';
+import { Box, Tab, Tabs, Typography, Alert, useTheme, useMediaQuery } from '@mui/material';
 
 import MatchupManagementTab from '../components/admin/MatchupManagementTab';
 import StatsTab from '../components/admin/StatsTab';
@@ -12,6 +12,8 @@ import AdminServices from '../services/AdminServices';
  * Stats and Health data are fetched lazily when their tab is selected.
  */
 const AdminPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [tabIndex, setTabIndex] = useState(0);
 
   // Matchup state
@@ -127,7 +129,7 @@ const AdminPage = () => {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold' }}>
+      <Typography variant={isMobile ? 'h5' : 'h4'} sx={{ mb: 3, fontWeight: 'bold' }}>
         Admin Dashboard
       </Typography>
 
@@ -136,7 +138,7 @@ const AdminPage = () => {
         onChange={handleTabChange}
         sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
       >
-        <Tab label="Matchup Management" />
+        <Tab label={isMobile ? 'Matchups' : 'Matchup Management'} />
         <Tab label="Stats" />
         <Tab label="Health" />
       </Tabs>

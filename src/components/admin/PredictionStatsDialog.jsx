@@ -17,6 +17,8 @@ import {
   CircularProgress,
   Alert,
   Divider,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 
 import AdminServices from '../../services/AdminServices';
@@ -111,6 +113,8 @@ const StatsSection = ({ title, subtitle, total, winnerSplit, scoreDistribution, 
  * since prediction stats can change as games progress.
  */
 const PredictionStatsDialog = ({ open, onClose, matchupId }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -137,7 +141,7 @@ const PredictionStatsDialog = ({ open, onClose, matchupId }) => {
   }, [open, matchupId]);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth fullScreen={isMobile}>
       <DialogTitle>Prediction Stats</DialogTitle>
       <DialogContent>
         {isLoading && (
@@ -151,7 +155,7 @@ const PredictionStatsDialog = ({ open, onClose, matchupId }) => {
         {stats && !isLoading && (
           <Box>
             {/* Matchup header with team logos and names */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: { xs: 1, sm: 2 }, mb: 2, flexWrap: 'wrap' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box
                   component="img"

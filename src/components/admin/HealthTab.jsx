@@ -110,7 +110,7 @@ const HealthTab = ({ health, loading, error, onRefresh }) => {
   return (
     <Box>
       {/* Overall status + refresh */}
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center" sx={{ mb: 3 }}>
         <Alert
           severity={isHealthy ? 'success' : 'error'}
           sx={{ flexGrow: 1 }}

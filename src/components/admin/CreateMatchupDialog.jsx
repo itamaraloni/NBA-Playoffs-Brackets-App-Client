@@ -11,6 +11,8 @@ import {
   MenuItem,
   Stack,
   Alert,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 
 const ROUND_OPTIONS = [
@@ -34,6 +36,8 @@ const CONFERENCE_OPTIONS = [
  * All four fields are required before the Create button is enabled.
  */
 const CreateMatchupDialog = ({ open, onClose, onCreate, teams }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [homeTeamId, setHomeTeamId] = useState('');
   const [awayTeamId, setAwayTeamId] = useState('');
   const [round, setRound] = useState('');
@@ -66,7 +70,7 @@ const CreateMatchupDialog = ({ open, onClose, onCreate, teams }) => {
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth fullScreen={isMobile}>
       <DialogTitle>Create Matchup</DialogTitle>
       <DialogContent>
         <Stack spacing={2.5} sx={{ mt: 1 }}>

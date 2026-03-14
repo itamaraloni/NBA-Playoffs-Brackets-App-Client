@@ -13,6 +13,8 @@ import {
   Avatar,
   Typography,
   Box,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   PlayArrow as ActivateIcon,
@@ -51,6 +53,132 @@ const ROUND_LABELS = {
  * - All statuses with predictions: Stats button
  */
 const MatchupTable = ({ matchups, onActivate, onUpdateScore, onViewStats }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  if (matchups.length === 0) {
+    return (
+      <Paper variant="outlined" sx={{ py: 4, textAlign: 'center' }}>
+        <Typography color="text.secondary">No matchups found</Typography>
+      </Paper>
+    );
+  }
+
+  // Mobile: card layout — each matchup rendered as a compact card
+  if (isMobile) {
+    return (
+      <Stack spacing={1.5}>
+        {matchups.map((matchup) => (
+          <Paper key={matchup.matchupId} variant="outlined" sx={{ p: 2 }}>
+            <Stack spacing={1.5}>
+              {/* Teams row */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Avatar
+                    src={matchup.homeTeam.logo}
+                    alt={matchup.homeTeam.name}
+                    sx={{ width: 24, height: 24 }}
+                  />
+                  <Typography variant="body2">
+                    {matchup.homeTeam.seed && `(${matchup.homeTeam.seed}) `}
+                    {matchup.homeTeam.name}
+                  </Typography>
+                </Box>
+                <Typography variant="body2" color="text.secondary">vs</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="body2">
+                    {matchup.awayTeam.seed && `(${matchup.awayTeam.seed}) `}
+                    {matchup.awayTeam.name}
+                  </Typography>
+                  <Avatar
+                    src={matchup.awayTeam.logo}
+                    alt={matchup.awayTeam.name}
+                    sx={{ width: 24, height: 24 }}
+                  />
+                </Box>
+              </Box>
+
+              {/* Round + Status + Score */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="caption" color="text.secondary">
+                  {ROUND_LABELS[matchup.round] || matchup.round}
+                </Typography>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Chip
+                    label={STATUS_LABELS[matchup.status] || matchup.status}
+                    color={STATUS_COLORS[matchup.status] || 'default'}
+                    size="small"
+                  />
+                  {matchup.status !== 'upcoming' && (
+                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                      {matchup.homeTeamScore} - {matchup.awayTeamScore}
+                    </Typography>
+                  )}
+                </Stack>
+              </Box>
+
+              {/* Actions — stacked vertically, full width */}
+              <Stack spacing={0.5}>
+                {matchup.status === 'upcoming' && (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="warning"
+                    startIcon={<ActivateIcon />}
+                    onClick={() => onActivate(matchup.matchupId)}
+                    fullWidth
+                  >
+                    Activate
+                  </Button>
+                )}
+
+                {matchup.status === 'in_progress' && (
+                  <>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => onUpdateScore(matchup.matchupId, {
+                        homeTeamScore: matchup.homeTeamScore + 1,
+                        awayTeamScore: matchup.awayTeamScore,
+                      })}
+                      fullWidth
+                    >
+                      <AddIcon fontSize="small" sx={{ mr: 0.25 }} />
+                      +1 Home
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => onUpdateScore(matchup.matchupId, {
+                        homeTeamScore: matchup.homeTeamScore,
+                        awayTeamScore: matchup.awayTeamScore + 1,
+                      })}
+                      fullWidth
+                    >
+                      <AddIcon fontSize="small" sx={{ mr: 0.25 }} />
+                      +1 Away
+                    </Button>
+                  </>
+                )}
+
+                <Button
+                  size="small"
+                  variant="text"
+                  startIcon={<StatsIcon />}
+                  onClick={() => onViewStats(matchup.matchupId)}
+                  fullWidth
+                >
+                  Stats
+                </Button>
+              </Stack>
+            </Stack>
+          </Paper>
+        ))}
+      </Stack>
+    );
+  }
+
+  // Desktop: standard table layout
   return (
     <TableContainer component={Paper} variant="outlined">
       <Table size="small">
@@ -178,14 +306,6 @@ const MatchupTable = ({ matchups, onActivate, onUpdateScore, onViewStats }) => {
               </TableCell>
             </TableRow>
           ))}
-
-          {matchups.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-                <Typography color="text.secondary">No matchups found</Typography>
-              </TableCell>
-            </TableRow>
-          )}
         </TableBody>
       </Table>
     </TableContainer>
