@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -55,6 +55,7 @@ const MatchupManagementTab = ({
   onActivate,
   onUpdateScore,
   onCreate,
+  onOpenCreate,
   teams,
 }) => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -69,6 +70,12 @@ const MatchupManagementTab = ({
     setSelectedMatchupId(matchupId);
     setStatsDialogOpen(true);
   };
+
+  useEffect(() => {
+    if (createDialogOpen && onOpenCreate) {
+      onOpenCreate();
+    }
+  }, [createDialogOpen, onOpenCreate]);
 
   return (
     <Box>

@@ -119,7 +119,7 @@ const AdminPage = () => {
     try {
       await AdminServices.updateMatchupScore(matchupId, scores);
       if (window.notify) window.notify.success('Score updated');
-      await fetchMatchups();
+      await Promise.all([fetchMatchups(), fetchTeams()]);
     } catch (err) {
       if (window.notify) window.notify.error(err.message || 'Failed to update score');
     }
@@ -158,6 +158,7 @@ const AdminPage = () => {
           onActivate={handleActivateMatchup}
           onUpdateScore={handleUpdateScore}
           onCreate={handleCreateMatchup}
+          onOpenCreate={fetchTeams}
           teams={teams}
         />
       )}
