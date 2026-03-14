@@ -21,6 +21,7 @@ import {
   Add as AddIcon,
   BarChart as StatsIcon,
 } from '@mui/icons-material';
+import { getShortTeamName } from '../../shared/teamUtils';
 
 const STATUS_COLORS = {
   upcoming: 'default',
@@ -41,6 +42,18 @@ const ROUND_LABELS = {
   second: 'Conference Semis',
   conference_final: 'Conference Finals',
   final: 'NBA Finals',
+};
+
+const PLAYIN_ROUNDS = new Set(['playin_first', 'playin_second']);
+
+/** For completed play-in games, returns the short winner name (e.g. "Thunder"). */
+const getPlayInWinnerLabel = (matchup) => {
+  if (!PLAYIN_ROUNDS.has(matchup.round)) return null;
+  if (matchup.homeTeamScore === matchup.awayTeamScore) return null;
+  const winnerName = matchup.homeTeamScore > matchup.awayTeamScore
+    ? matchup.homeTeam.name
+    : matchup.awayTeam.name;
+  return getShortTeamName(winnerName);
 };
 
 /**
@@ -112,6 +125,7 @@ const MatchupTable = ({ matchups, onActivate, onUpdateScore, onViewStats }) => {
                   {matchup.status !== 'upcoming' && (
                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                       {matchup.homeTeamScore} - {matchup.awayTeamScore}
+                      {getPlayInWinnerLabel(matchup) && ` (${getPlayInWinnerLabel(matchup)})`}
                     </Typography>
                   )}
                 </Stack>
@@ -246,6 +260,7 @@ const MatchupTable = ({ matchups, onActivate, onUpdateScore, onViewStats }) => {
                 {matchup.status !== 'upcoming' ? (
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                     {matchup.homeTeamScore} - {matchup.awayTeamScore}
+                    {getPlayInWinnerLabel(matchup) && ` (${getPlayInWinnerLabel(matchup)})`}
                   </Typography>
                 ) : (
                   <Typography variant="body2" color="text.secondary">—</Typography>

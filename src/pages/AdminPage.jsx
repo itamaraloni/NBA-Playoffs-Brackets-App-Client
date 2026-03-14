@@ -118,6 +118,7 @@ const AdminPage = () => {
   const handleUpdateScore = async (matchupId, scores) => {
     try {
       await AdminServices.updateMatchupScore(matchupId, scores);
+      if (window.notify) window.notify.success('Score updated');
       await fetchMatchups();
     } catch (err) {
       if (window.notify) window.notify.error(err.message || 'Failed to update score');
