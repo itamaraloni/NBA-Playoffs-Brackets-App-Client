@@ -16,6 +16,8 @@ import CreateLeaguePage from './pages/CreateLeaguePage';
 import CreatePlayerPage from './pages/CreatePlayerPage';
 import BracketPage from './pages/BracketPage';
 import InviteLandingPage from './pages/InviteLandingPage';
+import AdminPage from './pages/AdminPage';
+import AdminRoute from './components/admin/AdminRoute';
 
 function AppContent() {
   const { logout, isAuthenticated } = useAuth();
@@ -81,6 +83,14 @@ function AppContent() {
       <Layout onLogout={handleLogout}>
         <BracketPage />
       </Layout>
+    } />
+
+    <Route path="/admin" element={
+      <AdminRoute>
+        <Layout onLogout={handleLogout}>
+          <AdminPage />
+        </Layout>
+      </AdminRoute>
     } />
   </Route>
 
