@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Box, Tab, Tabs, Typography, Alert, useTheme, useMediaQuery } from '@mui/material';
 
 import MatchupManagementTab from '../components/admin/MatchupManagementTab';
@@ -21,6 +21,9 @@ const AdminPage = () => {
   const [isMatchupsLoading, setIsMatchupsLoading] = useState(true);
   const [matchupsError, setMatchupsError] = useState(null);
   const [filters, setFilters] = useState({ status: '', round: '', conference: '' });
+
+  // Teams state (fetched independently for the create-matchup dropdown)
+  const [teams, setTeams] = useState([]);
 
   // Stats state (lazy loaded)
   const [stats, setStats] = useState(null);
@@ -46,10 +49,24 @@ const AdminPage = () => {
     }
   }, [filters]);
 
-  // Fetch matchups on mount and when filters change
+  // Fetch teams once on mount (active teams for the create-matchup dropdown)
+  const fetchTeams = useCallback(async () => {
+    try {
+      const result = await AdminServices.getTeams();
+      setTeams(result);
+    } catch (err) {
+      console.error('Failed to load teams:', err);
+    }
+  }, []);
+
+  // Fetch matchups and teams on mount; matchups also re-fetch when filters change
   useEffect(() => {
     fetchMatchups();
   }, [fetchMatchups]);
+
+  useEffect(() => {
+    fetchTeams();
+  }, [fetchTeams]);
 
   // Fetch stats when Stats tab is selected (lazy)
   const fetchStats = useCallback(async () => {
@@ -112,20 +129,6 @@ const AdminPage = () => {
     if (window.notify) window.notify.success('Matchup created');
     await fetchMatchups();
   };
-
-  // Extract unique teams from matchup data for the create dialog
-  const teams = React.useMemo(() => {
-    const teamMap = new Map();
-    matchups.forEach(m => {
-      if (!teamMap.has(m.homeTeam.teamId)) {
-        teamMap.set(m.homeTeam.teamId, m.homeTeam);
-      }
-      if (!teamMap.has(m.awayTeam.teamId)) {
-        teamMap.set(m.awayTeam.teamId, m.awayTeam);
-      }
-    });
-    return Array.from(teamMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [matchups]);
 
   return (
     <Box>

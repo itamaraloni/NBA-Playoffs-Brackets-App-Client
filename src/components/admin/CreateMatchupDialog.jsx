@@ -32,7 +32,7 @@ const CONFERENCE_OPTIONS = [
 
 /**
  * Dialog for creating a new matchup.
- * Team options are extracted from existing matchup data (no standalone teams endpoint).
+ * Team options are fetched from the GET /teams endpoint.
  * All four fields are required before the Create button is enabled.
  */
 const CreateMatchupDialog = ({ open, onClose, onCreate, teams }) => {
