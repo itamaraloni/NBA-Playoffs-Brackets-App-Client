@@ -128,24 +128,33 @@ const AdminServices = {
     try {
       const response = await apiClient.get(`/admin/matchups/${matchupId}/prediction_stats`);
 
+      const teamLogoPath = (name) =>
+        `/resources/team-logos/${name.toLowerCase().replace(/\s+/g, '-')}.png`;
+
+      const mapSplit = (split) => ({
+        home: { count: split.home.count, percentage: split.home.percentage },
+        away: { count: split.away.count, percentage: split.away.percentage },
+      });
+
+      const mapScoreDistribution = (dist) =>
+        dist.map(d => ({ score: d.score, count: d.count, percentage: d.percentage }));
+
+      const bp = response.bracket_predictions;
+
       return {
         matchupId: response.matchup_id,
+        homeTeamName: response.home_team_name,
+        awayTeamName: response.away_team_name,
+        homeTeamLogo: teamLogoPath(response.home_team_name),
+        awayTeamLogo: teamLogoPath(response.away_team_name),
         totalPredictions: response.total_predictions,
-        winnerSplit: {
-          home: {
-            count: response.winner_split.home.count,
-            percentage: response.winner_split.home.percentage,
-          },
-          away: {
-            count: response.winner_split.away.count,
-            percentage: response.winner_split.away.percentage,
-          },
+        winnerSplit: mapSplit(response.winner_split),
+        scoreDistribution: mapScoreDistribution(response.score_distribution),
+        bracketPredictions: {
+          total: bp.total,
+          winnerSplit: mapSplit(bp.winner_split),
+          scoreDistribution: mapScoreDistribution(bp.score_distribution),
         },
-        scoreDistribution: response.score_distribution.map(d => ({
-          score: d.score,
-          count: d.count,
-          percentage: d.percentage,
-        })),
       };
     } catch (error) {
       console.error('Error fetching prediction stats:', error);
