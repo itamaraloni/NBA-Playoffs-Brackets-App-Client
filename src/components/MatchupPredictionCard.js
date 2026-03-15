@@ -3,7 +3,6 @@ import { useTheme } from '@mui/material';
 import TeamsDisplay from './common/MatchupTeamsDisplay';
 import ScoreCounter from './common/ScoreCounter';
 import MatchScoreDisplay from './common/MatchupScoreDisplay';
-import AdminScoreEditor from './common/MatchupAdminScoreEditor';
 import PlayInTeamSelector from './common/PlayInTeamSelector';
 import {
   Card,
@@ -15,7 +14,6 @@ import {
   Chip
 } from '@mui/material';
 import { RocketLaunch, EmojiEvents } from '@mui/icons-material';
-import MatchupServices from '../services/MatchupServices';
 import { Close } from '@mui/icons-material';
 import { BsBullseye } from 'react-icons/bs';
 import { TbCrystalBall } from 'react-icons/tb';
@@ -34,17 +32,11 @@ const MatchupPredictionCard = ({
   predictedAwayScore = null,
   round = 1,
   onSubmitPrediction,
-  isAdmin = false,
-  onUpdateScore,
-  onViewDetails,
-  onActivateMatchup
+  onViewDetails
 }) => {
   const [homeScore, setHomeScore] = useState(predictedHomeScore || 0);
   const [awayScore, setAwayScore] = useState(predictedAwayScore || 0);
   const [validationError, setValidationError] = useState('');
-  const [editMode, setEditMode] = useState(false);
-  const [actualHome, setActualHome] = useState(actualHomeScore || 0);
-  const [actualAway, setActualAway] = useState(actualAwayScore || 0);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const theme = useTheme();
 
@@ -99,21 +91,6 @@ const MatchupPredictionCard = ({
   };
 
   /**
-   * Handle admin score update
-   */
-  const handleUpdateScore = () => {
-    setEditMode(false);
-
-    if (onUpdateScore) {
-      onUpdateScore({
-        matchupId: matchupId,
-        homeScore: actualHome,
-        awayScore: actualAway
-      });
-    }
-  };
-
-  /**
    * Handle viewing league predictions
    */
   const handleViewDetails = () => {
@@ -129,31 +106,6 @@ const MatchupPredictionCard = ({
         predictedAwayScore,
         round
       });
-    }
-  };
-
-  /**
-   * Handle activating 'Upcoming' matchup
-   */
-  const handleActivateMatchup = async () => {
-    console.log('Activate matchup:', matchupId);
-    try {
-      const response = await MatchupServices.activateMatchup(matchupId);
-      console.log("matchup activation response", response);
-      // Show success notification
-      if (window.notify) {
-        window.notify.success('Prediction submitted successfully!');
-      }
-      
-      // Notify the parent component to refresh data
-      if (onActivateMatchup) {
-        onActivateMatchup();
-      }
-    } catch (err) {
-      // Show error notification
-      if (window.notify) {
-        window.notify.error('Failed to activate matchup');
-      }
     }
   };
 
@@ -218,8 +170,8 @@ const MatchupPredictionCard = ({
           />
 
           <Box sx={{ textAlign: 'center', mt: 3 }}>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               color="primary"
               startIcon={<RocketLaunch />}
               onClick={handlePlayInPrediction}
@@ -228,20 +180,6 @@ const MatchupPredictionCard = ({
               Submit Prediction
             </Button>
           </Box>
-
-          {isAdmin && (
-            <Box sx={{ textAlign: 'center', mt: 2 }}>
-              <Button 
-                variant="contained" 
-                color="secondary"
-                startIcon={<RocketLaunch />}
-                onClick={handleActivateMatchup}
-                sx={{ minWidth: '180px' }}
-              >
-                Activate Prediction
-              </Button>
-            </Box>
-          )}
         </Box>
       );
     }
@@ -286,8 +224,8 @@ const MatchupPredictionCard = ({
         )}
 
         <Box sx={{ textAlign: 'center', mt: 2 }}>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             color="primary"
             startIcon={<RocketLaunch />}
             onClick={handleSubmitPrediction}
@@ -296,20 +234,6 @@ const MatchupPredictionCard = ({
             Submit Prediction
           </Button>
         </Box>
-
-        {isAdmin && (
-          <Box sx={{ textAlign: 'center', mt: 2 }}>
-            <Button 
-              variant="contained" 
-              color="secondary"
-              startIcon={<RocketLaunch />}
-              onClick={handleActivateMatchup}
-              sx={{ minWidth: '180px' }}
-            >
-              Activate Matchup
-            </Button>
-          </Box>
-        )}
       </Box>
     );
   };
@@ -341,21 +265,6 @@ const MatchupPredictionCard = ({
         />
       )}
 
-      {isAdmin && (
-        <AdminScoreEditor
-          editMode={editMode}
-          setEditMode={setEditMode}
-          homeTeam={homeTeam}
-          awayTeam={awayTeam}
-          homeScore={actualHome}
-          awayScore={actualAway}
-          setHomeScore={setActualHome}
-          setAwayScore={setActualAway}
-          validationError={validationError}
-          onSave={handleUpdateScore}
-        />
-      )}
-      
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
         <Button
           variant="outlined"

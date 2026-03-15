@@ -116,25 +116,6 @@ const MatchupServices = {
   },
   
   /**
-   * Update matchup scores (admin only)
-   * @param {Object} scoreUpdate Score update data
-   * @returns {Promise<Object>} Success response
-   */
-  updateMatchupScore: async (scoreUpdate) => {
-    try {
-      const response = await apiClient.post('/prediction/update_matchup', {
-        matchup_id: scoreUpdate.matchupId,
-        home_team_score: scoreUpdate.homeScore,
-        away_team_score: scoreUpdate.awayScore
-      });
-      return response;
-    } catch (error) {
-      console.error('Error updating score:', error);
-      throw error;
-    }
-  },
-  
-  /**
    * Get league predictions for a specific matchup with statistics for it
    * @param {string} matchupId Matchup ID
    * @param {string} leagueId League ID
@@ -179,23 +160,6 @@ const MatchupServices = {
     }
   },
 
-  /**
-   * Activate upcoming matchup into In Progress status
-   * @param {string} matchupId Matchup ID
-   * @returns {Promise<Object>} Success response
-   */
-  activateMatchup: async (matchupId) => {
-    try {
-      const response = await apiClient.post('/prediction/activate_matchup', {
-        matchup_id: matchupId
-      });
-
-      return response;
-    } catch (error) {
-      console.error('Error activating matchup:', error);
-      throw error;
-    }
-  }
 };
 
 export default MatchupServices;

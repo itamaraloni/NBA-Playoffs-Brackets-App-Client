@@ -59,7 +59,7 @@ const PredictionsPage = () => {
   const [selectedMatchup, setSelectedMatchup] = useState(null);
   const [leaguePredictions, setLeaguePredictions] = useState([]);
   
-  const { isAdmin, activePlayer } = useAuth();
+  const { activePlayer } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -133,84 +133,6 @@ const PredictionsPage = () => {
         window.notify.error('Failed to submit prediction');
       }
     }
-  };
-
-  const handleUpdateScore = async (scoreUpdate) => {
-    try {
-      const response = await MatchupServices.updateMatchupScore(scoreUpdate);
-      
-      // Show success notification
-      if (window.notify) {
-        window.notify.success('Score updated successfully!');
-      }
-      
-      // Create copies of all arrays to avoid direct state mutation
-      const upcomingCopy = [...matchups.upcoming];
-      const inProgressCopy = [...matchups.inProgress];
-      const completedCopy = [...matchups.completed];
-      
-      // Find the matchup in in-progress list by matchup ID
-      const matchupIndex = inProgressCopy.findIndex(
-        m => m.id === scoreUpdate.matchupId
-      );
-      
-      if (matchupIndex !== -1) {
-        // Update the score
-        inProgressCopy[matchupIndex] = {
-          ...inProgressCopy[matchupIndex],
-          actualHomeScore: scoreUpdate.homeScore,
-          actualAwayScore: scoreUpdate.awayScore
-        };
-        
-        // Determine if status should change
-        if (response.status === 'completed' ||
-           (scoreUpdate.homeScore === 4 || scoreUpdate.awayScore === 4)
-        ) {
-          const matchupToMove = inProgressCopy[matchupIndex];
-          
-          // Remove from in-progress
-          inProgressCopy.splice(matchupIndex, 1);
-          
-          // Update status and add to completed
-          completedCopy.push({
-            ...matchupToMove,
-            status: 'completed'
-          });
-        }
-        
-        // Update state with new arrays
-        setMatchups({
-          upcoming: upcomingCopy,
-          inProgress: inProgressCopy,
-          completed: completedCopy
-        });
-      }
-    } catch (err) {
-      setError('Failed to update score. Please try again.');
-      console.error('Error updating score:', err);
-      
-      // Show error notification
-      if (window.notify) {
-        window.notify.error('Failed to update score');
-      }
-    }
-  };
-
-  /*
-   This function is passed to MatchupPredictionCard and called after successful activating an upcoming matchup
-   to re-render the updated data
-  */
-  const handleMatchupActivated = async () => {
-    const data = await MatchupServices.getMatchups(activePlayer.player_id);
-    
-    const organized = {
-      upcoming: data.filter(m => m.status === 'upcoming'),
-      inProgress: data.filter(m => m.status === 'in-progress'),
-      completed: data.filter(m => m.status === 'completed')
-    };
-    
-    setMatchups(organized);
-    setTabIndex(1); // Switch to In Progress tab
   };
 
   // This function is passed to MatchupPredictionCard and called when
@@ -288,10 +210,7 @@ const PredictionsPage = () => {
         predictedAwayScore={matchup.predictedAwayScore}
         round={matchup.round}
         onSubmitPrediction={handleSubmitPrediction}
-        isAdmin={isAdmin}
-        onUpdateScore={handleUpdateScore}
         onViewDetails={handleViewDetails}
-        onActivateMatchup={handleMatchupActivated}
       />
     ));
   };
@@ -339,10 +258,7 @@ const PredictionsPage = () => {
               predictedAwayScore={matchup.predictedAwayScore}
               round={matchup.round}
               onSubmitPrediction={handleSubmitPrediction}
-              isAdmin={isAdmin}
-              onUpdateScore={handleUpdateScore}
               onViewDetails={handleViewDetails}
-              onActivateMatchup={handleMatchupActivated}
             />
           ))}
         </Box>
