@@ -60,9 +60,13 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
 
   const getOptions = () => {
     if (type === 'championship') {
-      return (teams || []).map(t => ({ name: t.name, points: t.championshipPoints }));
+      return (teams || [])
+        .map(t => ({ name: t.name, points: t.championshipPoints }))
+        .sort((a, b) => a.points - b.points);
     }
-    return (mvpCandidates || []).map(c => ({ name: c.name, points: c.mvpPoints }));
+    return (mvpCandidates || [])
+      .map(c => ({ name: c.name, points: c.mvpPoints }))
+      .sort((a, b) => a.points - b.points);
   };
 
   const optionsLoading = type === 'championship' ? teamsLoading : mvpLoading;

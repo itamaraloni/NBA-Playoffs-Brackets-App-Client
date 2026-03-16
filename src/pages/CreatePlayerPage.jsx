@@ -38,8 +38,12 @@ const CreatePlayerPage = () => {
   const { teams, loading: teamsLoading } = useTeams();
   const { mvpCandidates, loading: mvpLoading } = useMvpCandidates();
 
-  const teamOptions = (teams || []).map(t => ({ name: t.name, points: t.championshipPoints }));
-  const mvpOptions = (mvpCandidates || []).map(c => ({ name: c.name, points: c.mvpPoints }));
+  const teamOptions = (teams || [])
+    .map(t => ({ name: t.name, points: t.championshipPoints }))
+    .sort((a, b) => a.points - b.points);
+  const mvpOptions = (mvpCandidates || [])
+    .map(c => ({ name: c.name, points: c.mvpPoints }))
+    .sort((a, b) => a.points - b.points);
 
   // Invite token: try navigation state first, fall back to sessionStorage (survives page refresh)
   const inviteToken = location.state?.inviteToken || sessionStorage.getItem('pendingInviteToken');
