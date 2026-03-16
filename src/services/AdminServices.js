@@ -20,6 +20,7 @@ const AdminServices = {
         seed: t.seed,
         conference: t.conference,
         isActive: t.is_active,
+        championshipPoints: t.championship_points,
       }));
     } catch (error) {
       console.error('Error fetching teams:', error);
