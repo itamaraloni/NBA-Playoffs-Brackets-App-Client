@@ -76,7 +76,7 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
     final: 'NBA Finals',
   };
 
-  // Build roundScoring from server config
+  // Build roundScoring from server config, sorted by hit points ascending (Play-in → Finals)
   const roundScoring = scoringConfig
     ? Object.entries(scoringConfig.matchup)
         .filter(([key]) => ROUND_DISPLAY[key] !== null && ROUND_DISPLAY[key] !== undefined)
@@ -85,6 +85,7 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
           hit: values.hit,
           bullsEye: values.bullseye ?? values.hit, // playin has null bullseye — use hit
         }))
+        .sort((a, b) => a.hit - b.hit)
     : [];
 
   // Render the scoring table content (reused in both hit and bullsEye sections)
