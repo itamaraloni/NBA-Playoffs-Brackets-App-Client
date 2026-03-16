@@ -20,11 +20,14 @@ import {
   EmojiEvents as TrophyIcon,
   MilitaryTech as MvpIcon
 } from '@mui/icons-material';
-import { NBA_TEAMS_WITH_POINTS, MVP_CANDIDATES_WITH_POINTS } from '../shared/GeneralConsts';
+import { useTeams } from '../hooks/useTeams';
+import { useMvpCandidates } from '../hooks/useMvpCandidates';
 import { PLAYIN_START_DATE } from '../shared/SeasonConfig';
 
 const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
   const theme = useTheme();
+  const { teams, loading: teamsLoading } = useTeams();
+  const { mvpCandidates, loading: mvpLoading } = useMvpCandidates();
   const [selection, setSelection] = useState(
     type === 'championship' 
       ? (player?.championshipPrediction || '') 
@@ -56,8 +59,13 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
   };
 
   const getOptions = () => {
-    return type === 'championship' ? NBA_TEAMS_WITH_POINTS : MVP_CANDIDATES_WITH_POINTS;
+    if (type === 'championship') {
+      return (teams || []).map(t => ({ name: t.name, points: t.championshipPoints }));
+    }
+    return (mvpCandidates || []).map(c => ({ name: c.name, points: c.mvpPoints }));
   };
+
+  const optionsLoading = type === 'championship' ? teamsLoading : mvpLoading;
 
   const getIcon = () => {
     return type === 'championship' 
@@ -106,6 +114,7 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
             label={type === 'championship' ? 'Championship Winner' : 'MVP Player'}
             onChange={handleChange}
             color={getColor()}
+            disabled={optionsLoading}
           >
             {getOptions().map((option) => (
               <MenuItem key={option.name} value={option.name}>
