@@ -27,6 +27,10 @@ import { PLAYIN_START_DATE } from '../shared/SeasonConfig';
 const getTeamLogo = (name) =>
   name ? `/resources/team-logos/${name.toLowerCase().replace(/\s+/g, '-')}.png` : null;
 
+/** Derive NBA player avatar path from player name (kebab-case, same pattern as team logos) */
+const getPlayerAvatar = (name) =>
+  name ? `/resources/nba-players-avatars/${name.toLowerCase().replace(/\s+/g, '-')}.png` : null;
+
 /**
  * Sub-component for displaying pick status badge and points.
  * Handles all status values: in_progress, eliminated, scored, unknown.
@@ -214,11 +218,10 @@ const PlayerStatsCard = ({
             <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
               {playerData.mvp &&
                 <Avatar
+                  src={getPlayerAvatar(playerData.mvp)}
                   alt={playerData.mvp}
                   sx={{ width: 40, height: 40, mr: 1 }}
-                >
-                  {playerData.mvp.charAt(0)}
-                </Avatar>
+                />
               }
               <Chip
                 label={playerData.mvp || 'Not selected'}
