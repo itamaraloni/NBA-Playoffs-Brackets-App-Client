@@ -17,6 +17,7 @@ import { RocketLaunch, EmojiEvents } from '@mui/icons-material';
 import { Close } from '@mui/icons-material';
 import { BsBullseye } from 'react-icons/bs';
 import { TbCrystalBall } from 'react-icons/tb';
+import { useScoringConfig } from '../hooks/useScoringConfig';
 
 /**
  * Card component displaying a playoff matchup with prediction functionality
@@ -39,6 +40,7 @@ const MatchupPredictionCard = ({
   const [validationError, setValidationError] = useState('');
   const [selectedTeam, setSelectedTeam] = useState(null);
   const theme = useTheme();
+  const { scoringConfig } = useScoringConfig();
 
   /**
    * Get round display text
@@ -434,39 +436,17 @@ const MatchupPredictionCard = ({
   };
 
   /**
-   * Calculate points earned based on prediction type and round
+   * Calculate points earned based on prediction type and round.
+   * Looks up values from the server-provided scoring config.
    */
   const getPointsForPrediction = (predictionType, round) => {
-    let hitPoints = 0;
-    let bullsEyePoints = 0;
-    
-    switch (round) {
-      case "playin_first":
-      case "playin_second":
-        hitPoints = 2;
-        bullsEyePoints = 2; // Play-in games don't have bullseye distinction
-        break;
-      case 'first':
-        hitPoints = 4;
-        bullsEyePoints = 6;
-        break;
-      case 'second':
-        hitPoints = 6;
-        bullsEyePoints = 9;
-        break;
-      case 'conference_final':
-        hitPoints = 8;
-        bullsEyePoints = 12;
-        break;
-      case 'final':
-        hitPoints = 10;
-        bullsEyePoints = 15;
-        break;
-      default:
-        return 0;
+    if (!scoringConfig) return 0;
+    const roundConfig = scoringConfig.matchup[round];
+    if (!roundConfig) return 0;
+    if (predictionType === 'bullsEye') {
+      return roundConfig.bullseye ?? roundConfig.hit; // playin has null bullseye
     }
-    
-    return predictionType === 'bullsEye' ? bullsEyePoints : hitPoints;
+    return roundConfig.hit;
   };
 
   return (

@@ -18,45 +18,22 @@ import {
 import { TbCrystalBall } from 'react-icons/tb';
 import { BsBullseye } from 'react-icons/bs';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
+import { useScoringConfig } from '../hooks/useScoringConfig';
 
 const PredictionStatsTable = ({ playerData }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { scoringConfig } = useScoringConfig();
 
-  // Calculate points per round based on scoring rules
+  // Calculate points per round using server-provided scoring config
   const calculatePoints = (roundKey, hits, bullsEyes) => {
-    // Default values
-    let hitPoints = 0;
-    let bullsEyePoints = 0;
-
-    // Set point values based on round
-    switch (roundKey) {
-      case 'playin':
-        hitPoints = 2;
-        bullsEyePoints = 2; // Play-in games don't have bullseye (exact score)
-        break;
-      case 'first':
-        hitPoints = 4;
-        bullsEyePoints = 6;
-        break;
-      case 'second':
-        hitPoints = 6;
-        bullsEyePoints = 9;
-        break;
-      case 'conference_final':
-        hitPoints = 8;
-        bullsEyePoints = 12;
-        break;
-      case 'final':
-        hitPoints = 10;
-        bullsEyePoints = 15;
-        break;
-      default:
-        hitPoints = 0;
-        bullsEyePoints = 0;
-    }
-
-    // Calculate total points for this round
+    if (!scoringConfig) return 0;
+    // PredictionStatsTable combines both playin rounds into 'playin' — map to server key
+    const key = roundKey === 'playin' ? 'playin_first' : roundKey;
+    const config = scoringConfig.matchup[key];
+    if (!config) return 0;
+    const hitPoints = config.hit;
+    const bullsEyePoints = config.bullseye ?? config.hit; // playin has null bullseye
     return (hits * hitPoints) + (bullsEyes * bullsEyePoints);
   };
 

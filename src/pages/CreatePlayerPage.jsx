@@ -26,13 +26,24 @@ import {
   Save as SaveIcon
 } from '@mui/icons-material';
 import LeagueServices from '../services/LeagueServices';
-import { NBA_TEAMS_WITH_POINTS, MVP_CANDIDATES_WITH_POINTS, PLAYER_AVATARS } from '../shared/GeneralConsts';
+import { PLAYER_AVATARS } from '../shared/GeneralConsts';
+import { useTeams } from '../hooks/useTeams';
+import { useMvpCandidates } from '../hooks/useMvpCandidates';
 
 const CreatePlayerPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
   const { refreshLeagueData } = useAuth();
+  const { teams, loading: teamsLoading } = useTeams();
+  const { mvpCandidates, loading: mvpLoading } = useMvpCandidates();
+
+  const teamOptions = (teams || [])
+    .map(t => ({ name: t.name, points: t.championshipPoints }))
+    .sort((a, b) => a.points - b.points);
+  const mvpOptions = (mvpCandidates || [])
+    .map(c => ({ name: c.name, points: c.mvpPoints }))
+    .sort((a, b) => a.points - b.points);
 
   // Invite token: try navigation state first, fall back to sessionStorage (survives page refresh)
   const inviteToken = location.state?.inviteToken || sessionStorage.getItem('pendingInviteToken');
@@ -253,9 +264,10 @@ const CreatePlayerPage = () => {
             <Grid item xs={12} md={6}>
             <Autocomplete
               id="championship-team"
-              options={NBA_TEAMS_WITH_POINTS}
+              options={teamOptions}
+              loading={teamsLoading}
               fullWidth
-              value={selectedTeam ? NBA_TEAMS_WITH_POINTS.find(team => team.name === selectedTeam) : null}
+              value={selectedTeam ? teamOptions.find(team => team.name === selectedTeam) || null : null}
               onChange={(event, newValue) => {
                 setSelectedTeam(newValue ? newValue.name : null);
               }}
@@ -284,9 +296,10 @@ const CreatePlayerPage = () => {
             <Grid item xs={12} md={6}>
             <Autocomplete
               id="mvp-player"
-              options={MVP_CANDIDATES_WITH_POINTS}
+              options={mvpOptions}
+              loading={mvpLoading}
               fullWidth
-              value={selectedMVP ? MVP_CANDIDATES_WITH_POINTS.find(player => player.name === selectedMVP) : null}
+              value={selectedMVP ? mvpOptions.find(player => player.name === selectedMVP) || null : null}
               onChange={(event, newValue) => {
                 setSelectedMVP(newValue ? newValue.name : null);
               }}

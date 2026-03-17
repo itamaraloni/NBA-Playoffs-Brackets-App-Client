@@ -20,8 +20,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper
+  Paper,
+  Skeleton,
+  Alert
 } from '@mui/material';
+import { useScoringConfig } from '../../hooks/useScoringConfig';
 import {
   EmojiEvents as TrophyIcon,
   MilitaryTech as MvpIcon,
@@ -61,14 +64,69 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
     }));
   };
 
-  // Round-based scoring data
-  const roundScoring = [
-    { round: 'Play-in', hit: 2, bullsEye: 2, notes: 'Single elimination games - hit and bulls-eye are the same' },
-    { round: 'First Round', hit: 4, bullsEye: 6, notes: '' },
-    { round: 'Conference Semifinals', hit: 6, bullsEye: 9, notes: '' },
-    { round: 'Conference Finals', hit: 8, bullsEye: 12, notes: '' },
-    { round: 'NBA Finals', hit: 10, bullsEye: 15, notes: '' }
-  ];
+  const { scoringConfig, loading: configLoading, error: configError } = useScoringConfig();
+
+  // Map server round keys to display names (null = skip for display)
+  const ROUND_DISPLAY = {
+    playin_first: 'Play-in',
+    playin_second: null, // combined with playin_first for display
+    first: 'First Round',
+    second: 'Conference Semifinals',
+    conference_final: 'Conference Finals',
+    final: 'NBA Finals',
+  };
+
+  // Build roundScoring from server config, sorted by hit points ascending (Play-in → Finals).
+  // Currently bracket and matchup scoring are identical — using matchup here.
+  // Phase 3 will differentiate between bracket and matchup scoring types.
+  const roundScoring = scoringConfig
+    ? Object.entries(scoringConfig.matchup)
+        .filter(([key]) => ROUND_DISPLAY[key] !== null && ROUND_DISPLAY[key] !== undefined)
+        .map(([key, values]) => ({
+          round: ROUND_DISPLAY[key],
+          hit: values.hit,
+          bullsEye: values.bullseye ?? values.hit, // playin has null bullseye — use hit
+        }))
+        .sort((a, b) => a.hit - b.hit)
+    : [];
+
+  // Render the scoring table content (reused in both hit and bullsEye sections)
+  const renderScoringTable = (valueKey) => {
+    if (configLoading) {
+      return (
+        <Box sx={{ mt: 1 }}>
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} variant="rectangular" height={32} sx={{ mb: 0.5 }} />
+          ))}
+        </Box>
+      );
+    }
+    if (configError) {
+      return <Alert severity="error" sx={{ mt: 1 }}>Failed to load scoring data</Alert>;
+    }
+    return (
+      <TableContainer component={Paper} variant="outlined" sx={{ mt: 1 }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Playoff Round</TableCell>
+              <TableCell align="center">Points</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {roundScoring.map((row) => (
+              <TableRow key={row.round}>
+                <TableCell component="th" scope="row">
+                  {row.round}
+                </TableCell>
+                <TableCell align="center">{row[valueKey]}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
 
   return (
     <Card elevation={elevation}>
@@ -78,7 +136,7 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
             Scoring Rules
           </Typography>
         )}
-        
+
         <List dense={isMobile}>
           {/* Championship Prediction */}
           <ListItem 
@@ -165,27 +223,8 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
                 Hit predictions award points for correctly predicting just the winner of a series,
                 regardless of the number of games.
               </Typography>
-              
-              <TableContainer component={Paper} variant="outlined" sx={{ mt: 1 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Playoff Round</TableCell>
-                      <TableCell align="center">Points</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {roundScoring.map((row) => (
-                      <TableRow key={row.round}>
-                        <TableCell component="th" scope="row">
-                          {row.round}
-                        </TableCell>
-                        <TableCell align="center">{row.hit}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+
+              {renderScoringTable('hit')}
             </Box>
           </Collapse>
           <Divider component="li" />
@@ -216,30 +255,11 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
           <Collapse in={expanded.bullsEye} timeout="auto" unmountOnExit>
             <Box sx={{ pl: 9, pr: 2, pb: 1 }}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                Bulls-Eye predictions award points for correctly predicting both the winner and 
+                Bulls-Eye predictions award points for correctly predicting both the winner and
                 the exact number of games in a series.
               </Typography>
-              
-              <TableContainer component={Paper} variant="outlined" sx={{ mt: 1 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Playoff Round</TableCell>
-                      <TableCell align="center">Points</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {roundScoring.map((row) => (
-                      <TableRow key={row.round}>
-                        <TableCell component="th" scope="row">
-                          {row.round}
-                        </TableCell>
-                        <TableCell align="center">{row.bullsEye}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+
+              {renderScoringTable('bullsEye')}
               
               {!isMobile && (
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>

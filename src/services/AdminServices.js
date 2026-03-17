@@ -6,28 +6,6 @@ import apiClient from './ApiClient';
  */
 const AdminServices = {
   /**
-   * Fetch active teams for the create-matchup dropdown.
-   * Uses the general /teams endpoint (not admin-only).
-   * @returns {Promise<Array>} - sorted by conference → seed → name
-   */
-  getTeams: async () => {
-    try {
-      const response = await apiClient.get('/teams?is_active=true');
-
-      return response.teams.map(t => ({
-        teamId: t.team_id,
-        name: t.name,
-        seed: t.seed,
-        conference: t.conference,
-        isActive: t.is_active,
-      }));
-    } catch (error) {
-      console.error('Error fetching teams:', error);
-      throw error;
-    }
-  },
-
-  /**
    * Fetch matchups with optional filters.
    * @param {Object} filters - { status, round, conference }
    * @returns {Promise<{ matchups: Array, total: number }>}

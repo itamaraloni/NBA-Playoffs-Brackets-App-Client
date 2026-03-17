@@ -18,8 +18,21 @@ import {
   TrendingUp as TrendingUpIcon
 } from '@mui/icons-material';
 import PredictionStatsTable from './PredictionStatsTable';
-import { PLAYER_AVATARS, NBA_TEAMS_WITH_POINTS, MVP_CANDIDATES_WITH_POINTS } from '../shared/GeneralConsts';
+import { PLAYER_AVATARS } from '../shared/GeneralConsts';
+import { useTeams } from '../hooks/useTeams';
+import { useMvpCandidates } from '../hooks/useMvpCandidates';
 import { PLAYIN_START_DATE } from '../shared/SeasonConfig';
+
+/** Strip diacritics (ć→c, č→c, etc.) so filenames stay ASCII-safe */
+const stripDiacritics = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+/** Derive team logo path from team name (same pattern used across the app) */
+const getTeamLogo = (name) =>
+  name ? `/resources/team-logos/${name.toLowerCase().replace(/\s+/g, '-')}.png` : null;
+
+/** Derive NBA player avatar path from player name (kebab-case, ASCII-safe) */
+const getPlayerAvatar = (name) =>
+  name ? `/resources/nba-players-avatars/${stripDiacritics(name).toLowerCase().replace(/\s+/g, '-')}.png` : null;
 
 /**
  * Sub-component for displaying pick status badge and points.
@@ -57,8 +70,13 @@ const PlayerStatsCard = ({
   elevation = 2
 }) => {
   const theme = useTheme();
+  const { teams } = useTeams();
+  const { mvpCandidates } = useMvpCandidates();
 
   if (!playerData) return null;
+
+  const teamLookup = (teams || []).find(t => t.name === playerData.winningTeam);
+  const mvpLookup = (mvpCandidates || []).find(p => p.name === playerData.mvp);
 
   const canEdit = new Date() < PLAYIN_START_DATE && allowEditing;
 
@@ -145,7 +163,7 @@ const PlayerStatsCard = ({
             <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
               {playerData.winningTeam &&
                 <Avatar
-                  src={NBA_TEAMS_WITH_POINTS.find(t => t.name === playerData.winningTeam)?.logo}
+                  src={getTeamLogo(playerData.winningTeam)}
                   alt={playerData.winningTeam}
                   sx={{ width: 40, height: 40, mr: 1 }}
                 />
@@ -161,7 +179,7 @@ const PlayerStatsCard = ({
               <PickStatusBadge
                 status={playerData.championshipPickStatus}
                 earnedPoints={playerData.championshipTeamPoints}
-                lookupPoints={NBA_TEAMS_WITH_POINTS.find(t => t.name === playerData.winningTeam)?.points}
+                lookupPoints={teamLookup?.championshipPoints}
                 accentColor="primary"
               />
             )}
@@ -203,7 +221,7 @@ const PlayerStatsCard = ({
             <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
               {playerData.mvp &&
                 <Avatar
-                  src={MVP_CANDIDATES_WITH_POINTS.find(p => p.name === playerData.mvp)?.avatar}
+                  src={getPlayerAvatar(playerData.mvp)}
                   alt={playerData.mvp}
                   sx={{ width: 40, height: 40, mr: 1 }}
                 />
@@ -219,7 +237,7 @@ const PlayerStatsCard = ({
               <PickStatusBadge
                 status={playerData.mvpPickStatus}
                 earnedPoints={playerData.mvpPoints}
-                lookupPoints={MVP_CANDIDATES_WITH_POINTS.find(p => p.name === playerData.mvp)?.points}
+                lookupPoints={mvpLookup?.mvpPoints}
                 accentColor="secondary"
               />
             )}
