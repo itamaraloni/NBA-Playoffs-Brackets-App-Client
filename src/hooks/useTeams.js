@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import AdminServices from '../services/AdminServices';
+import ConfigServices from '../services/ConfigServices';
 
 /**
  * Module-level promise cache — fetches once per session, shared across all
@@ -20,7 +20,7 @@ export const useTeams = () => {
 
   useEffect(() => {
     if (!cachedPromise) {
-      cachedPromise = AdminServices.getTeams();
+      cachedPromise = ConfigServices.getTeams();
     }
     cachedPromise
       .then(data => setState({ teams: data, loading: false, error: null }))

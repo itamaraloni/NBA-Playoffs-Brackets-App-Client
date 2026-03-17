@@ -5,6 +5,7 @@ import MatchupManagementTab from '../components/admin/MatchupManagementTab';
 import StatsTab from '../components/admin/StatsTab';
 import HealthTab from '../components/admin/HealthTab';
 import AdminServices from '../services/AdminServices';
+import ConfigServices from '../services/ConfigServices';
 
 /**
  * Top-level admin dashboard page.
@@ -52,7 +53,7 @@ const AdminPage = () => {
   // Fetch teams once on mount (active teams for the create-matchup dropdown)
   const fetchTeams = useCallback(async () => {
     try {
-      const result = await AdminServices.getTeams();
+      const result = await ConfigServices.getTeams();
       setTeams(result);
     } catch (err) {
       console.error('Failed to load teams:', err);

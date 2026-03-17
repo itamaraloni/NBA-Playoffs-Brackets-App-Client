@@ -76,7 +76,9 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
     final: 'NBA Finals',
   };
 
-  // Build roundScoring from server config, sorted by hit points ascending (Play-in → Finals)
+  // Build roundScoring from server config, sorted by hit points ascending (Play-in → Finals).
+  // Currently bracket and matchup scoring are identical — using matchup here.
+  // Phase 3 will differentiate between bracket and matchup scoring types.
   const roundScoring = scoringConfig
     ? Object.entries(scoringConfig.matchup)
         .filter(([key]) => ROUND_DISPLAY[key] !== null && ROUND_DISPLAY[key] !== undefined)

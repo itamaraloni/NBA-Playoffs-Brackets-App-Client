@@ -23,13 +23,16 @@ import { useTeams } from '../hooks/useTeams';
 import { useMvpCandidates } from '../hooks/useMvpCandidates';
 import { PLAYIN_START_DATE } from '../shared/SeasonConfig';
 
+/** Strip diacritics (ć→c, č→c, etc.) so filenames stay ASCII-safe */
+const stripDiacritics = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
 /** Derive team logo path from team name (same pattern used across the app) */
 const getTeamLogo = (name) =>
   name ? `/resources/team-logos/${name.toLowerCase().replace(/\s+/g, '-')}.png` : null;
 
-/** Derive NBA player avatar path from player name (kebab-case, same pattern as team logos) */
+/** Derive NBA player avatar path from player name (kebab-case, ASCII-safe) */
 const getPlayerAvatar = (name) =>
-  name ? `/resources/nba-players-avatars/${name.toLowerCase().replace(/\s+/g, '-')}.png` : null;
+  name ? `/resources/nba-players-avatars/${stripDiacritics(name).toLowerCase().replace(/\s+/g, '-')}.png` : null;
 
 /**
  * Sub-component for displaying pick status badge and points.
