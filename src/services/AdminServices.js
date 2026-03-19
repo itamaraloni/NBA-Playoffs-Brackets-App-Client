@@ -245,6 +245,80 @@ const AdminServices = {
       throw error;
     }
   },
+  /**
+   * Update a scoring config row by (predictionType, round).
+   * @param {Object} data - { predictionType, round, hitPoints, bullseyePoints }
+   * @returns {Promise<Object>}
+   */
+  updateScoringConfig: async ({ predictionType, round, hitPoints, bullseyePoints }) => {
+    try {
+      const response = await apiClient.put('/admin/config/scoring', {
+        prediction_type: predictionType,
+        round: round,
+        hit_points: hitPoints,
+        bullseye_points: bullseyePoints,
+      });
+      return {
+        id: response.id,
+        predictionType: response.prediction_type,
+        round: response.round,
+        hitPoints: response.hit_points,
+        bullseyePoints: response.bullseye_points,
+      };
+    } catch (error) {
+      console.error('Error updating scoring config:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update a team's championship points.
+   * @param {string} teamId
+   * @param {number} championshipPoints
+   * @returns {Promise<Object>}
+   */
+  updateTeamChampionshipPoints: async (teamId, championshipPoints) => {
+    try {
+      const response = await apiClient.put(`/admin/teams/${teamId}`, {
+        championship_points: championshipPoints,
+      });
+      return {
+        teamId: response.team_id,
+        name: response.name,
+        seed: response.seed,
+        conference: response.conference,
+        isActive: response.is_active,
+        championshipPoints: response.championship_points,
+      };
+    } catch (error) {
+      console.error('Error updating team championship points:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update an NBA player's MVP points.
+   * @param {string} nbaPlayerId
+   * @param {number} mvpPoints
+   * @returns {Promise<Object>}
+   */
+  updateNbaPlayerMvpPoints: async (nbaPlayerId, mvpPoints) => {
+    try {
+      const response = await apiClient.put(`/admin/nba-players/${nbaPlayerId}`, {
+        mvp_points: mvpPoints,
+      });
+      return {
+        nbaPlayerId: response.nba_player_id,
+        name: response.name,
+        mvpPoints: response.mvp_points,
+        teamId: response.team_id,
+        isActive: response.is_active,
+      };
+    } catch (error) {
+      console.error('Error updating NBA player MVP points:', error);
+      throw error;
+    }
+  },
 };
 
 export default AdminServices;

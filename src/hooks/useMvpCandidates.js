@@ -15,6 +15,8 @@ let cachedPromise = null;
  * @returns {{ mvpCandidates: Array|null, loading: boolean, error: string|null }}
  *   mvpCandidates shape: [{ nbaPlayerId, name, teamName, mvpPoints }]
  */
+export const clearMvpCandidatesCache = () => { cachedPromise = null; };
+
 export const useMvpCandidates = () => {
   const [state, setState] = useState({ mvpCandidates: null, loading: true, error: null });
 

@@ -15,6 +15,8 @@ let cachedPromise = null;
  * @returns {{ scoringConfig: Object|null, loading: boolean, error: string|null }}
  *   scoringConfig shape: { bracket: { round: { hit, bullseye } }, matchup: { ... } }
  */
+export const clearScoringConfigCache = () => { cachedPromise = null; };
+
 export const useScoringConfig = () => {
   const [state, setState] = useState({ scoringConfig: null, loading: true, error: null });
 

@@ -15,6 +15,8 @@ let cachedPromise = null;
  * @returns {{ teams: Array|null, loading: boolean, error: string|null }}
  *   teams shape: [{ teamId, name, seed, conference, isActive, championshipPoints }]
  */
+export const clearTeamsCache = () => { cachedPromise = null; };
+
 export const useTeams = () => {
   const [state, setState] = useState({ teams: null, loading: true, error: null });
 

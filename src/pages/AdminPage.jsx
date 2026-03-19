@@ -4,8 +4,12 @@ import { Box, Tab, Tabs, Typography, Alert, useTheme, useMediaQuery } from '@mui
 import MatchupManagementTab from '../components/admin/MatchupManagementTab';
 import StatsTab from '../components/admin/StatsTab';
 import HealthTab from '../components/admin/HealthTab';
+import ScoringConfigTab from '../components/admin/ScoringConfigTab';
 import AdminServices from '../services/AdminServices';
 import ConfigServices from '../services/ConfigServices';
+import { clearScoringConfigCache } from '../hooks/useScoringConfig';
+import { clearTeamsCache } from '../hooks/useTeams';
+import { clearMvpCandidatesCache } from '../hooks/useMvpCandidates';
 
 /**
  * Top-level admin dashboard page.
@@ -35,6 +39,12 @@ const AdminPage = () => {
   const [health, setHealth] = useState(null);
   const [isHealthLoading, setIsHealthLoading] = useState(false);
   const [healthError, setHealthError] = useState(null);
+
+  // Config state (lazy loaded)
+  const [configScoring, setConfigScoring] = useState(null);
+  const [configMvp, setConfigMvp] = useState(null);
+  const [isConfigLoading, setIsConfigLoading] = useState(false);
+  const [configError, setConfigError] = useState(null);
 
   // Fetch matchups with current filters
   const fetchMatchups = useCallback(async () => {
@@ -98,11 +108,30 @@ const AdminPage = () => {
     }
   }, []);
 
+  // Fetch config data when Config tab is selected (lazy)
+  const fetchConfigData = useCallback(async () => {
+    try {
+      setIsConfigLoading(true);
+      setConfigError(null);
+      const [scoring, mvp] = await Promise.all([
+        ConfigServices.getScoringConfig(),
+        ConfigServices.getMvpCandidates(),
+      ]);
+      setConfigScoring(scoring);
+      setConfigMvp(mvp);
+    } catch (err) {
+      setConfigError(err.message || 'Failed to load config');
+    } finally {
+      setIsConfigLoading(false);
+    }
+  }, []);
+
   // Handle tab change with lazy loading
   const handleTabChange = (event, newIndex) => {
     setTabIndex(newIndex);
     if (newIndex === 1) fetchStats();
     if (newIndex === 2) fetchHealth();
+    if (newIndex === 3) fetchConfigData();
   };
 
   // Matchup mutation callbacks — refresh list after success
@@ -132,6 +161,41 @@ const AdminPage = () => {
     await fetchMatchups();
   };
 
+  // Config mutation callbacks
+  const handleUpdateScoring = async (changes) => {
+    try {
+      await Promise.all(changes.map(c => AdminServices.updateScoringConfig(c)));
+      if (window.notify) window.notify.success('Scoring config updated');
+    } finally {
+      clearScoringConfigCache();
+      await fetchConfigData();
+    }
+  };
+
+  const handleUpdateTeam = async (changes) => {
+    try {
+      await Promise.all(changes.map(c =>
+        AdminServices.updateTeamChampionshipPoints(c.teamId, c.championshipPoints)
+      ));
+      if (window.notify) window.notify.success('Championship points updated');
+    } finally {
+      clearTeamsCache();
+      await Promise.all([fetchConfigData(), fetchTeams()]);
+    }
+  };
+
+  const handleUpdateMvpPlayer = async (changes) => {
+    try {
+      await Promise.all(changes.map(c =>
+        AdminServices.updateNbaPlayerMvpPoints(c.nbaPlayerId, c.mvpPoints)
+      ));
+      if (window.notify) window.notify.success('MVP points updated');
+    } finally {
+      clearMvpCandidatesCache();
+      await fetchConfigData();
+    }
+  };
+
   return (
     <Box>
       <Typography variant={isMobile ? 'h5' : 'h4'} sx={{ mb: 3, fontWeight: 'bold' }}>
@@ -146,6 +210,7 @@ const AdminPage = () => {
         <Tab label={isMobile ? 'Matchups' : 'Matchup Management'} />
         <Tab label="Stats" />
         <Tab label="Health" />
+        <Tab label={isMobile ? 'Config' : 'Scoring Config'} />
       </Tabs>
 
       {/* Tab 0: Matchup Management */}
@@ -180,6 +245,20 @@ const AdminPage = () => {
           loading={isHealthLoading}
           error={healthError}
           onRefresh={fetchHealth}
+        />
+      )}
+
+      {/* Tab 3: Scoring Config */}
+      {tabIndex === 3 && (
+        <ScoringConfigTab
+          scoringConfig={configScoring}
+          teams={teams}
+          mvpCandidates={configMvp}
+          loading={isConfigLoading}
+          error={configError}
+          onUpdateScoring={handleUpdateScoring}
+          onUpdateTeam={handleUpdateTeam}
+          onUpdateMvpPlayer={handleUpdateMvpPlayer}
         />
       )}
     </Box>

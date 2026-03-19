@@ -76,22 +76,30 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
     final: 'NBA Finals',
   };
 
-  // Build roundScoring from server config, sorted by hit points ascending (Play-in → Finals).
-  // Currently bracket and matchup scoring are identical — using matchup here.
-  // Phase 3 will differentiate between bracket and matchup scoring types.
+  // Build roundScoring from server config, sorted by matchup hit points ascending (Play-in → Finals).
+  // Each row includes both matchup and bracket scoring for the same round.
   const roundScoring = scoringConfig
     ? Object.entries(scoringConfig.matchup)
         .filter(([key]) => ROUND_DISPLAY[key] !== null && ROUND_DISPLAY[key] !== undefined)
-        .map(([key, values]) => ({
-          round: ROUND_DISPLAY[key],
-          hit: values.hit,
-          bullsEye: values.bullseye ?? values.hit, // playin has null bullseye — use hit
-        }))
-        .sort((a, b) => a.hit - b.hit)
+        .map(([key, matchupValues]) => {
+          const bracketValues = scoringConfig.bracket[key] || {};
+          return {
+            round: ROUND_DISPLAY[key],
+            matchupHit: matchupValues.hit,
+            matchupBullsEye: matchupValues.bullseye ?? matchupValues.hit,
+            bracketHit: bracketValues.hit,
+            bracketBullsEye: bracketValues.bullseye ?? bracketValues.hit,
+          };
+        })
+        .sort((a, b) => a.matchupHit - b.matchupHit)
     : [];
 
-  // Render the scoring table content (reused in both hit and bullsEye sections)
-  const renderScoringTable = (valueKey) => {
+  // Render the scoring table content (reused in both hit and bullsEye sections).
+  // Shows Matchup and Bracket columns side by side so users can see both scoring types.
+  const renderScoringTable = (type) => {
+    const matchupKey = type === 'hit' ? 'matchupHit' : 'matchupBullsEye';
+    const bracketKey = type === 'hit' ? 'bracketHit' : 'bracketBullsEye';
+
     if (configLoading) {
       return (
         <Box sx={{ mt: 1 }}>
@@ -110,7 +118,8 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
           <TableHead>
             <TableRow>
               <TableCell>Playoff Round</TableCell>
-              <TableCell align="center">Points</TableCell>
+              <TableCell align="center">Matchup</TableCell>
+              <TableCell align="center">Bracket</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -119,7 +128,8 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
                 <TableCell component="th" scope="row">
                   {row.round}
                 </TableCell>
-                <TableCell align="center">{row[valueKey]}</TableCell>
+                <TableCell align="center">{row[matchupKey]}</TableCell>
+                <TableCell align="center">{row[bracketKey]}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -225,6 +235,7 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
               </Typography>
 
               {renderScoringTable('hit')}
+
             </Box>
           </Collapse>
           <Divider component="li" />
