@@ -130,8 +130,8 @@ const ScoringConfigTab = ({
         changes.push({
           predictionType: 'bracket',
           round: key,
-          hitPoints: edited.bracketHit,
-          bullseyePoints: edited.bracketBullseye,
+          hitPoints: edited.bracketHit === '' ? 0 : edited.bracketHit,
+          bullseyePoints: edited.bracketBullseye === '' ? 0 : edited.bracketBullseye,
         });
       }
       // Check matchup changes
@@ -139,8 +139,8 @@ const ScoringConfigTab = ({
         changes.push({
           predictionType: 'matchup',
           round: key,
-          hitPoints: edited.matchupHit,
-          bullseyePoints: edited.matchupBullseye,
+          hitPoints: edited.matchupHit === '' ? 0 : edited.matchupHit,
+          bullseyePoints: edited.matchupBullseye === '' ? 0 : edited.matchupBullseye,
         });
       }
     }
@@ -184,7 +184,7 @@ const ScoringConfigTab = ({
     const changes = [];
     for (const teamId of Object.keys(originalTeamPoints)) {
       if (originalTeamPoints[teamId] !== editedTeamPoints[teamId]) {
-        changes.push({ teamId, championshipPoints: editedTeamPoints[teamId] });
+        changes.push({ teamId, championshipPoints: editedTeamPoints[teamId] === '' ? 0 : editedTeamPoints[teamId] });
       }
     }
     if (changes.length === 0) return;
@@ -227,7 +227,7 @@ const ScoringConfigTab = ({
     const changes = [];
     for (const nbaPlayerId of Object.keys(originalMvpPoints)) {
       if (originalMvpPoints[nbaPlayerId] !== editedMvpPoints[nbaPlayerId]) {
-        changes.push({ nbaPlayerId, mvpPoints: editedMvpPoints[nbaPlayerId] });
+        changes.push({ nbaPlayerId, mvpPoints: editedMvpPoints[nbaPlayerId] === '' ? 0 : editedMvpPoints[nbaPlayerId] });
       }
     }
     if (changes.length === 0) return;
@@ -241,6 +241,18 @@ const ScoringConfigTab = ({
       setMvpSaving(false);
     }
   };
+
+  // Sort teams by championship points ascending (favourite -> underdog)
+  const sortedTeams = useMemo(
+    () => teams ? [...teams].sort((a, b) => (a.championshipPoints ?? 0) - (b.championshipPoints ?? 0)) : [],
+    [teams]
+  );
+
+  // Sort MVP candidates by points ascending (favourite -> underdog)
+  const sortedMvpCandidates = useMemo(
+    () => mvpCandidates ? [...mvpCandidates].sort((a, b) => (a.mvpPoints ?? 0) - (b.mvpPoints ?? 0)) : [],
+    [mvpCandidates]
+  );
 
   // --- Render ---
   if (loading) {
@@ -256,16 +268,6 @@ const ScoringConfigTab = ({
   }
 
   if (!scoringConfig) return null;
-
-  // Sort teams by championship points ascending (favourite → underdog)
-  const sortedTeams = teams ? [...teams].sort((a, b) =>
-    (a.championshipPoints ?? 0) - (b.championshipPoints ?? 0)
-  ) : [];
-
-  // Sort MVP candidates by points ascending (favourite → underdog)
-  const sortedMvpCandidates = mvpCandidates ? [...mvpCandidates].sort((a, b) =>
-    (a.mvpPoints ?? 0) - (b.mvpPoints ?? 0)
-  ) : [];
 
   return (
     <Box>
@@ -299,7 +301,7 @@ const ScoringConfigTab = ({
                           size="small"
                           value={row.bracketHit}
                           onChange={(e) => handleScoringChange(key, 'bracketHit', e.target.value)}
-                          inputProps={{ min: 0 }}
+                          slotProps={{ htmlInput: { min: 0 } }}
                           sx={{ width: inputWidth }}
                         />
                       </TableCell>
@@ -312,7 +314,7 @@ const ScoringConfigTab = ({
                             size="small"
                             value={row.bracketBullseye ?? ''}
                             onChange={(e) => handleScoringChange(key, 'bracketBullseye', e.target.value)}
-                            inputProps={{ min: 0 }}
+                            slotProps={{ htmlInput: { min: 0 } }}
                             sx={{ width: inputWidth }}
                           />
                         )}
@@ -323,7 +325,7 @@ const ScoringConfigTab = ({
                           size="small"
                           value={row.matchupHit}
                           onChange={(e) => handleScoringChange(key, 'matchupHit', e.target.value)}
-                          inputProps={{ min: 0 }}
+                          slotProps={{ htmlInput: { min: 0 } }}
                           sx={{ width: inputWidth }}
                         />
                       </TableCell>
@@ -336,7 +338,7 @@ const ScoringConfigTab = ({
                             size="small"
                             value={row.matchupBullseye ?? ''}
                             onChange={(e) => handleScoringChange(key, 'matchupBullseye', e.target.value)}
-                            inputProps={{ min: 0 }}
+                            slotProps={{ htmlInput: { min: 0 } }}
                             sx={{ width: inputWidth }}
                           />
                         )}
@@ -387,7 +389,7 @@ const ScoringConfigTab = ({
                             size="small"
                             value={teamPoints?.[team.teamId] ?? 0}
                             onChange={(e) => handleTeamPointsChange(team.teamId, e.target.value)}
-                            inputProps={{ min: 0 }}
+                            slotProps={{ htmlInput: { min: 0 } }}
                             sx={{ width: inputWidth }}
                           />
                         </TableCell>
@@ -440,7 +442,7 @@ const ScoringConfigTab = ({
                             size="small"
                             value={mvpPoints?.[candidate.nbaPlayerId] ?? 0}
                             onChange={(e) => handleMvpPointsChange(candidate.nbaPlayerId, e.target.value)}
-                            inputProps={{ min: 0 }}
+                            slotProps={{ htmlInput: { min: 0 } }}
                             sx={{ width: inputWidth }}
                           />
                         </TableCell>

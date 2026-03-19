@@ -163,28 +163,37 @@ const AdminPage = () => {
 
   // Config mutation callbacks
   const handleUpdateScoring = async (changes) => {
-    await Promise.all(changes.map(c => AdminServices.updateScoringConfig(c)));
-    if (window.notify) window.notify.success('Scoring config updated');
-    clearScoringConfigCache();
-    await fetchConfigData();
+    try {
+      await Promise.all(changes.map(c => AdminServices.updateScoringConfig(c)));
+      if (window.notify) window.notify.success('Scoring config updated');
+    } finally {
+      clearScoringConfigCache();
+      await fetchConfigData();
+    }
   };
 
   const handleUpdateTeam = async (changes) => {
-    await Promise.all(changes.map(c =>
-      AdminServices.updateTeamChampionshipPoints(c.teamId, c.championshipPoints)
-    ));
-    if (window.notify) window.notify.success('Championship points updated');
-    clearTeamsCache();
-    await Promise.all([fetchConfigData(), fetchTeams()]);
+    try {
+      await Promise.all(changes.map(c =>
+        AdminServices.updateTeamChampionshipPoints(c.teamId, c.championshipPoints)
+      ));
+      if (window.notify) window.notify.success('Championship points updated');
+    } finally {
+      clearTeamsCache();
+      await Promise.all([fetchConfigData(), fetchTeams()]);
+    }
   };
 
   const handleUpdateMvpPlayer = async (changes) => {
-    await Promise.all(changes.map(c =>
-      AdminServices.updateNbaPlayerMvpPoints(c.nbaPlayerId, c.mvpPoints)
-    ));
-    if (window.notify) window.notify.success('MVP points updated');
-    clearMvpCandidatesCache();
-    await fetchConfigData();
+    try {
+      await Promise.all(changes.map(c =>
+        AdminServices.updateNbaPlayerMvpPoints(c.nbaPlayerId, c.mvpPoints)
+      ));
+      if (window.notify) window.notify.success('MVP points updated');
+    } finally {
+      clearMvpCandidatesCache();
+      await fetchConfigData();
+    }
   };
 
   return (
