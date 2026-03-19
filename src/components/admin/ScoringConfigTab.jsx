@@ -121,6 +121,19 @@ const ScoringConfigTab = ({
 
   const handleSaveScoring = async () => {
     if (!editedScoringRows || !originalScoringRows) return;
+    // Validate no empty fields before sending
+    for (const { key, label } of ROUNDS) {
+      const edited = editedScoringRows[key];
+      const isPlayIn = PLAY_IN_ROUNDS.has(key);
+      if (edited.bracketHit === '' || edited.matchupHit === '') {
+        if (window.notify) window.notify.error(`Hit points cannot be empty for ${label}`);
+        return;
+      }
+      if (!isPlayIn && (edited.bracketBullseye === '' || edited.matchupBullseye === '')) {
+        if (window.notify) window.notify.error(`Bullseye points cannot be empty for ${label}`);
+        return;
+      }
+    }
     const changes = [];
     for (const { key } of ROUNDS) {
       const orig = originalScoringRows[key];
@@ -130,8 +143,8 @@ const ScoringConfigTab = ({
         changes.push({
           predictionType: 'bracket',
           round: key,
-          hitPoints: edited.bracketHit === '' ? 0 : edited.bracketHit,
-          bullseyePoints: edited.bracketBullseye === '' ? 0 : edited.bracketBullseye,
+          hitPoints: edited.bracketHit,
+          bullseyePoints: edited.bracketBullseye,
         });
       }
       // Check matchup changes
@@ -139,8 +152,8 @@ const ScoringConfigTab = ({
         changes.push({
           predictionType: 'matchup',
           round: key,
-          hitPoints: edited.matchupHit === '' ? 0 : edited.matchupHit,
-          bullseyePoints: edited.matchupBullseye === '' ? 0 : edited.matchupBullseye,
+          hitPoints: edited.matchupHit,
+          bullseyePoints: edited.matchupBullseye,
         });
       }
     }
@@ -184,7 +197,12 @@ const ScoringConfigTab = ({
     const changes = [];
     for (const teamId of Object.keys(originalTeamPoints)) {
       if (originalTeamPoints[teamId] !== editedTeamPoints[teamId]) {
-        changes.push({ teamId, championshipPoints: editedTeamPoints[teamId] === '' ? 0 : editedTeamPoints[teamId] });
+        if (editedTeamPoints[teamId] === '') {
+          const teamName = teams.find(t => t.teamId === teamId)?.name || teamId;
+          if (window.notify) window.notify.error(`Championship points cannot be empty for ${teamName}`);
+          return;
+        }
+        changes.push({ teamId, championshipPoints: editedTeamPoints[teamId] });
       }
     }
     if (changes.length === 0) return;
@@ -227,7 +245,12 @@ const ScoringConfigTab = ({
     const changes = [];
     for (const nbaPlayerId of Object.keys(originalMvpPoints)) {
       if (originalMvpPoints[nbaPlayerId] !== editedMvpPoints[nbaPlayerId]) {
-        changes.push({ nbaPlayerId, mvpPoints: editedMvpPoints[nbaPlayerId] === '' ? 0 : editedMvpPoints[nbaPlayerId] });
+        if (editedMvpPoints[nbaPlayerId] === '') {
+          const playerName = mvpCandidates.find(c => c.nbaPlayerId === nbaPlayerId)?.name || nbaPlayerId;
+          if (window.notify) window.notify.error(`MVP points cannot be empty for ${playerName}`);
+          return;
+        }
+        changes.push({ nbaPlayerId, mvpPoints: editedMvpPoints[nbaPlayerId] });
       }
     }
     if (changes.length === 0) return;
