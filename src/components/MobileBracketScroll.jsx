@@ -189,13 +189,13 @@ function DotNav({ count, activeIndex, onDotClick }) {
 
   return (
     <Box sx={{
-      position: 'sticky', bottom: 12, left: '50%', transform: 'translateX(-50%)',
+      position: 'fixed', bottom: 12, left: '50%', transform: 'translateX(-50%)',
       display: 'inline-flex', alignItems: 'center', gap: 1.5,
       background: theme.palette.background.paper,
-      px: 2, py: 1, pb: '18px', borderRadius: '24px',
+      px: 2, py: 1, borderRadius: '24px',
       border: `1px solid ${theme.palette.divider}`,
       boxShadow: theme.shadows[4],
-      zIndex: 10, width: 'fit-content', mx: 'auto',
+      zIndex: 100,
     }}>
       {Array.from({ length: count }, (_, i) => (
         <Box
@@ -217,7 +217,7 @@ function DotNav({ count, activeIndex, onDotClick }) {
         >
           {i === activeIndex && (
             <Typography sx={{
-              position: 'absolute', top: '100%', mt: '4px',
+              position: 'absolute', bottom: '100%', mb: '4px',
               fontSize: '0.5625rem', fontWeight: 700,
               color: theme.palette.primary.main,
               whiteSpace: 'nowrap', textAlign: 'center',
@@ -254,6 +254,20 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
 
   const west = bracket.west || {};
   const east = bracket.east || {};
+
+  // Lock page-level horizontal scroll when mobile bracket is mounted
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtml = html.style.overflowX;
+    const prevBody = body.style.overflowX;
+    html.style.overflowX = 'hidden';
+    body.style.overflowX = 'hidden';
+    return () => {
+      html.style.overflowX = prevHtml;
+      body.style.overflowX = prevBody;
+    };
+  }, []);
 
   // Auto-hide swipe hint after 3s
   useEffect(() => {
@@ -330,9 +344,10 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
           display: 'flex',
           overflowX: 'auto',
           scrollSnapType: 'x mandatory',
+          WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
           '&::-webkit-scrollbar': { display: 'none' },
-          pb: 6,
+          pb: 8,
         }}
       >
         {/* ──── Play-In Column ──── */}
@@ -441,10 +456,8 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
         </Box>
       </Box>
 
-      {/* Dot navigation */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: -4 }}>
-        <DotNav count={5} activeIndex={activeRound} onDotClick={scrollToRound} />
-      </Box>
+      {/* Dot navigation — fixed at viewport bottom */}
+      <DotNav count={5} activeIndex={activeRound} onDotClick={scrollToRound} />
     </Box>
   );
 };

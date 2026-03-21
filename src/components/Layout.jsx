@@ -268,6 +268,7 @@ const Layout = ({ children, onLogout }) => {
         component="main"
         sx={{
           flexGrow: 1,
+          minWidth: 0,
           pt: 3,
           width: { md: `calc(100% - ${drawerWidth}px)` },
           transition: theme.transitions.create('width', {
@@ -280,7 +281,7 @@ const Layout = ({ children, onLogout }) => {
       >
         <Toolbar /> {/* Spacer for fixed AppBar */}
         {location.pathname === '/bracket' ? (
-          <Box sx={{ px: { xs: 2, md: 3 }, mb: 4 }}>
+          <Box sx={{ px: { xs: 0, md: 3 }, mb: { xs: 0, md: 4 } }}>
             {children}
           </Box>
         ) : (

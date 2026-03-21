@@ -212,7 +212,16 @@ const BracketView = ({
   if (isMobile) {
     return (
       <Box>
-        {header}
+        <Box sx={{
+          px: 2,
+          position: 'sticky',
+          top: 56,
+          zIndex: 10,
+          bgcolor: 'background.default',
+          pb: 0.5,
+        }}>
+          {header}
+        </Box>
         <MobileBracketScroll
           bracket={bracket}
           isLocked={isLocked}
