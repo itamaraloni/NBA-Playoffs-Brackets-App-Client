@@ -127,26 +127,6 @@ function RoundHeader({ label, pts, variant, gridColumn }) {
 }
 
 /**
- * CardCell — wraps a BracketMatchup in a grid cell with hover highlight data attributes.
- */
-function CardCell({ matchup, gridColumn, gridRow, alignSelf, isLocked, isFinals, onMatchupClick, cardId, feeds }) {
-  return (
-    <Box
-      data-card-id={cardId}
-      data-feeds={feeds?.join(',') || ''}
-      sx={{ gridColumn, gridRow, px: '2px', alignSelf: alignSelf || 'center' }}
-    >
-      <BracketMatchup
-        matchup={matchup}
-        isLocked={isLocked}
-        isFinals={isFinals}
-        onMatchupClick={onMatchupClick}
-      />
-    </Box>
-  );
-}
-
-/**
  * DesktopBracketGrid — CSS Grid bracket layout matching the desktop prototype.
  *
  * 15-column, 9-row grid: West play-in | West R1-Semis-CF | Finals | East CF-Semis-R1 | East play-in

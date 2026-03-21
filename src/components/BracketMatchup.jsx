@@ -237,7 +237,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
         ? `1px solid ${alpha(theme.palette.warning.main, 0.35)}`
         : `1px solid ${theme.palette.divider}`,
     boxShadow: isFinals
-      ? `0 4px 20px ${alpha(theme.palette.warning.main, 0.15)}, 0 2px 10px rgba(0,0,0,0.15)`
+      ? `0 4px 20px ${alpha(theme.palette.warning.main, 0.15)}, 0 2px 10px ${alpha(theme.palette.common.black, 0.15)}`
       : theme.shadows[1],
     transition: 'transform 0.15s, box-shadow 0.15s',
     '&:hover': (isClickable && !m.isTbd && !isVoided)
