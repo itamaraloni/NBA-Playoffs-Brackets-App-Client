@@ -1,7 +1,8 @@
 /**
- * bracketUtils.js — Pure bracket state utilities for Phase 1-F-c interactive picking.
+ * bracketUtils.js — Pure bracket state utilities.
  *
- * Exported: applyPick, countPicks, picksMatch, flattenBracketPicks.
+ * Exported: applyPick, countPicks, picksMatch, flattenBracketPicks,
+ *           getMatchupResultState, computeBracketHealth.
  *
  * All functions operate on the transformed bracket shape produced by
  * BracketServices.transformBracketData (component round keys, enriched matchup objects).
@@ -9,6 +10,110 @@
  * None of these functions make API calls. All mutations happen in React state;
  * the only API write is POST /bracket/submit (see BracketServices.submitBracket).
  */
+
+// Maps component round keys to API round keys (used by computeBracketHealth for scoring config lookup)
+const COMPONENT_TO_API_ROUND = {
+  playin:   'playin_first',
+  survivor: 'playin_second',
+  r1:       'first',
+  semis:    'second',
+  cf:       'conference_final',
+};
+
+// ---------------------------------------------------------------------------
+// Result state helpers (shared by BracketMatchup + computeBracketHealth)
+// ---------------------------------------------------------------------------
+
+/**
+ * Determines the result state of a matchup for display purposes.
+ * Returns: 'bullseye' | 'hit' | 'miss' | 'pending' | 'eliminated' | 'na'
+ */
+export function getMatchupResultState(m) {
+  if (!m?.hasPick) return 'na';
+  if (m?.isMatchupExist === false) return 'eliminated';
+  if (!m?.isPlayed) return 'pending';
+
+  const isBullseye =
+    m.isCorrect === true &&
+    !m.isPlayin &&
+    Boolean(m.predicted_series_score) &&
+    Boolean(m.actual_series_score) &&
+    m.predicted_series_score === m.actual_series_score;
+
+  if (isBullseye) return 'bullseye';
+  if (m.isCorrect === true) return 'hit';
+  if (m.isCorrect === false) return 'miss';
+  return 'na';
+}
+
+/**
+ * Computes bracket health stats from the current bracket state and scoring config.
+ *
+ * @param {Object} bracket - Transformed bracket state
+ * @param {Object} scoringConfig - Bracket scoring config from API, keyed by API round name
+ *   e.g. { playin_first: { hit: 3, bullseye: null }, first: { hit: 5, bullseye: 7 }, ... }
+ * @returns {{ correct: number, wrong: number, pending: number, eliminated: number,
+ *             pts: number, totalPotential: number, decided: number }}
+ */
+export function computeBracketHealth(bracket, scoringConfig) {
+  if (!bracket) return { correct: 0, wrong: 0, pending: 0, eliminated: 0, pts: 0, totalPotential: 0, decided: 0 };
+
+  let correct = 0, wrong = 0, pending = 0, eliminated = 0;
+  let pts = 0, totalPotential = 0;
+
+  const processMatchup = (m, apiRound) => {
+    const state = getMatchupResultState(m);
+    const roundScoring = scoringConfig?.[apiRound] || { hit: 0, bullseye: null };
+    const maxPts = roundScoring.bullseye || roundScoring.hit || 0;
+
+    switch (state) {
+      case 'bullseye':
+        correct++;
+        pts += roundScoring.bullseye || roundScoring.hit || 0;
+        totalPotential += maxPts;
+        break;
+      case 'hit':
+        correct++;
+        pts += roundScoring.hit || 0;
+        totalPotential += maxPts;
+        break;
+      case 'miss':
+        wrong++;
+        totalPotential += maxPts;
+        break;
+      case 'pending':
+        pending++;
+        totalPotential += maxPts;
+        break;
+      case 'eliminated':
+        eliminated++;
+        totalPotential += maxPts;
+        break;
+      default: // 'na'
+        totalPotential += maxPts;
+        break;
+    }
+  };
+
+  // Process conference matchups
+  for (const conf of ['east', 'west']) {
+    for (const [roundKey, matchups] of Object.entries(bracket[conf] || {})) {
+      const apiRound = COMPONENT_TO_API_ROUND[roundKey];
+      for (const m of matchups) {
+        processMatchup(m, apiRound);
+      }
+    }
+  }
+
+  // Process Finals
+  if (bracket.final) {
+    processMatchup(bracket.final, 'final');
+  }
+
+  const decided = correct + wrong + eliminated;
+
+  return { correct, wrong, pending, eliminated, pts, totalPotential, decided };
+}
 
 // ---------------------------------------------------------------------------
 // Propagation map

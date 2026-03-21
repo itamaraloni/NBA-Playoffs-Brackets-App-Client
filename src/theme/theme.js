@@ -22,6 +22,10 @@ const nbaColors = {
               default: '#f5f7fa',
               paper: '#ffffff',
             },
+            warning: {
+              main: '#d97706',
+              light: '#f59e0b',
+            },
             text: {
               primary: '#1a202c',
               secondary: '#4a5568',
@@ -38,6 +42,10 @@ const nbaColors = {
             background: {
               default: '#121212',
               paper: '#1e1e1e',
+            },
+            warning: {
+              main: '#ffa726',
+              light: '#f59e0b',
             },
             text: {
               primary: '#e2e8f0',
