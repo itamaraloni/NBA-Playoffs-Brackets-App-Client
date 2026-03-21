@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { 
-  AppBar, 
+import {
+  AppBar,
   Box,
   Button,
-  Toolbar, 
-  Typography, 
-  Drawer, 
-  List, 
-  ListItem, 
-  ListItemIcon, 
-  ListItemText, 
-  IconButton, 
+  Container,
+  Toolbar,
+  Typography,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  IconButton,
   Divider,
   useMediaQuery,
   useTheme,
@@ -278,9 +279,15 @@ const Layout = ({ children, onLogout }) => {
         }}
       >
         <Toolbar /> {/* Spacer for fixed AppBar */}
-        <Box sx={{ px: { xs: 2, md: 3 }, mb: 4 }}>
-          {children}
-        </Box>
+        {location.pathname === '/bracket' ? (
+          <Box sx={{ px: { xs: 2, md: 3 }, mb: 4 }}>
+            {children}
+          </Box>
+        ) : (
+          <Container maxWidth="lg" sx={{ px: { xs: 2, md: 3 }, mb: 4 }}>
+            {children}
+          </Container>
+        )}
       </Box>
     </Box>
   );
