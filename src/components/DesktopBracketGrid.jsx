@@ -211,10 +211,10 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
     if (!r) return null;
     return r.bullseye ? `${r.hit}/${r.bullseye}` : `${r.hit}`;
   };
-  const piPts = fmtPts('playin_first');
+  const piPts = fmtPts('playinFirst');
   const r1Pts = fmtPts('first');
   const semiPts = fmtPts('second');
-  const cfPts = fmtPts('conference_final');
+  const cfPts = fmtPts('conferenceFinal');
   const finalPts = fmtPts('final');
 
   // Card animation stagger counter — increments per card for cascading fade-in

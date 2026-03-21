@@ -11,13 +11,13 @@
  * the only API write is POST /bracket/submit (see BracketServices.submitBracket).
  */
 
-// Maps component round keys to API round keys (used by computeBracketHealth for scoring config lookup)
+// Maps component round keys to scoring config keys (used by computeBracketHealth for scoring config lookup)
 const COMPONENT_TO_API_ROUND = {
-  playin:   'playin_first',
-  survivor: 'playin_second',
+  playin:   'playinFirst',
+  survivor: 'playinSecond',
   r1:       'first',
   semis:    'second',
-  cf:       'conference_final',
+  cf:       'conferenceFinal',
 };
 
 // ---------------------------------------------------------------------------

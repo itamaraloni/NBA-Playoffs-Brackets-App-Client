@@ -32,7 +32,7 @@ function enrichMatchup(m) {
     isTbd: !m.team_1 || !m.team_2,
     isCorrect: m.is_correct ?? null,
     // Series progress for in-progress matchups (e.g., "3-1")
-    series_progress: m.series_progress ?? null,
+    seriesProgress: m.series_progress ?? null,
   };
 }
 
@@ -82,7 +82,16 @@ function transformBracketData(apiResponse) {
     championshipPickStatus: apiResponse.championship_pick_status ?? null,
     mvpPickStatus:          apiResponse.mvp_pick_status ?? null,
     mvpPickTeam:            apiResponse.mvp_pick_team ?? null,
-    scoringConfig:          apiResponse.scoring_config ?? null,
+    scoringConfig: apiResponse.scoring_config
+      ? {
+          playinFirst:     apiResponse.scoring_config.playin_first,
+          playinSecond:    apiResponse.scoring_config.playin_second,
+          first:           apiResponse.scoring_config.first,
+          second:          apiResponse.scoring_config.second,
+          conferenceFinal: apiResponse.scoring_config.conference_final,
+          final:           apiResponse.scoring_config.final,
+        }
+      : null,
   };
 }
 

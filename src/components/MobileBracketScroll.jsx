@@ -246,10 +246,10 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
   const [showSwipeHint, setShowSwipeHint] = useState(true);
 
   const sc = scoringConfig || {};
-  const piPts = sc.playin_first?.hit;
+  const piPts = sc.playinFirst?.hit;
   const r1Pts = sc.first?.hit;
   const semiPts = sc.second?.hit;
-  const cfPts = sc.conference_final?.hit;
+  const cfPts = sc.conferenceFinal?.hit;
   const finalPts = sc.final?.hit;
 
   const west = bracket.west || {};

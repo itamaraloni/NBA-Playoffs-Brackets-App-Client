@@ -266,8 +266,8 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
       : (actualWinnerName && m.actual_series_score
           ? ` \u00B7 ${actualWinnerName} ${m.actual_series_score}`
           : '');
-  } else if (resultState === 'pending' && m.series_progress && isLocked) {
-    chipSuffix = ` \u00B7 ${m.series_progress}`;
+  } else if (resultState === 'pending' && m.seriesProgress && isLocked) {
+    chipSuffix = ` \u00B7 ${m.seriesProgress}`;
   }
 
   const resultChipLabel = `${resultChip.label}${chipSuffix}`;
