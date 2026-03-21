@@ -267,13 +267,14 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
     if (!container) return;
 
     let ticking = false;
+    let rafId = null;
     const handleScroll = () => {
       setShowSwipeHint(false);
       if (ticking) return;
       ticking = true;
-      requestAnimationFrame(() => {
+      rafId = requestAnimationFrame(() => {
         const scrollLeft = container.scrollLeft;
-        const colWidth = container.clientWidth * 0.85;
+        const colWidth = colRefs.current[0]?.offsetWidth || container.clientWidth * 0.85;
         const idx = Math.round(scrollLeft / colWidth);
         setActiveRound(Math.min(Math.max(idx, 0), 4));
         ticking = false;
@@ -281,7 +282,10 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
     };
 
     container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   const scrollToRound = useCallback((index) => {
