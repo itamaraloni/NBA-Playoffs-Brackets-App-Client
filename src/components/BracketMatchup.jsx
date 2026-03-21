@@ -42,9 +42,9 @@ function getResultChipConfig(state, theme) {
           borderColor: alpha(theme.palette.warning.main, 0.35),
         },
       };
-    case 'eliminated':
+    case 'voided':
       return {
-        label: 'Eliminated',
+        label: 'Voided',
         sx: {
           color: theme.palette.error.main,
           background: alpha(theme.palette.error.main, 0.12),
@@ -53,7 +53,7 @@ function getResultChipConfig(state, theme) {
       };
     default:
       return {
-        label: 'N/A',
+        label: 'TBD',
         sx: {
           color: theme.palette.text.secondary,
           background: alpha(theme.palette.text.primary, 0.08),
@@ -66,17 +66,17 @@ function getResultChipConfig(state, theme) {
 function getResultTooltip(state) {
   switch (state) {
     case 'bullseye':
-      return 'You got the winner and exact series score right.';
+      return 'Correct winner and exact series score.';
     case 'hit':
-      return 'You got the winner right.';
+      return 'Correct winner, wrong series score.';
     case 'miss':
-      return 'This matchup happened, but your predicted winner was wrong.';
+      return 'Wrong winner prediction.';
     case 'pending':
-      return 'This matchup is still alive, but the real result is not decided yet.';
-    case 'eliminated':
-      return 'Your predicted matchup did not happen, so this bracket pick is eliminated.';
+      return 'Series not yet decided.';
+    case 'voided':
+      return 'This matchup never occurred.';
     default:
-      return 'No pick was made for this matchup.';
+      return 'No prediction made yet.';
   }
 }
 
@@ -118,7 +118,7 @@ function TeamLogo({ name }) {
   );
 }
 
-function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed, isMiss, isEliminated, compact }) {
+function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed, isMiss, isVoided, compact }) {
   const theme = useTheme();
 
   if (!team) {
@@ -198,7 +198,7 @@ function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed, 
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
-          ...(isEliminated && isPredWinner && {
+          ...(isVoided && isPredWinner && {
             textDecoration: 'line-through',
             color: theme.palette.text.disabled,
           }),
@@ -215,18 +215,21 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
 
   if (!m) return null;
 
-  const resultState = getMatchupResultState(m);
+  // In write mode (!isLocked), suppress real-world results — show pending/TBD only
+  const resultState = !isLocked
+    ? (m.hasPick ? 'pending' : 'na')
+    : getMatchupResultState(m);
   const resultChip = getResultChipConfig(resultState, theme);
   const resultTooltip = getResultTooltip(resultState);
   const isMiss = resultState === 'miss';
-  const isEliminated = resultState === 'eliminated';
+  const isVoided = resultState === 'voided';
 
   const isClickable = Boolean(onMatchupClick && m.can_edit && !isLocked);
 
   const cardSx = {
     borderRadius: '10px',
     overflow: 'hidden',
-    opacity: m.isTbd ? 0.55 : isEliminated ? 0.5 : 1,
+    opacity: m.isTbd ? 0.55 : isVoided ? 0.5 : 1,
     cursor: isClickable ? 'pointer' : 'default',
     border: m.isTbd
       ? `1px dashed ${theme.palette.divider}`
@@ -237,7 +240,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
       ? `0 4px 20px ${alpha(theme.palette.warning.main, 0.15)}, 0 2px 10px rgba(0,0,0,0.15)`
       : theme.shadows[1],
     transition: 'transform 0.15s, box-shadow 0.15s',
-    '&:hover': (isClickable && !m.isTbd && !isEliminated)
+    '&:hover': (isClickable && !m.isTbd && !isVoided)
       ? {
           transform: 'translateY(-1px)',
           boxShadow: theme.shadows[4],
@@ -263,7 +266,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
       : (actualWinnerName && m.actual_series_score
           ? ` \u00B7 ${actualWinnerName} ${m.actual_series_score}`
           : '');
-  } else if (resultState === 'pending' && m.series_progress) {
+  } else if (resultState === 'pending' && m.series_progress && isLocked) {
     chipSuffix = ` \u00B7 ${m.series_progress}`;
   }
 
@@ -320,9 +323,9 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
         isPredWinner={t1IsPredWinner}
         isActualWinner={t1IsActualWinner}
         hasPick={m.hasPick}
-        isPlayed={m.isPlayed}
+        isPlayed={isLocked && m.isPlayed}
         isMiss={isMiss}
-        isEliminated={isEliminated}
+        isVoided={isVoided}
         compact={compact}
       />
       <Box sx={{ borderTop: `1px solid ${theme.palette.divider}` }}>
@@ -332,9 +335,9 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
           isPredWinner={t2IsPredWinner}
           isActualWinner={t2IsActualWinner}
           hasPick={m.hasPick}
-          isPlayed={m.isPlayed}
+          isPlayed={isLocked && m.isPlayed}
           isMiss={isMiss}
-          isEliminated={isEliminated}
+          isVoided={isVoided}
           compact={compact}
         />
       </Box>

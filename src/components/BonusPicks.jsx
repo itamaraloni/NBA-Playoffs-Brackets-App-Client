@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Box, Chip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { getLogoPath } from '../shared/teamUtils';
+import { getPlayerAvatar } from '../shared/playerUtils';
 
 /**
  * Small team logo with 3-letter fallback.
@@ -37,13 +38,27 @@ function SmallLogo({ name, size = 20 }) {
 }
 
 /**
- * Avatar placeholder for MVP pick (initials).
+ * Avatar for MVP pick — loads player image with initials fallback.
  */
 function MvpAvatar({ name }) {
   const theme = useTheme();
+  const [imgError, setImgError] = useState(false);
+
   const initials = name
     ? name.split(' ').map(w => w[0]).join('').slice(0, 3).toUpperCase()
     : '?';
+
+  if (name && !imgError) {
+    return (
+      <Box
+        component="img"
+        src={getPlayerAvatar(name)}
+        alt={name}
+        onError={() => setImgError(true)}
+        sx={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, objectFit: 'cover' }}
+      />
+    );
+  }
 
   return (
     <Box sx={{

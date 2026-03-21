@@ -26,11 +26,11 @@ const COMPONENT_TO_API_ROUND = {
 
 /**
  * Determines the result state of a matchup for display purposes.
- * Returns: 'bullseye' | 'hit' | 'miss' | 'pending' | 'eliminated' | 'na'
+ * Returns: 'bullseye' | 'hit' | 'miss' | 'pending' | 'voided' | 'na'
  */
 export function getMatchupResultState(m) {
   if (!m?.hasPick) return 'na';
-  if (m?.isMatchupExist === false) return 'eliminated';
+  if (m?.isMatchupExist === false) return 'voided';
   if (!m?.isPlayed) return 'pending';
 
   const isBullseye =
@@ -52,13 +52,13 @@ export function getMatchupResultState(m) {
  * @param {Object} bracket - Transformed bracket state
  * @param {Object} scoringConfig - Bracket scoring config from API, keyed by API round name
  *   e.g. { playin_first: { hit: 3, bullseye: null }, first: { hit: 5, bullseye: 7 }, ... }
- * @returns {{ correct: number, wrong: number, pending: number, eliminated: number,
+ * @returns {{ correct: number, wrong: number, pending: number, voided: number,
  *             pts: number, totalPotential: number, decided: number }}
  */
 export function computeBracketHealth(bracket, scoringConfig) {
-  if (!bracket) return { correct: 0, wrong: 0, pending: 0, eliminated: 0, pts: 0, totalPotential: 0, decided: 0 };
+  if (!bracket) return { correct: 0, wrong: 0, pending: 0, voided: 0, pts: 0, totalPotential: 0, decided: 0 };
 
-  let correct = 0, wrong = 0, pending = 0, eliminated = 0;
+  let correct = 0, wrong = 0, pending = 0, voided = 0;
   let pts = 0, totalPotential = 0;
 
   const processMatchup = (m, apiRound) => {
@@ -85,8 +85,8 @@ export function computeBracketHealth(bracket, scoringConfig) {
         pending++;
         totalPotential += maxPts;
         break;
-      case 'eliminated':
-        eliminated++;
+      case 'voided':
+        voided++;
         totalPotential += maxPts;
         break;
       default: // 'na'
@@ -110,9 +110,9 @@ export function computeBracketHealth(bracket, scoringConfig) {
     processMatchup(bracket.final, 'final');
   }
 
-  const decided = correct + wrong + eliminated;
+  const decided = correct + wrong + voided;
 
-  return { correct, wrong, pending, eliminated, pts, totalPotential, decided };
+  return { correct, wrong, pending, voided, pts, totalPotential, decided };
 }
 
 // ---------------------------------------------------------------------------

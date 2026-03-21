@@ -122,6 +122,9 @@ function PlayinSection({ survivor, playinGames, isLocked, onMatchupClick }) {
       {/* Play-in games */}
       {playinGames.map(m => (
         <Box key={m.matchup_position} sx={{ mb: 1 }}>
+          <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.palette.text.disabled, textAlign: 'center', mb: '4px' }}>
+            {m.matchup_position === 1 ? '#7 vs #8' : '#9 vs #10'}
+          </Typography>
           <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} />
         </Box>
       ))}
