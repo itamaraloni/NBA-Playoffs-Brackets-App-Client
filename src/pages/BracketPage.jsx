@@ -10,7 +10,7 @@ import BracketView from '../components/BracketView';
 import PredictionDialog from '../components/PredictionDialog';
 import LeagueBracketsDialog from '../components/LeagueBracketsDialog';
 import BracketServices from '../services/BracketServices';
-import { applyPick, countPicks, picksMatch, flattenBracketPicks } from '../utils/bracketUtils';
+import { applyPick, countPicks, picksMatch, flattenBracketPicks, computeBracketHealth } from '../utils/bracketUtils';
 
 // PredictionDialog passes matchup.round (API key: 'playin_first', 'first', etc.)
 // but applyPick / bracketUtils work with component round keys ('playin', 'r1', etc.)
@@ -78,6 +78,22 @@ const BracketPage = () => {
   // -------------------------------------------------------------------------
   const predictedCount = useMemo(() => countPicks(bracketState), [bracketState]);
   const isComplete     = predictedCount === 21;
+
+  const bracketHealth = useMemo(
+    () => computeBracketHealth(bracketState, bracketState?.scoringConfig),
+    [bracketState],
+  );
+
+  const bonusPicks = useMemo(() => {
+    if (!bracketState) return null;
+    return {
+      championshipPick:       bracketState.championshipPick,
+      mvpPick:                bracketState.mvpPick,
+      championshipPickStatus: bracketState.championshipPickStatus,
+      mvpPickStatus:          bracketState.mvpPickStatus,
+      mvpPickTeam:            bracketState.mvpPickTeam,
+    };
+  }, [bracketState]);
 
   const hasUnsavedChanges = useMemo(() => {
     if (!bracketState || bracketState.isLocked) return false;
@@ -200,34 +216,6 @@ const BracketPage = () => {
         </Alert>
       )}
 
-      {/* Action buttons row */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5, mb: 2 }}>
-        {/* View League Brackets — visible only when locked */}
-        {bracketState.isLocked && (
-          <Button
-            variant="outlined"
-            size="medium"
-            onClick={() => setLeagueBracketsOpen(true)}
-            startIcon={<GroupsIcon />}
-          >
-            League Brackets
-          </Button>
-        )}
-
-        {/* Submit button — hidden when bracket is locked */}
-        {!bracketState.isLocked && (
-          <Button
-            variant="contained"
-            size="medium"
-            onClick={handleSubmitBracket}
-            disabled={!isComplete || submitting || isSubmitted}
-            startIcon={submitIcon}
-          >
-            {submitLabel}
-          </Button>
-        )}
-      </Box>
-
       {/* Bracket display */}
       <BracketView
         bracket={bracketState}
@@ -236,6 +224,34 @@ const BracketPage = () => {
         totalMatchups={bracketState.totalMatchups}
         deadline={bracketState.deadline}
         onMatchupClick={bracketState.isLocked ? undefined : handleMatchupClick}
+        bracketHealth={bracketHealth}
+        bonusPicks={bonusPicks}
+        scoringConfig={bracketState.scoringConfig}
+        actionButtons={
+          <>
+            {bracketState.isLocked && (
+              <Button
+                variant="outlined"
+                size="medium"
+                onClick={() => setLeagueBracketsOpen(true)}
+                startIcon={<GroupsIcon />}
+              >
+                League Brackets
+              </Button>
+            )}
+            {!bracketState.isLocked && (
+              <Button
+                variant="contained"
+                size="medium"
+                onClick={handleSubmitBracket}
+                disabled={!isComplete || submitting || isSubmitted}
+                startIcon={submitIcon}
+              >
+                {submitLabel}
+              </Button>
+            )}
+          </>
+        }
       />
 
       {/* Prediction dialog */}

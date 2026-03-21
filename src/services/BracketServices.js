@@ -25,19 +25,14 @@ function enrichMatchup(m) {
     hasPick,
     isPlayed,
     isMatchupExist,
-    // true when the predicted winner is team_1 (used to highlight the correct row)
     predWinnerIsTeam1:   hasPick  && m.predicted_winner_team_id === m.team_1?.team_id,
-    // true when the predicted winner is team_2
     predWinnerIsTeam2:   hasPick  && m.predicted_winner_team_id === m.team_2?.team_id,
-    // true when the actual winner is team_1 (used to show result overlay)
     actualWinnerIsTeam1: isPlayed && m.actual_winner_team_id    === m.team_1?.team_id,
-    // true when the actual winner is team_2
     actualWinnerIsTeam2: isPlayed && m.actual_winner_team_id    === m.team_2?.team_id,
-    // TBD: either team slot is not yet determined (pre-play-in)
     isTbd: !m.team_1 || !m.team_2,
-    // TODO(Phase 4): server returns is_correct (snake_case) — map it here so BracketMatchup
-    // can use m.isCorrect for the score bar result color once actual results are available.
     isCorrect: m.is_correct ?? null,
+    // Series progress for in-progress matchups (e.g., "3-1")
+    series_progress: m.series_progress ?? null,
   };
 }
 
@@ -81,6 +76,13 @@ function transformBracketData(apiResponse) {
     east:  groupByRound(apiResponse.conferences.east),
     west:  groupByRound(apiResponse.conferences.west),
     final: enrichMatchup(apiResponse.final),
+    // New optional fields from server (graceful fallback if missing)
+    championshipPick:       apiResponse.championship_pick ?? null,
+    mvpPick:                apiResponse.mvp_pick ?? null,
+    championshipPickStatus: apiResponse.championship_pick_status ?? null,
+    mvpPickStatus:          apiResponse.mvp_pick_status ?? null,
+    mvpPickTeam:            apiResponse.mvp_pick_team ?? null,
+    scoringConfig:          apiResponse.scoring_config ?? null,
   };
 }
 

@@ -12,7 +12,6 @@ import {
   ListItemText, 
   IconButton, 
   Divider,
-  Container,
   useMediaQuery,
   useTheme,
   Tooltip
@@ -27,6 +26,8 @@ import {
   Logout as LogoutIcon,
   AccountTree as BracketIcon,
   AdminPanelSettings as AdminIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import ThemeToggle from '../theme/ThemeToggle';
@@ -34,13 +35,27 @@ import LeagueSwitcher from './LeagueSwitcher';
 import { useAuth } from '../contexts/AuthContext';
 
 const DRAWER_WIDTH = 240;
+const DRAWER_WIDTH_COLLAPSED = 64;
 
 const Layout = ({ children, onLogout }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'), { noSsr: true });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('sidebar-collapsed') === 'true';
+  });
   const location = useLocation();
   const { isAdmin } = useAuth();
+
+  const drawerWidth = sidebarCollapsed ? DRAWER_WIDTH_COLLAPSED : DRAWER_WIDTH;
+
+  const handleCollapseToggle = () => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('sidebar-collapsed', String(next));
+      return next;
+    });
+  };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -55,17 +70,23 @@ const Layout = ({ children, onLogout }) => {
     { text: 'Profile',     icon: <ProfileIcon />,     path: '/profile'     },
   ];
 
+  // Desktop collapsed state — on mobile the drawer is always full-width
+  const isCollapsed = !isMobile && sidebarCollapsed;
+
   const drawer = (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      <Box sx={{
+        display: 'flex',
+        justifyContent: isCollapsed ? 'center' : 'space-between',
         alignItems: 'center',
-        p: 2
+        p: isCollapsed ? 1 : 2,
+        minHeight: 56,
       }}>
-        <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
-          NBA Playoffs
-        </Typography>
+        {!isCollapsed && (
+          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+            NBA Playoffs
+          </Typography>
+        )}
         {isMobile && (
           <IconButton onClick={handleDrawerToggle} size="small">
             <CloseIcon />
@@ -73,24 +94,25 @@ const Layout = ({ children, onLogout }) => {
         )}
       </Box>
       <Divider />
-      
+
       {/* Navigation items */}
       <List sx={{ flexGrow: 1 }}>
         {navigationItems.map((item) => (
-          <Tooltip 
+          <Tooltip
             key={item.text}
-            title={item.text} 
+            title={item.text}
             placement="right"
-            disableHoverListener={!isMobile}
+            disableHoverListener={!isCollapsed}
           >
-            <ListItem 
-              component={Link} 
+            <ListItem
+              component={Link}
               to={item.path}
               selected={location.pathname === item.path}
               onClick={isMobile ? handleDrawerToggle : undefined}
               sx={{
                 minHeight: 48,
-                px: 2.5,
+                px: isCollapsed ? 0 : 2.5,
+                justifyContent: isCollapsed ? 'center' : 'flex-start',
                 '&.Mui-selected': {
                   backgroundColor: `${theme.palette.primary.main}15`,
                   borderLeft: `4px solid ${theme.palette.primary.main}`,
@@ -100,38 +122,65 @@ const Layout = ({ children, onLogout }) => {
                 }
               }}
             >
-              <ListItemIcon sx={{ 
-                minWidth: 0, 
-                mr: 3,
-                color: location.pathname === item.path ? 
-                  theme.palette.primary.main : 
+              <ListItemIcon sx={{
+                minWidth: 0,
+                mr: isCollapsed ? 0 : 3,
+                justifyContent: 'center',
+                color: location.pathname === item.path ?
+                  theme.palette.primary.main :
                   theme.palette.text.secondary
               }}>
                 {item.icon}
               </ListItemIcon>
-              <ListItemText 
-                primary={item.text} 
-                primaryTypographyProps={{ 
-                  fontSize: '0.95rem',
-                  fontWeight: location.pathname === item.path ? '500' : '400'
-                }}
-              />
+              {!isCollapsed && (
+                <ListItemText
+                  primary={item.text}
+                  primaryTypographyProps={{
+                    fontSize: '0.95rem',
+                    fontWeight: location.pathname === item.path ? '500' : '400'
+                  }}
+                />
+              )}
             </ListItem>
           </Tooltip>
         ))}
       </List>
-      
+
+      {/* Collapse toggle — desktop only */}
+      {!isMobile && (
+        <>
+          <Divider />
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
+            <Tooltip title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'} placement="right">
+              <IconButton onClick={handleCollapseToggle} size="small">
+                {sidebarCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </>
+      )}
+
       {/* Logout button at bottom */}
       <Divider />
       <List>
-        <Button
-          onClick={onLogout}
-          fullWidth
-          color="error"
-          startIcon={<LogoutIcon />}
+        {isCollapsed ? (
+          <Tooltip title="Logout" placement="right">
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <IconButton onClick={onLogout} color="error" size="small">
+                <LogoutIcon />
+              </IconButton>
+            </Box>
+          </Tooltip>
+        ) : (
+          <Button
+            onClick={onLogout}
+            fullWidth
+            color="error"
+            startIcon={<LogoutIcon />}
           >
-          Logout
-        </Button>
+            Logout
+          </Button>
+        )}
       </List>
     </Box>
   );
@@ -174,11 +223,20 @@ const Layout = ({ children, onLogout }) => {
         variant="permanent"
         sx={{
           display: { xs: 'none', md: 'block' },
-          width: DRAWER_WIDTH,
+          width: drawerWidth,
           flexShrink: 0,
+          transition: theme.transitions.create('width', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+          }),
           '& .MuiDrawer-paper': {
-            width: DRAWER_WIDTH,
+            width: drawerWidth,
             boxSizing: 'border-box',
+            overflowX: 'hidden',
+            transition: theme.transitions.create('width', {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
           },
         }}
         open
@@ -210,15 +268,19 @@ const Layout = ({ children, onLogout }) => {
         sx={{
           flexGrow: 1,
           pt: 3,
-          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          transition: theme.transitions.create('width', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+          }),
           minHeight: '100vh',
           backgroundColor: (theme) => theme.palette.background.default
         }}
       >
         <Toolbar /> {/* Spacer for fixed AppBar */}
-        <Container maxWidth="lg" sx={{ mb: 4 }}>
+        <Box sx={{ px: { xs: 2, md: 3 }, mb: 4 }}>
           {children}
-        </Container>
+        </Box>
       </Box>
     </Box>
   );
