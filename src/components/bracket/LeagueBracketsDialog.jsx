@@ -264,7 +264,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
         deadline={bracketData.deadline}
         onMatchupClick={undefined}
         bracketHealth={health}
-        viewingPlayerName={selectedPlayer?.playerName}
+        viewingPlayerName={selectedPlayer?.playerId !== currentPlayerId ? selectedPlayer?.playerName : undefined}
         bonusPicks={bPicks}
         scoringConfig={bracketData.scoringConfig}
       />

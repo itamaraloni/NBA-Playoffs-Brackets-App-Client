@@ -145,9 +145,9 @@ const BracketPage = () => {
       );
       const updated = {
         ...bracketState,
-        isBracketSubmitted:  result.is_bracket_submitted,
-        bracketSubmittedAt:  result.bracket_submitted_at,
-        predictedMatchups:   result.predicted_matchups,
+        isBracketSubmitted:  result.isBracketSubmitted,
+        bracketSubmittedAt:  result.bracketSubmittedAt,
+        predictedMatchups:   result.predictedMatchups,
       };
       setServerBracket(updated);
       setBracketState(updated);

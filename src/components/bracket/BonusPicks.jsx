@@ -75,7 +75,7 @@ function MvpAvatar({ name }) {
 /**
  * Single bonus pick card (Championship or MVP).
  */
-function BonusCard({ title, chipLabel, chipColor, name, subText, logo, avatar, icon, bodyBg }) {
+function BonusCard({ title, chipLabel, chipSx, name, subText, logo, avatar, icon, bodyBg }) {
   const theme = useTheme();
 
   return (
@@ -110,7 +110,7 @@ function BonusCard({ title, chipLabel, chipColor, name, subText, logo, avatar, i
               fontSize: '0.5625rem', fontWeight: 800,
               letterSpacing: '0.04em', textTransform: 'uppercase',
               '& .MuiChip-label': { px: '6px' },
-              ...chipColor,
+              ...chipSx,
             }}
           />
         )}
@@ -166,13 +166,13 @@ const BonusPicks = ({
   const theme = useTheme();
 
   const getStatusConfig = (status) => {
-    if (!isLocked || !status) return { chipLabel: null, chipColor: {}, bodyBg: 'transparent', icon: null };
+    if (!isLocked || !status) return { chipLabel: null, chipSx: {}, bodyBg: 'transparent', icon: null };
 
     switch (status) {
       case 'correct':
         return {
           chipLabel: 'Hit',
-          chipColor: {
+          chipSx: {
             color: theme.palette.success.main,
             background: alpha(theme.palette.success.main, 0.14),
             borderColor: alpha(theme.palette.success.main, 0.35),
@@ -190,7 +190,7 @@ const BonusPicks = ({
       case 'wrong':
         return {
           chipLabel: 'Miss',
-          chipColor: {
+          chipSx: {
             color: theme.palette.error.main,
             background: alpha(theme.palette.error.main, 0.14),
             borderColor: alpha(theme.palette.error.main, 0.35),
@@ -209,7 +209,7 @@ const BonusPicks = ({
       default:
         return {
           chipLabel: 'Pending',
-          chipColor: {
+          chipSx: {
             color: theme.palette.warning.main,
             background: alpha(theme.palette.warning.main, 0.14),
             borderColor: alpha(theme.palette.warning.main, 0.35),
@@ -242,7 +242,7 @@ const BonusPicks = ({
       <BonusCard
         title="Championship Pick"
         chipLabel={champConfig.chipLabel}
-        chipColor={champConfig.chipColor}
+        chipSx={champConfig.chipSx}
         name={championshipPick}
         logo={championshipPick ? <SmallLogo name={championshipPick} /> : null}
         icon={champConfig.icon}
@@ -253,7 +253,7 @@ const BonusPicks = ({
       <BonusCard
         title="Finals MVP"
         chipLabel={mvpConfig.chipLabel}
-        chipColor={mvpConfig.chipColor}
+        chipSx={mvpConfig.chipSx}
         name={mvpPick}
         subText={mvpPickTeam}
         avatar={mvpPick ? <MvpAvatar name={mvpPick} /> : null}

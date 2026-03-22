@@ -112,6 +112,17 @@ function transformLeagueBracketStatus(data) {
 }
 
 /**
+ * Transforms the raw /bracket/submit response to camelCase UI shape.
+ */
+function transformSubmitResponse(data) {
+  return {
+    isBracketSubmitted: data.is_bracket_submitted,
+    bracketSubmittedAt: data.bracket_submitted_at,
+    predictedMatchups:  data.predicted_matchups,
+  };
+}
+
+/**
  * Transforms the raw /bracket/status response to camelCase UI shape.
  */
 function transformBracketStatus(data) {
@@ -160,11 +171,12 @@ const BracketServices = {
    * picks: array of 21 pick objects (built by flattenBracketPicks in Phase 1-F-c)
    */
   async submitBracket(playerId, leagueId, picks) {
-    return apiClient.post('/bracket/submit', {
+    const data = await apiClient.post('/bracket/submit', {
       player_id: playerId,
       league_id: leagueId,
       picks,
     });
+    return transformSubmitResponse(data);
   },
 };
 
