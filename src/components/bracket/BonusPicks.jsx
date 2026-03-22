@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Chip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { getLogoPath } from '../shared/teamUtils';
-import { getPlayerAvatar } from '../shared/playerUtils';
+import { getLogoPath } from '../../shared/teamUtils';
+import { getPlayerAvatar } from '../../shared/playerUtils';
 
 /**
  * Small team logo with 3-letter fallback.

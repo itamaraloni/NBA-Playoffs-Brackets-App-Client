@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Chip, Paper, Tooltip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { getLogoPath, getShortTeamName } from '../shared/teamUtils';
-import { getMatchupResultState } from '../utils/bracketUtils';
+import { getLogoPath, getShortTeamName } from '../../shared/teamUtils';
+import { getMatchupResultState } from '../../utils/bracketUtils';
 
 function getResultChipConfig(state, theme) {
   switch (state) {
