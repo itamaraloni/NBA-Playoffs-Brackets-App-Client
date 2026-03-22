@@ -2,7 +2,8 @@
  * bracketUtils.js — Pure bracket state utilities.
  *
  * Exported: applyPick, countPicks, picksMatch, flattenBracketPicks,
- *           getMatchupResultState, computeBracketHealth.
+ *           getMatchupResultState, computeBracketHealth,
+ *           R1_DISPLAY_ORDER, reorderR1.
  *
  * All functions operate on the transformed bracket shape produced by
  * BracketServices.transformBracketData (component round keys, enriched matchup objects).
@@ -375,4 +376,19 @@ export function flattenBracketPicks(bracketState) {
   });
 
   return picks;
+}
+
+// ---------------------------------------------------------------------------
+// Display order helpers (used by DesktopBracketGrid + MobileBracketScroll)
+// ---------------------------------------------------------------------------
+
+// R1 display order: top half (1v8 + 4v5) → bottom half (3v6 + 2v7)
+export const R1_DISPLAY_ORDER = [1, 4, 3, 2];
+
+/**
+ * Reorders Round 1 matchups into bracket topology order for display.
+ */
+export function reorderR1(matchups) {
+  if (!matchups || matchups.length !== 4) return matchups || [];
+  return R1_DISPLAY_ORDER.map(pos => matchups.find(m => m.matchup_position === pos)).filter(Boolean);
 }

@@ -3,9 +3,8 @@ import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import BracketMatchup from './BracketMatchup';
 import BonusPicks from './BonusPicks';
-
-// R1 display order: top half (1v8 + 4v5) → bottom half (3v6 + 2v7)
-const R1_DISPLAY_ORDER = [1, 4, 3, 2];
+import { reorderR1 } from '../../utils/bracketUtils';
+import { getBracketAnimationSx } from './bracketStyles';
 
 /**
  * HoverCard — wrapper for bracket cards with hover handlers + staggered animation delay.
@@ -23,11 +22,6 @@ function HoverCard({ children, delay, onHoverStart, onHoverEnd, ...props }) {
       {children}
     </Box>
   );
-}
-
-function reorderR1(matchups) {
-  if (!matchups || matchups.length !== 4) return matchups || [];
-  return R1_DISPLAY_ORDER.map(pos => matchups.find(m => m.matchup_position === pos)).filter(Boolean);
 }
 
 /**
@@ -211,26 +205,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
           'auto auto 1fr 10px 1fr 20px 1fr 10px 1fr',
         minHeight: 520,
         alignItems: 'center',
-        // Highlight styles applied via JS class toggling (no re-renders)
-        '& .card-highlight > .MuiPaper-root': {
-          borderColor: `${theme.palette.primary.main} !important`,
-          boxShadow: `0 0 0 1px ${theme.palette.primary.main}, ${theme.shadows[4]} !important`,
-        },
-        '& .card-highlight-source > .MuiPaper-root': {
-          borderColor: `${alpha(theme.palette.primary.main, 0.7)} !important`,
-          boxShadow: `0 0 8px ${alpha(theme.palette.primary.main, 0.25)} !important`,
-        },
-        // Card entry animation — stagger fade-in
-        '@keyframes bracketFadeIn': {
-          from: { opacity: 0, transform: 'translateY(6px)' },
-          to: { opacity: 1, transform: 'translateY(0)' },
-        },
-        '& [data-card-id]': {
-          animation: 'bracketFadeIn 0.3s ease-out both',
-        },
-        '@media (prefers-reduced-motion: reduce)': {
-          '& [data-card-id]': { animation: 'none' },
-        },
+        ...getBracketAnimationSx(theme),
       }}
     >
       {/* ════ Row 1: Conference Titles ════ */}
