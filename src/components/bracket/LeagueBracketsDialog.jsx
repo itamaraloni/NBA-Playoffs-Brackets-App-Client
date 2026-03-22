@@ -267,6 +267,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
         viewingPlayerName={selectedPlayer?.playerId !== currentPlayerId ? selectedPlayer?.playerName : undefined}
         bonusPicks={bPicks}
         scoringConfig={bracketData.scoringConfig}
+        stickyHeaderTop={0}
       />
     );
   };
@@ -330,7 +331,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
         </IconButton>
       </DialogTitle>
       <Divider />
-      <DialogContent sx={{ p: selectedPlayer ? 2 : 0 }}>
+      <DialogContent sx={{ p: selectedPlayer ? 2 : 0, ...(selectedPlayer && { pt: 0 }) }}>
         {selectedPlayer ? renderBracketView() : renderPlayerList()}
       </DialogContent>
     </Dialog>
