@@ -99,7 +99,7 @@ This guideline applies to all frontend work — code changes, PR reviews, planni
 
 - **Global state:** React Context only (AuthContext for auth, ThemeContext for theme). No Redux or other state libraries
 - **Page-level data:** `useState` in page components, fetched in `useEffect`
-- **localStorage keys in use:** `active_player_id`, `theme-mode`
+- **localStorage keys in use:** `active_player_id`, `theme-mode`, `sidebar-collapsed`
 - **sessionStorage keys in use:** `pendingInviteToken` (temporary, cleared after joining a league)
 - `active_player_id` stores the user's last-selected league player as UX convenience (survives page reload). AuthContext is the source of truth — localStorage is just a hint. See ADR-003
 - `theme-mode` is preserved on logout; all other keys are cleared

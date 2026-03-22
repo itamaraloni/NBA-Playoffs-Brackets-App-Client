@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Tabs, Tab, Typography, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Typography, useTheme, useMediaQuery } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import ConferenceBracket from './ConferenceBracket';
-import BracketMatchup from './BracketMatchup';
-
-const FINALS_PTS = 30;
+import DesktopBracketGrid from './DesktopBracketGrid';
+import MobileBracketScroll from './MobileBracketScroll';
 
 /**
  * Formats a millisecond duration into a human-readable countdown string.
@@ -23,10 +21,10 @@ function formatCountdown(ms) {
 }
 
 /**
- * Progress bar + deadline countdown strip shown above the bracket on all screen sizes.
- * Countdown updates every 60 seconds. Text turns red when < 24 hours remain.
+ * BracketHeader — adapts between write mode (progress bar + countdown) and
+ * read mode (health stats + accuracy bar + viewing badge).
  */
-function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline }) {
+function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline, bracketHealth, viewingPlayerName, actionButtons }) {
   const theme = useTheme();
   const [now, setNow] = useState(Date.now());
 
@@ -38,21 +36,106 @@ function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline })
   }, [isLocked, deadline]);
 
   const remaining   = deadline ? new Date(deadline).getTime() - now : 0;
-  const isUrgent    = remaining > 0 && remaining < 24 * 60 * 60 * 1000; // < 24 h
+  const isUrgent    = remaining > 0 && remaining < 24 * 60 * 60 * 1000;
   const countdownStr = formatCountdown(remaining);
 
+  // Read mode: show health stats + accuracy bar
+  if (isLocked && bracketHealth) {
+    const { correct, wrong, pending, pts, totalPotential, decided } = bracketHealth;
+    const accuracyPct = decided > 0 ? Math.round((correct / decided) * 100) : 0;
+
+    return (
+      <Box sx={{
+        display: 'flex', alignItems: 'center', flexWrap: 'wrap',
+        gap: 1.5, p: 1.5, mb: 1.5,
+        background: theme.palette.background.paper,
+        borderRadius: 2,
+        border: `1px solid ${theme.palette.divider}`,
+      }}>
+        {/* Points label */}
+        <Typography variant="body2" sx={{ fontWeight: 600, whiteSpace: 'nowrap', color: theme.palette.text.secondary }}>
+          {pts} / {totalPotential} pts
+        </Typography>
+
+        {/* Accuracy bar */}
+        <Box sx={{ flex: 1, minWidth: 60 }}>
+          <Box sx={{
+            height: 4, borderRadius: 2,
+            background: theme.palette.action.hover,
+            overflow: 'hidden',
+          }}>
+            <Box sx={{
+              height: '100%', borderRadius: 2,
+              width: `${accuracyPct}%`,
+              background: `linear-gradient(90deg, ${theme.palette.success.main}, ${theme.palette.success.light || theme.palette.success.main})`,
+              transition: 'width 0.4s ease',
+            }} />
+          </Box>
+        </Box>
+
+        {/* Health stats */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+          <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 600, color: theme.palette.success.main }}>
+            {correct} {'\u2713'}
+          </Typography>
+          <Typography component="span" sx={{ fontSize: '0.75rem', color: theme.palette.text.disabled }}>{'\u00B7'}</Typography>
+          <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 600, color: theme.palette.error.main }}>
+            {wrong} {'\u2717'}
+          </Typography>
+          <Typography component="span" sx={{ fontSize: '0.75rem', color: theme.palette.text.disabled }}>{'\u00B7'}</Typography>
+          <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 600, color: theme.palette.warning.main }}>
+            {pending} in play
+          </Typography>
+        </Box>
+
+        {/* Deadline locked */}
+        <Typography variant="body2" sx={{
+          fontSize: '0.8rem', whiteSpace: 'nowrap', fontWeight: 600,
+          color: 'error.main',
+        }}>
+          {'\uD83D\uDD12'} Locked — {deadline ? new Date(deadline).toLocaleDateString() : 'deadline passed'}
+        </Typography>
+
+        {/* Viewing badge */}
+        {viewingPlayerName && (
+          <Box sx={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            fontSize: '0.75rem', fontWeight: 600,
+            color: theme.palette.text.secondary,
+            px: 1.5, py: 0.5, borderRadius: '6px',
+            background: theme.palette.action.hover,
+            border: `1px solid ${theme.palette.divider}`,
+          }}>
+            <Box sx={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: theme.palette.primary.main,
+            }} />
+            Viewing {viewingPlayerName}'s bracket
+          </Box>
+        )}
+
+        {/* Inline action buttons */}
+        {actionButtons && (
+          <Box sx={{ display: 'flex', gap: 1.5, ml: 'auto' }}>
+            {actionButtons}
+          </Box>
+        )}
+      </Box>
+    );
+  }
+
+  // Write mode: progress bar + countdown
   const pct = totalMatchups > 0
     ? Math.round((predictedMatchups / totalMatchups) * 100)
     : 0;
 
-  // Determine deadline label text and color
   let deadlineLabel = null;
   let deadlineColor = 'text.secondary';
   if (isLocked) {
-    deadlineLabel = '🔒 Bracket locked — deadline passed';
+    deadlineLabel = '\uD83D\uDD12 Bracket locked — deadline passed';
     deadlineColor = 'error.main';
   } else if (countdownStr) {
-    deadlineLabel = `🔓 Locks in ${countdownStr}`;
+    deadlineLabel = `\uD83D\uDD13 Locks in ${countdownStr}`;
     deadlineColor = isUrgent ? 'error.main' : 'text.secondary';
   }
 
@@ -68,7 +151,6 @@ function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline })
         {predictedMatchups} / {totalMatchups} predicted
       </Typography>
 
-      {/* Progress bar */}
       <Box sx={{ flex: 1, minWidth: 80 }}>
         <Box sx={{
           height: 4, borderRadius: 2,
@@ -92,59 +174,28 @@ function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline })
           {deadlineLabel}
         </Typography>
       )}
-    </Box>
-  );
-}
 
-/**
- * The centered Finals column — trophy, title, points badge, and the Finals matchup card.
- */
-function FinalsSection({ finalMatchup, isLocked, onMatchupClick }) {
-  return (
-    <Box sx={{
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      minWidth: 192, px: 1,
-    }}>
-      <Box sx={{ textAlign: 'center', mb: 2 }}>
-        <Typography sx={{
-          fontSize: 34, lineHeight: 1,
-          filter: 'drop-shadow(0 0 14px rgba(245,158,11,0.65))',
-        }}>
-          🏆
-        </Typography>
-        <Typography sx={{
-          display: 'block',
-          fontSize: '0.5625rem', fontWeight: 900,
-          textTransform: 'uppercase', letterSpacing: '0.22em',
-          color: '#f59e0b', mt: 0.5,
-        }}>
-          NBA Finals
-        </Typography>
-        <Typography sx={{
-          display: 'block',
-          fontSize: '0.5625rem', fontWeight: 700,
-          letterSpacing: '0.1em', color: 'rgba(245,158,11,0.7)',
-        }}>
-          {FINALS_PTS} pts
-        </Typography>
-      </Box>
-      <Box sx={{ width: '100%' }}>
-        <BracketMatchup matchup={finalMatchup} isLocked={isLocked} isFinals onMatchupClick={onMatchupClick} />
-      </Box>
+      {/* Inline action buttons */}
+      {actionButtons && (
+        <Box sx={{ display: 'flex', gap: 1.5, ml: 'auto' }}>
+          {actionButtons}
+        </Box>
+      )}
     </Box>
   );
 }
 
 /**
  * BracketView — top-level layout component.
- * Desktop: West (5 cols) | Finals (center) | East (5 cols) in a horizontally scrollable row.
- * Mobile:  Tabs (West / Finals / East) each rendering their rounds vertically.
+ * Desktop (>=md): CSS Grid side-by-side bracket with connectors.
+ * Mobile (<md):   Horizontal snap-scroll with collapsible conference sections.
  */
-const BracketView = ({ bracket, isLocked, predictedMatchups, totalMatchups, deadline, onMatchupClick }) => {
+const BracketView = ({
+  bracket, isLocked, predictedMatchups, totalMatchups, deadline, onMatchupClick,
+  bracketHealth, viewingPlayerName, bonusPicks, scoringConfig, actionButtons,
+}) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [mobileTab, setMobileTab] = useState(0);
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'), { noSsr: true });
 
   const header = (
     <BracketHeader
@@ -152,77 +203,47 @@ const BracketView = ({ bracket, isLocked, predictedMatchups, totalMatchups, dead
       totalMatchups={totalMatchups}
       isLocked={isLocked}
       deadline={deadline}
+      bracketHealth={bracketHealth}
+      viewingPlayerName={viewingPlayerName}
+      actionButtons={actionButtons}
     />
   );
 
   if (isMobile) {
     return (
       <Box>
-        {header}
-        <Tabs
-          value={mobileTab}
-          onChange={(_, v) => setMobileTab(v)}
-          variant="fullWidth"
-          sx={{ mb: 2, borderBottom: `1px solid ${theme.palette.divider}` }}
-        >
-          <Tab label="West" />
-          <Tab label="Finals" />
-          <Tab label="East" />
-        </Tabs>
-
-        {mobileTab === 0 && (
-          <ConferenceBracket conf="west" rounds={bracket.west} isLocked={isLocked} onMatchupClick={onMatchupClick} mobile />
-        )}
-        {mobileTab === 1 && (
-          <Box sx={{ px: 2, maxWidth: 380, mx: 'auto' }}>
-            <Box sx={{ textAlign: 'center', mb: 2 }}>
-              <Typography sx={{
-                fontSize: 38,
-                filter: 'drop-shadow(0 0 12px rgba(245,158,11,0.6))',
-              }}>🏆</Typography>
-              <Typography sx={{
-                display: 'block',
-                fontSize: '0.625rem', fontWeight: 900,
-                textTransform: 'uppercase', letterSpacing: '0.2em',
-                color: '#f59e0b',
-              }}>
-                NBA Finals
-              </Typography>
-              <Typography sx={{
-                display: 'block',
-                fontSize: '0.5625rem', fontWeight: 700,
-                letterSpacing: '0.1em', color: 'rgba(245,158,11,0.7)',
-              }}>
-                {FINALS_PTS} pts
-              </Typography>
-            </Box>
-            <BracketMatchup matchup={bracket.final} isLocked={isLocked} isFinals onMatchupClick={onMatchupClick} />
-          </Box>
-        )}
-        {mobileTab === 2 && (
-          <ConferenceBracket conf="east" rounds={bracket.east} isLocked={isLocked} onMatchupClick={onMatchupClick} mobile />
-        )}
+        <Box sx={{
+          px: 2,
+          position: 'sticky',
+          top: 56,
+          zIndex: 10,
+          bgcolor: 'background.default',
+          pb: 0.5,
+        }}>
+          {header}
+        </Box>
+        <MobileBracketScroll
+          bracket={bracket}
+          isLocked={isLocked}
+          onMatchupClick={onMatchupClick}
+          bonusPicks={bonusPicks}
+          scoringConfig={scoringConfig}
+        />
       </Box>
     );
   }
 
-  // Desktop — horizontal flex row with overflow scroll
+  // Desktop — CSS Grid bracket
   return (
     <Box>
       {header}
-      {/* Negative margin to let the bracket use full width beyond Container padding */}
-      <Box sx={{ overflowX: 'auto', pb: 2, mx: -3 }}>
-        <Box sx={{
-          display: 'flex',
-          minWidth: 1540,
-          alignItems: 'flex-start',
-          px: 1.5,
-        }}>
-          <ConferenceBracket conf="west" rounds={bracket.west} isLocked={isLocked} onMatchupClick={onMatchupClick} />
-          <FinalsSection finalMatchup={bracket.final} isLocked={isLocked} onMatchupClick={onMatchupClick} />
-          <ConferenceBracket conf="east" rounds={bracket.east} isLocked={isLocked} onMatchupClick={onMatchupClick} />
-        </Box>
-      </Box>
+      <DesktopBracketGrid
+        bracket={bracket}
+        isLocked={isLocked}
+        onMatchupClick={onMatchupClick}
+        bonusPicks={bonusPicks}
+        scoringConfig={scoringConfig}
+      />
     </Box>
   );
 };

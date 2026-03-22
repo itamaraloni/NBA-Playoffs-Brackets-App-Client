@@ -28,6 +28,7 @@ import { alpha } from '@mui/material/styles';
 import { PLAYER_AVATARS } from '../shared/GeneralConsts';
 import BracketServices from '../services/BracketServices';
 import BracketView from './BracketView';
+import { computeBracketHealth } from '../utils/bracketUtils';
 
 /**
  * Dialog for viewing league members' brackets after the deadline.
@@ -245,6 +246,15 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
 
     if (!bracketData) return null;
 
+    const health = computeBracketHealth(bracketData, bracketData.scoringConfig);
+    const bPicks = {
+      championshipPick:       bracketData.championshipPick,
+      mvpPick:                bracketData.mvpPick,
+      championshipPickStatus: bracketData.championshipPickStatus,
+      mvpPickStatus:          bracketData.mvpPickStatus,
+      mvpPickTeam:            bracketData.mvpPickTeam,
+    };
+
     return (
       <BracketView
         bracket={bracketData}
@@ -253,6 +263,10 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
         totalMatchups={bracketData.totalMatchups}
         deadline={bracketData.deadline}
         onMatchupClick={undefined}
+        bracketHealth={health}
+        viewingPlayerName={selectedPlayer?.playerName}
+        bonusPicks={bPicks}
+        scoringConfig={bracketData.scoringConfig}
       />
     );
   };
