@@ -50,7 +50,7 @@ function ConferenceSection({ title, children, defaultExpanded = true }) {
           fontSize: '0.625rem', fontWeight: 700,
           textTransform: 'uppercase', letterSpacing: '0.12em',
           color: theme.palette.primary.main, textAlign: 'center',
-          py: '6px', mb: 1,
+          py: '10px', mb: 1,
           borderBottom: `2px solid ${theme.palette.primary.main}`,
         }}
       >
@@ -205,6 +205,11 @@ function DotNav({ count, activeIndex, onDotClick }) {
         <Box
           key={i}
           onClick={() => onDotClick(i)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onDotClick(i); } }}
+          role="button"
+          tabIndex={0}
+          aria-label={`Go to ${DOT_NAV_LABELS[i]}`}
+          aria-current={i === activeIndex ? 'step' : undefined}
           sx={{
             width: 10, height: 10, borderRadius: '50%',
             background: i === activeIndex ? theme.palette.primary.main : theme.palette.text.disabled,
@@ -212,6 +217,10 @@ function DotNav({ count, activeIndex, onDotClick }) {
             transition: 'background 0.3s, transform 0.3s',
             cursor: 'pointer',
             position: 'relative',
+            '&:focus-visible': {
+              outline: `2px solid ${theme.palette.primary.main}`,
+              outlineOffset: 3,
+            },
             // Enlarge tap target
             '&::before': {
               content: '""', position: 'absolute',

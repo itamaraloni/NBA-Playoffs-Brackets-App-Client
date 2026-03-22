@@ -190,6 +190,8 @@ function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline, b
  * Desktop (>=md): CSS Grid side-by-side bracket with connectors.
  * Mobile (<md):   Horizontal snap-scroll with collapsible conference sections.
  */
+const APPBAR_HEIGHT_MOBILE = 56; // MUI default mobile toolbar height
+
 const BracketView = ({
   bracket, isLocked, predictedMatchups, totalMatchups, deadline, onMatchupClick,
   bracketHealth, viewingPlayerName, bonusPicks, scoringConfig, actionButtons,
@@ -215,7 +217,7 @@ const BracketView = ({
         <Box sx={{
           px: 2,
           position: 'sticky',
-          top: 56,
+          top: APPBAR_HEIGHT_MOBILE,
           zIndex: 10,
           bgcolor: 'background.default',
           pb: 0.5,
