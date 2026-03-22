@@ -24,7 +24,7 @@ function formatCountdown(ms) {
  * BracketHeader — adapts between write mode (progress bar + countdown) and
  * read mode (health stats + accuracy bar + viewing badge).
  */
-function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline, bracketHealth, viewingPlayerName, actionButtons }) {
+function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline, bracketHealth, viewingPlayerName, actionButtons, flat }) {
   const theme = useTheme();
   const [now, setNow] = useState(Date.now());
 
@@ -47,10 +47,11 @@ function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline, b
     return (
       <Box sx={{
         display: 'flex', alignItems: 'center', flexWrap: 'wrap',
-        gap: 1.5, p: 1.5, mb: 1.5,
+        gap: 1.5, p: 1.5, mb: flat ? 0 : 1.5,
         background: theme.palette.background.paper,
-        borderRadius: 2,
-        border: `1px solid ${theme.palette.divider}`,
+        borderRadius: flat ? 0 : 2,
+        border: flat ? 'none' : `1px solid ${theme.palette.divider}`,
+        ...(flat && { borderBottom: `1px solid ${theme.palette.divider}` }),
       }}>
         {/* Points label */}
         <Typography variant="body2" sx={{ fontWeight: 600, whiteSpace: 'nowrap', color: theme.palette.text.secondary }}>
@@ -142,10 +143,11 @@ function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline, b
   return (
     <Box sx={{
       display: 'flex', alignItems: 'center', flexWrap: 'wrap',
-      gap: 2, p: 1.5, mb: 1.5,
+      gap: 2, p: 1.5, mb: flat ? 0 : 1.5,
       background: theme.palette.background.paper,
-      borderRadius: 2,
-      border: `1px solid ${theme.palette.divider}`,
+      borderRadius: flat ? 0 : 2,
+      border: flat ? 'none' : `1px solid ${theme.palette.divider}`,
+      ...(flat && { borderBottom: `1px solid ${theme.palette.divider}` }),
     }}>
       <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
         {predictedMatchups} / {totalMatchups} predicted
@@ -190,12 +192,17 @@ function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline, b
  * Desktop (>=md): CSS Grid side-by-side bracket with connectors.
  * Mobile (<md):   Horizontal snap-scroll with collapsible conference sections.
  */
+const APPBAR_HEIGHT_MOBILE = 56; // MUI default mobile toolbar height
+
 const BracketView = ({
   bracket, isLocked, predictedMatchups, totalMatchups, deadline, onMatchupClick,
   bracketHealth, viewingPlayerName, bonusPicks, scoringConfig, actionButtons,
+  stickyHeaderTop = APPBAR_HEIGHT_MOBILE,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'), { noSsr: true });
+
+  const inDialog = stickyHeaderTop === 0;
 
   const header = (
     <BracketHeader
@@ -206,6 +213,7 @@ const BracketView = ({
       bracketHealth={bracketHealth}
       viewingPlayerName={viewingPlayerName}
       actionButtons={actionButtons}
+      flat={inDialog}
     />
   );
 
@@ -213,12 +221,13 @@ const BracketView = ({
     return (
       <Box>
         <Box sx={{
-          px: 2,
+          // In dialog: no horizontal padding so header spans full width
+          px: inDialog ? 0 : 2,
           position: 'sticky',
-          top: 56,
+          top: stickyHeaderTop,
           zIndex: 10,
-          bgcolor: 'background.default',
-          pb: 0.5,
+          bgcolor: inDialog ? 'background.paper' : 'background.default',
+          pb: inDialog ? 0 : 0.5,
         }}>
           {header}
         </Box>

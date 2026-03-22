@@ -1,33 +1,27 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import BracketMatchup from './BracketMatchup';
 import BonusPicks from './BonusPicks';
-
-// R1 display order: top half (1v8 + 4v5) → bottom half (3v6 + 2v7)
-const R1_DISPLAY_ORDER = [1, 4, 3, 2];
+import { reorderR1 } from '../../utils/bracketUtils';
+import { getBracketAnimationSx } from './bracketStyles';
 
 /**
  * HoverCard — wrapper for bracket cards with hover handlers + staggered animation delay.
  * Defined outside DesktopBracketGrid so its component identity is stable across re-renders,
  * preventing React from unmounting/remounting cards and restarting the entry animation.
  */
-function HoverCard({ children, delay, onHoverStart, onHoverEnd, ...props }) {
+function HoverCard({ children, delay, onHoverStart, onHoverEnd, sx: sxProp, ...props }) {
   return (
     <Box
       {...props}
       onMouseEnter={onHoverStart}
       onMouseLeave={onHoverEnd}
-      style={delay != null ? { animationDelay: `${delay}ms` } : undefined}
+      sx={{ ...(delay != null && { animationDelay: `${delay}ms` }), ...sxProp }}
     >
       {children}
     </Box>
   );
-}
-
-function reorderR1(matchups) {
-  if (!matchups || matchups.length !== 4) return matchups || [];
-  return R1_DISPLAY_ORDER.map(pos => matchups.find(m => m.matchup_position === pos)).filter(Boolean);
 }
 
 /**
@@ -135,6 +129,8 @@ function RoundHeader({ label, pts, variant, gridColumn }) {
 const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, scoringConfig }) => {
   const theme = useTheme();
   const gridRef = useRef(null);
+  const animatedRef = useRef(false);
+  useEffect(() => { animatedRef.current = true; }, []);
 
   // --- Hover highlighting ---
   const highlightPath = useCallback((cardEl) => {
@@ -197,8 +193,9 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
   const cfPts = fmtPts('conferenceFinal');
   const finalPts = fmtPts('final');
 
-  // Card animation stagger counter — increments per card for cascading fade-in
+  // Card animation stagger counter — only used on first render
   let cardIdx = 0;
+  const skipDelay = animatedRef.current;
 
   return (
     <Box
@@ -211,26 +208,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
           'auto auto 1fr 10px 1fr 20px 1fr 10px 1fr',
         minHeight: 520,
         alignItems: 'center',
-        // Highlight styles applied via JS class toggling (no re-renders)
-        '& .card-highlight > .MuiPaper-root': {
-          borderColor: `${theme.palette.primary.main} !important`,
-          boxShadow: `0 0 0 1px ${theme.palette.primary.main}, ${theme.shadows[4]} !important`,
-        },
-        '& .card-highlight-source > .MuiPaper-root': {
-          borderColor: `${alpha(theme.palette.primary.main, 0.7)} !important`,
-          boxShadow: `0 0 8px ${alpha(theme.palette.primary.main, 0.25)} !important`,
-        },
-        // Card entry animation — stagger fade-in
-        '@keyframes bracketFadeIn': {
-          from: { opacity: 0, transform: 'translateY(6px)' },
-          to: { opacity: 1, transform: 'translateY(0)' },
-        },
-        '& [data-card-id]': {
-          animation: 'bracketFadeIn 0.3s ease-out both',
-        },
-        '@media (prefers-reduced-motion: reduce)': {
-          '& [data-card-id]': { animation: 'none' },
-        },
+        ...getBracketAnimationSx(theme),
       }}
     >
       {/* ════ Row 1: Conference Titles ════ */}
@@ -303,7 +281,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
             <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.palette.text.disabled, textAlign: 'center' }}>
               Survivor
             </Typography>
-            <HoverCard data-card-id="w-surv" data-feeds="w-pi-1,w-pi-2" delay={cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}>
+            <HoverCard data-card-id="w-surv" data-feeds="w-pi-1,w-pi-2" delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}>
               <BracketMatchup matchup={westSurvivor} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
             </HoverCard>
           </>
@@ -313,7 +291,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
             <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.palette.text.disabled, textAlign: 'center' }}>
               {m.matchup_position === 1 ? '#7 vs #8' : '#9 vs #10'}
             </Typography>
-            <HoverCard data-card-id={`w-pi-${m.matchup_position}`} data-feeds="" delay={cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}>
+            <HoverCard data-card-id={`w-pi-${m.matchup_position}`} data-feeds="" delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}>
               <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
             </HoverCard>
           </React.Fragment>
@@ -330,7 +308,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
             key={m.matchup_position}
             data-card-id={`w-r1-${m.matchup_position}`}
             data-feeds={feeds.join(',')}
-            delay={cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
+            delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
             sx={{ gridColumn: 3, gridRow: rows[i], px: '2px' }}
           >
             <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
@@ -347,7 +325,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
         <HoverCard
           data-card-id="w-s1"
           data-feeds="w-r1-1,w-r1-4,w-c1-top"
-          delay={cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
+          delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
           sx={{ gridColumn: 5, gridRow: '3 / 6', px: '2px', alignSelf: 'center' }}
         >
           <BracketMatchup matchup={westSemis[0]} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
@@ -357,7 +335,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
         <HoverCard
           data-card-id="w-s2"
           data-feeds="w-r1-3,w-r1-2,w-c1-bot"
-          delay={cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
+          delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
           sx={{ gridColumn: 5, gridRow: '7 / 10', px: '2px', alignSelf: 'center' }}
         >
           <BracketMatchup matchup={westSemis[1]} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
@@ -372,7 +350,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
         <HoverCard
           data-card-id="w-cf"
           data-feeds="w-s1,w-s2,w-c2"
-          delay={cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
+          delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
           sx={{ gridColumn: 7, gridRow: '3 / 10', px: '2px', alignSelf: 'center' }}
         >
           <BracketMatchup matchup={westCf} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
@@ -420,7 +398,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
         <HoverCard
           data-card-id="e-cf"
           data-feeds="e-s1,e-s2,e-c2"
-          delay={cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
+          delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
           sx={{ gridColumn: 9, gridRow: '3 / 10', px: '2px', alignSelf: 'center' }}
         >
           <BracketMatchup matchup={eastCf} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
@@ -435,7 +413,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
         <HoverCard
           data-card-id="e-s1"
           data-feeds="e-r1-1,e-r1-4,e-c1-top"
-          delay={cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
+          delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
           sx={{ gridColumn: 11, gridRow: '3 / 6', px: '2px', alignSelf: 'center' }}
         >
           <BracketMatchup matchup={eastSemis[0]} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
@@ -445,7 +423,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
         <HoverCard
           data-card-id="e-s2"
           data-feeds="e-r1-3,e-r1-2,e-c1-bot"
-          delay={cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
+          delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
           sx={{ gridColumn: 11, gridRow: '7 / 10', px: '2px', alignSelf: 'center' }}
         >
           <BracketMatchup matchup={eastSemis[1]} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
@@ -466,7 +444,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
             key={m.matchup_position}
             data-card-id={`e-r1-${m.matchup_position}`}
             data-feeds={feeds.join(',')}
-            delay={cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
+            delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
             sx={{ gridColumn: 13, gridRow: rows[i], px: '2px' }}
           >
             <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
@@ -487,7 +465,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
             <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.palette.text.disabled, textAlign: 'center' }}>
               Survivor
             </Typography>
-            <HoverCard data-card-id="e-surv" data-feeds="e-pi-1,e-pi-2" delay={cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}>
+            <HoverCard data-card-id="e-surv" data-feeds="e-pi-1,e-pi-2" delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}>
               <BracketMatchup matchup={eastSurvivor} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
             </HoverCard>
           </>
@@ -497,7 +475,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
             <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.palette.text.disabled, textAlign: 'center' }}>
               {m.matchup_position === 1 ? '#7 vs #8' : '#9 vs #10'}
             </Typography>
-            <HoverCard data-card-id={`e-pi-${m.matchup_position}`} data-feeds="" delay={cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}>
+            <HoverCard data-card-id={`e-pi-${m.matchup_position}`} data-feeds="" delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}>
               <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
             </HoverCard>
           </React.Fragment>

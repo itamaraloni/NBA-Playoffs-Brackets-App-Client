@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Chip, Paper, Tooltip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { getLogoPath, getShortTeamName } from '../shared/teamUtils';
-import { getMatchupResultState } from '../utils/bracketUtils';
+import { getLogoPath, getShortTeamName } from '../../shared/teamUtils';
+import { getMatchupResultState } from '../../utils/bracketUtils';
 
 function getResultChipConfig(state, theme) {
   switch (state) {
@@ -246,6 +246,12 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
           boxShadow: theme.shadows[4],
         }
       : {},
+    '&:focus-visible': isClickable
+      ? {
+          outline: `2px solid ${theme.palette.primary.main}`,
+          outlineOffset: 2,
+        }
+      : {},
   };
 
   const t1IsPredWinner = m.predWinnerIsTeam1;
@@ -283,8 +289,20 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
     scoreBarText = `Prediction: ${predictedWinnerName} ${m.predicted_series_score || ''}`;
   }
 
+  const handleKeyDown = isClickable
+    ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onMatchupClick(m); } }
+    : undefined;
+
   return (
-    <Paper elevation={0} sx={cardSx} onClick={isClickable ? () => onMatchupClick(m) : undefined}>
+    <Paper
+      elevation={0}
+      sx={cardSx}
+      onClick={isClickable ? () => onMatchupClick(m) : undefined}
+      onKeyDown={handleKeyDown}
+      tabIndex={isClickable ? 0 : undefined}
+      role={isClickable ? 'button' : undefined}
+      aria-label={isClickable ? `Predict ${m.team_1?.name || 'TBD'} vs ${m.team_2?.name || 'TBD'}` : undefined}
+    >
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: '9px', pt: '6px', pb: '2px' }}>
         <Tooltip
           title={resultTooltip}

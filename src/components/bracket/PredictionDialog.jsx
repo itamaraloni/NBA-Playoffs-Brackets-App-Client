@@ -4,7 +4,7 @@ import {
   Button, Box, Typography, Chip, useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { getLogoPath } from '../shared/teamUtils';
+import { getLogoPath } from '../../shared/teamUtils';
 
 const SERIES_OPTIONS = [
   { label: '4-0 (Sweep)', loserWins: 0 },

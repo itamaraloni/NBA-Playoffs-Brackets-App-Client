@@ -6,9 +6,9 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import GroupsIcon from '@mui/icons-material/Groups';
 import { useAuth } from '../contexts/AuthContext';
-import BracketView from '../components/BracketView';
-import PredictionDialog from '../components/PredictionDialog';
-import LeagueBracketsDialog from '../components/LeagueBracketsDialog';
+import BracketView from '../components/bracket/BracketView';
+import PredictionDialog from '../components/bracket/PredictionDialog';
+import LeagueBracketsDialog from '../components/bracket/LeagueBracketsDialog';
 import BracketServices from '../services/BracketServices';
 import { applyPick, countPicks, picksMatch, flattenBracketPicks, computeBracketHealth } from '../utils/bracketUtils';
 
@@ -145,9 +145,9 @@ const BracketPage = () => {
       );
       const updated = {
         ...bracketState,
-        isBracketSubmitted:  result.is_bracket_submitted,
-        bracketSubmittedAt:  result.bracket_submitted_at,
-        predictedMatchups:   result.predicted_matchups,
+        isBracketSubmitted:  result.isBracketSubmitted,
+        bracketSubmittedAt:  result.bracketSubmittedAt,
+        predictedMatchups:   result.predictedMatchups,
       };
       setServerBracket(updated);
       setBracketState(updated);

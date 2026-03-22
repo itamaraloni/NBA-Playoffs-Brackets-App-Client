@@ -25,10 +25,10 @@ import {
   CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
-import { PLAYER_AVATARS } from '../shared/GeneralConsts';
-import BracketServices from '../services/BracketServices';
+import { PLAYER_AVATARS } from '../../shared/GeneralConsts';
+import BracketServices from '../../services/BracketServices';
 import BracketView from './BracketView';
-import { computeBracketHealth } from '../utils/bracketUtils';
+import { computeBracketHealth } from '../../utils/bracketUtils';
 
 /**
  * Dialog for viewing league members' brackets after the deadline.
@@ -264,9 +264,10 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
         deadline={bracketData.deadline}
         onMatchupClick={undefined}
         bracketHealth={health}
-        viewingPlayerName={selectedPlayer?.playerName}
+        viewingPlayerName={selectedPlayer?.playerId !== currentPlayerId ? selectedPlayer?.playerName : undefined}
         bonusPicks={bPicks}
         scoringConfig={bracketData.scoringConfig}
+        stickyHeaderTop={0}
       />
     );
   };
@@ -330,7 +331,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
         </IconButton>
       </DialogTitle>
       <Divider />
-      <DialogContent sx={{ p: selectedPlayer ? 2 : 0 }}>
+      <DialogContent sx={{ p: selectedPlayer ? 2 : 0, ...(selectedPlayer && { pt: 0 }) }}>
         {selectedPlayer ? renderBracketView() : renderPlayerList()}
       </DialogContent>
     </Dialog>
