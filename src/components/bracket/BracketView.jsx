@@ -237,6 +237,7 @@ const BracketView = ({
           onMatchupClick={onMatchupClick}
           bonusPicks={bonusPicks}
           scoringConfig={scoringConfig}
+          inDialog={inDialog}
         />
       </Box>
     );

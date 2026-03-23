@@ -268,7 +268,8 @@ const Layout = ({ children, onLogout }) => {
         component="main"
         sx={{
           flexGrow: 1,
-          minWidth: 0,
+          minWidth: location.pathname === '/bracket' ? 0 : undefined,
+          overflowX: 'hidden',
           pt: 3,
           width: { md: `calc(100% - ${drawerWidth}px)` },
           transition: theme.transitions.create('width', {
