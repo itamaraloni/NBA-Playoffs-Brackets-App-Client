@@ -117,7 +117,7 @@ function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline, b
 
         {/* Inline action buttons */}
         {actionButtons && (
-          <Box sx={{ display: 'flex', gap: 1.5, ml: 'auto' }}>
+          <Box sx={{ display: 'flex', gap: 1.5, ml: { md: 'auto' }, flexBasis: { xs: '100%', md: 'auto' }, justifyContent: { xs: 'center', md: 'flex-end' } }}>
             {actionButtons}
           </Box>
         )}
@@ -179,7 +179,7 @@ function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline, b
 
       {/* Inline action buttons */}
       {actionButtons && (
-        <Box sx={{ display: 'flex', gap: 1.5, ml: 'auto' }}>
+        <Box sx={{ display: 'flex', gap: 1.5, ml: { md: 'auto' }, flexBasis: { xs: '100%', md: 'auto' }, justifyContent: { xs: 'center', md: 'flex-end' } }}>
           {actionButtons}
         </Box>
       )}
