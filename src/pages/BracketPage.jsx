@@ -1,16 +1,22 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box, Button, CircularProgress, Alert, Typography,
+  Menu, MenuItem, ListItemIcon, ListItemText,
+  Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
+  IconButton, Tooltip, useTheme, useMediaQuery,
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import GroupsIcon from '@mui/icons-material/Groups';
+import CasinoIcon from '@mui/icons-material/Casino';
+import ShuffleIcon from '@mui/icons-material/Shuffle';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import { useAuth } from '../contexts/AuthContext';
 import BracketView from '../components/bracket/BracketView';
 import PredictionDialog from '../components/bracket/PredictionDialog';
 import LeagueBracketsDialog from '../components/bracket/LeagueBracketsDialog';
 import BracketServices from '../services/BracketServices';
-import { applyPick, countPicks, picksMatch, flattenBracketPicks, computeBracketHealth } from '../utils/bracketUtils';
+import { applyPick, countPicks, picksMatch, flattenBracketPicks, computeBracketHealth, randomFillBracket } from '../utils/bracketUtils';
 
 // PredictionDialog passes matchup.round (API key: 'playin_first', 'first', etc.)
 // but applyPick / bracketUtils work with component round keys ('playin', 'r1', etc.)
@@ -41,7 +47,13 @@ const BracketPage = () => {
   // League brackets dialog
   const [leagueBracketsOpen, setLeagueBracketsOpen] = useState(false);
 
+  // Random fill
+  const [randomFillAnchor, setRandomFillAnchor] = useState(null);
+  const [confirmFillOpen, setConfirmFillOpen]   = useState(false);
+
   const { activePlayer } = useAuth();
+  const theme    = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   // -------------------------------------------------------------------------
   // Load bracket on mount / league switch
@@ -166,6 +178,23 @@ const BracketPage = () => {
   };
 
   // -------------------------------------------------------------------------
+  // Random fill handlers
+  // -------------------------------------------------------------------------
+  const handleRandomFill = useCallback((mode) => {
+    setRandomFillAnchor(null);
+    if (mode === 'all' && predictedCount > 0) {
+      setConfirmFillOpen(true);
+      return;
+    }
+    setBracketState(prev => randomFillBracket(prev, mode));
+  }, [predictedCount]);
+
+  const handleConfirmFillAll = useCallback(() => {
+    setConfirmFillOpen(false);
+    setBracketState(prev => randomFillBracket(prev, 'all'));
+  }, []);
+
+  // -------------------------------------------------------------------------
   // Render guards
   // -------------------------------------------------------------------------
   if (loading) {
@@ -240,15 +269,36 @@ const BracketPage = () => {
               </Button>
             )}
             {!bracketState.isLocked && (
-              <Button
-                variant="contained"
-                size="medium"
-                onClick={handleSubmitBracket}
-                disabled={!isComplete || submitting || isSubmitted}
-                startIcon={submitIcon}
-              >
-                {submitLabel}
-              </Button>
+              <>
+                {isMobile ? (
+                  <Tooltip title="Random Fill">
+                    <IconButton
+                      onClick={(e) => setRandomFillAnchor(e.currentTarget)}
+                      color="primary"
+                    >
+                      <CasinoIcon />
+                    </IconButton>
+                  </Tooltip>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    size="medium"
+                    onClick={(e) => setRandomFillAnchor(e.currentTarget)}
+                    startIcon={<CasinoIcon />}
+                  >
+                    Random Fill
+                  </Button>
+                )}
+                <Button
+                  variant="contained"
+                  size="medium"
+                  onClick={handleSubmitBracket}
+                  disabled={!isComplete || submitting || isSubmitted}
+                  startIcon={submitIcon}
+                >
+                  {submitLabel}
+                </Button>
+              </>
             )}
           </>
         }
@@ -269,6 +319,37 @@ const BracketPage = () => {
         leagueId={activePlayer.league_id}
         currentPlayerId={activePlayer.player_id}
       />
+
+      {/* Random fill menu */}
+      <Menu
+        anchorEl={randomFillAnchor}
+        open={Boolean(randomFillAnchor)}
+        onClose={() => setRandomFillAnchor(null)}
+      >
+        <MenuItem onClick={() => handleRandomFill('all')}>
+          <ListItemIcon><ShuffleIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Fill All</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={() => handleRandomFill('remaining')}>
+          <ListItemIcon><AutoFixHighIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Fill Remaining</ListItemText>
+        </MenuItem>
+      </Menu>
+
+      {/* Confirmation dialog for Fill All when picks exist */}
+      <Dialog open={confirmFillOpen} onClose={() => setConfirmFillOpen(false)}>
+        <DialogTitle>Replace all picks?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This will replace your {predictedCount} existing prediction{predictedCount !== 1 ? 's' : ''} with
+            random picks. You can still edit individual matchups afterward.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmFillOpen(false)}>Cancel</Button>
+          <Button onClick={handleConfirmFillAll} variant="contained">Replace All</Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

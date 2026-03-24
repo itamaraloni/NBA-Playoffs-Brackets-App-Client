@@ -3,7 +3,7 @@
  *
  * Exported: applyPick, countPicks, picksMatch, flattenBracketPicks,
  *           getMatchupResultState, computeBracketHealth,
- *           R1_DISPLAY_ORDER, reorderR1.
+ *           R1_DISPLAY_ORDER, reorderR1, randomFillBracket.
  *
  * All functions operate on the transformed bracket shape produced by
  * BracketServices.transformBracketData (component round keys, enriched matchup objects).
@@ -174,6 +174,7 @@ function clearMatchupPick(matchup) {
   matchup.predicted_series_score   = null;
   matchup.hasPick                  = false;
   matchup.predWinnerIsTeam1        = false;
+  matchup.predWinnerIsTeam2        = false;
 }
 
 /**
@@ -260,6 +261,7 @@ export function applyPick(bracketState, { round, conference, matchupPosition, wi
   target.predicted_series_score   = isPlayin ? null : `4-${seriesScoreLoser}`;
   target.hasPick                  = true;
   target.predWinnerIsTeam1        = winnerTeamId === target.team_1?.team_id;
+  target.predWinnerIsTeam2        = winnerTeamId === target.team_2?.team_id;
 
   // Cascade downstream
   propagatePickResult(state, conference, round, matchupPosition, winnerTeam, loserTeam);
@@ -376,6 +378,62 @@ export function flattenBracketPicks(bracketState) {
   });
 
   return picks;
+}
+
+// ---------------------------------------------------------------------------
+// Random fill
+// ---------------------------------------------------------------------------
+
+/**
+ * Fills empty (or all) matchup slots with random picks.
+ *
+ * Pure function — builds new state by sequentially calling applyPick in
+ * topological round order so upstream winners propagate before downstream
+ * matchups are filled.
+ *
+ * @param {Object} bracketState - Current bracket state
+ * @param {'all'|'remaining'} mode - 'all' replaces every pick; 'remaining' only fills empty slots
+ * @returns {Object} New bracket state with random picks applied
+ */
+const FILL_ROUND_ORDER = ['playin', 'survivor', 'r1', 'semis', 'cf'];
+
+export function randomFillBracket(bracketState, mode) {
+  let state = bracketState;
+
+  for (const conf of ['east', 'west']) {
+    for (const round of FILL_ROUND_ORDER) {
+      const count = state[conf][round]?.length ?? 0;
+      for (let i = 0; i < count; i++) {
+        // Re-read from latest state — applyPick deep-clones, so previous refs are stale
+        const m = state[conf][round][i];
+        if (mode === 'remaining' && m.hasPick) continue;
+        if (m.isTbd) continue;
+
+        const isPlayin = round === 'playin' || round === 'survivor';
+        state = applyPick(state, {
+          round,
+          conference:       conf,
+          matchupPosition:  m.matchup_position,
+          winnerTeamId:     Math.random() < 0.5 ? m.team_1.team_id : m.team_2.team_id,
+          seriesScoreLoser: isPlayin ? null : Math.floor(Math.random() * 4),
+        });
+      }
+    }
+  }
+
+  // Finals
+  const f = state.final;
+  if (f && !f.isTbd && !(mode === 'remaining' && f.hasPick)) {
+    state = applyPick(state, {
+      round:            'final',
+      conference:       'final',
+      matchupPosition:  f.matchup_position ?? 1,
+      winnerTeamId:     Math.random() < 0.5 ? f.team_1.team_id : f.team_2.team_id,
+      seriesScoreLoser: Math.floor(Math.random() * 4),
+    });
+  }
+
+  return state;
 }
 
 // ---------------------------------------------------------------------------
