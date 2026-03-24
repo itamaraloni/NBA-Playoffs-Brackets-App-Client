@@ -549,7 +549,7 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
 
       {/* Dot navigation — portaled to body so position:fixed works regardless of ancestor transforms */}
       {createPortal(
-        <DotNav count={5} activeIndex={activeRound} onDotClick={scrollToRound} zIndex={inDialog ? 1400 : 10} />,
+        <DotNav count={5} activeIndex={activeRound} onDotClick={scrollToRound} zIndex={inDialog ? theme.zIndex.modal + 100 : 10} />,
         document.body,
       )}
     </Box>
