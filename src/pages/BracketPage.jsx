@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box, Button, CircularProgress, Alert, Typography,
-  Menu, MenuItem, ListItemIcon, ListItemText,
+  Menu, MenuItem, ListItemIcon, ListItemText, Divider,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
   IconButton, Tooltip, useTheme, useMediaQuery,
 } from '@mui/material';
@@ -11,12 +11,15 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import CasinoIcon from '@mui/icons-material/Casino';
 import ShuffleIcon from '@mui/icons-material/Shuffle';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import BoltIcon from '@mui/icons-material/Bolt';
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import { useAuth } from '../contexts/AuthContext';
 import BracketView from '../components/bracket/BracketView';
 import PredictionDialog from '../components/bracket/PredictionDialog';
 import LeagueBracketsDialog from '../components/bracket/LeagueBracketsDialog';
 import BracketServices from '../services/BracketServices';
-import { applyPick, countPicks, picksMatch, flattenBracketPicks, computeBracketHealth, randomFillBracket } from '../utils/bracketUtils';
+import { applyPick, countPicks, picksMatch, flattenBracketPicks, computeBracketHealth, randomFillBracket, clearAllPicks } from '../utils/bracketUtils';
 
 // PredictionDialog passes matchup.round (API key: 'playin_first', 'first', etc.)
 // but applyPick / bracketUtils work with component round keys ('playin', 'r1', etc.)
@@ -50,6 +53,7 @@ const BracketPage = () => {
   // Random fill
   const [randomFillAnchor, setRandomFillAnchor] = useState(null);
   const [confirmFillOpen, setConfirmFillOpen]   = useState(false);
+  const [pendingStrategy, setPendingStrategy]   = useState('random');
 
   const { activePlayer } = useAuth();
   const theme    = useTheme();
@@ -180,19 +184,31 @@ const BracketPage = () => {
   // -------------------------------------------------------------------------
   // Random fill handlers
   // -------------------------------------------------------------------------
-  const handleRandomFill = useCallback((mode) => {
+  const handleRandomFill = useCallback((mode, strategy = 'random') => {
     setRandomFillAnchor(null);
+    if (mode === 'clear') {
+      if (predictedCount > 0) {
+        setPendingStrategy('clear');
+        setConfirmFillOpen(true);
+      }
+      return;
+    }
     if (mode === 'all' && predictedCount > 0) {
+      setPendingStrategy(strategy);
       setConfirmFillOpen(true);
       return;
     }
-    setBracketState(prev => randomFillBracket(prev, mode));
+    setBracketState(prev => randomFillBracket(prev, mode, strategy));
   }, [predictedCount]);
 
   const handleConfirmFillAll = useCallback(() => {
     setConfirmFillOpen(false);
-    setBracketState(prev => randomFillBracket(prev, 'all'));
-  }, []);
+    if (pendingStrategy === 'clear') {
+      setBracketState(prev => clearAllPicks(prev));
+    } else {
+      setBracketState(prev => randomFillBracket(prev, 'all', pendingStrategy));
+    }
+  }, [pendingStrategy]);
 
   // -------------------------------------------------------------------------
   // Render guards
@@ -334,20 +350,38 @@ const BracketPage = () => {
           <ListItemIcon><AutoFixHighIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Fill Remaining</ListItemText>
         </MenuItem>
+        <Divider />
+        <MenuItem onClick={() => handleRandomFill('all', 'favorites')}>
+          <ListItemIcon><TrendingUpIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Favorites Win</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={() => handleRandomFill('all', 'upsets')}>
+          <ListItemIcon><BoltIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Upsets Bracket</ListItemText>
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={() => handleRandomFill('clear')} disabled={predictedCount === 0}>
+          <ListItemIcon><DeleteSweepIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Clear All</ListItemText>
+        </MenuItem>
       </Menu>
 
-      {/* Confirmation dialog for Fill All when picks exist */}
+      {/* Confirmation dialog for Fill All / Clear All when picks exist */}
       <Dialog open={confirmFillOpen} onClose={() => setConfirmFillOpen(false)}>
-        <DialogTitle>Replace all picks?</DialogTitle>
+        <DialogTitle>{pendingStrategy === 'clear' ? 'Clear all picks?' : 'Replace all picks?'}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            This will replace your {predictedCount} existing prediction{predictedCount !== 1 ? 's' : ''} with
-            random picks. You can still edit individual matchups afterward.
+            {pendingStrategy === 'clear'
+              ? `This will clear your ${predictedCount} existing prediction${predictedCount !== 1 ? 's' : ''}. You'll start with an empty bracket.`
+              : `This will replace your ${predictedCount} existing prediction${predictedCount !== 1 ? 's' : ''} with new picks. You can still edit individual matchups afterward.`
+            }
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmFillOpen(false)}>Cancel</Button>
-          <Button onClick={handleConfirmFillAll} variant="contained">Replace All</Button>
+          <Button onClick={handleConfirmFillAll} variant="contained" color={pendingStrategy === 'clear' ? 'error' : 'primary'}>
+            {pendingStrategy === 'clear' ? 'Clear All' : 'Replace All'}
+          </Button>
         </DialogActions>
       </Dialog>
     </>

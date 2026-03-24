@@ -3,7 +3,7 @@
  *
  * Exported: applyPick, countPicks, picksMatch, flattenBracketPicks,
  *           getMatchupResultState, computeBracketHealth,
- *           R1_DISPLAY_ORDER, reorderR1, randomFillBracket.
+ *           R1_DISPLAY_ORDER, reorderR1, randomFillBracket, clearAllPicks.
  *
  * All functions operate on the transformed bracket shape produced by
  * BracketServices.transformBracketData (component round keys, enriched matchup objects).
@@ -385,7 +385,34 @@ export function flattenBracketPicks(bracketState) {
 // ---------------------------------------------------------------------------
 
 /**
- * Fills empty (or all) matchup slots with random picks.
+ * Picks the winner of a matchup based on strategy.
+ * Returns the winning team object.
+ *
+ * - 'random':    coin flip
+ * - 'favorites': higher seed wins deterministically (lower seed number)
+ * - 'upsets':    underdog wins with weighted probability — bigger seed gaps
+ *               mean higher upset probability (55-80%), creating a chaos bracket
+ *
+ * Falls back to random when seeds are equal or null (e.g. cross-conference Finals).
+ */
+function pickWinnerByStrategy(team1, team2, strategy) {
+  if (strategy !== 'random' && team1.seed != null && team2.seed != null && team1.seed !== team2.seed) {
+    const higherSeed = team1.seed < team2.seed ? team1 : team2;
+    const lowerSeed  = higherSeed === team1 ? team2 : team1;
+
+    if (strategy === 'favorites') return higherSeed;
+
+    // 'upsets': bigger seed gap → higher upset probability
+    // diff 1 (4v5) → 58%, diff 3 (3v6) → 64%, diff 5 (2v7) → 70%, diff 7 (1v8) → 76%
+    const seedDiff = Math.abs(team1.seed - team2.seed);
+    const upsetProb = Math.min(0.55 + 0.03 * seedDiff, 0.80);
+    return Math.random() < upsetProb ? lowerSeed : higherSeed;
+  }
+  return Math.random() < 0.5 ? team1 : team2;
+}
+
+/**
+ * Fills empty (or all) matchup slots with picks based on a strategy.
  *
  * Pure function — builds new state by sequentially calling applyPick in
  * topological round order so upstream winners propagate before downstream
@@ -393,11 +420,12 @@ export function flattenBracketPicks(bracketState) {
  *
  * @param {Object} bracketState - Current bracket state
  * @param {'all'|'remaining'} mode - 'all' replaces every pick; 'remaining' only fills empty slots
- * @returns {Object} New bracket state with random picks applied
+ * @param {'random'|'favorites'|'upsets'} [strategy='random'] - Winner selection strategy
+ * @returns {Object} New bracket state with picks applied
  */
 const FILL_ROUND_ORDER = ['playin', 'survivor', 'r1', 'semis', 'cf'];
 
-export function randomFillBracket(bracketState, mode) {
+export function randomFillBracket(bracketState, mode, strategy = 'random') {
   let state = bracketState;
 
   for (const conf of ['east', 'west']) {
@@ -410,11 +438,12 @@ export function randomFillBracket(bracketState, mode) {
         if (m.isTbd) continue;
 
         const isPlayin = round === 'playin' || round === 'survivor';
+        const winner = pickWinnerByStrategy(m.team_1, m.team_2, strategy);
         state = applyPick(state, {
           round,
           conference:       conf,
           matchupPosition:  m.matchup_position,
-          winnerTeamId:     Math.random() < 0.5 ? m.team_1.team_id : m.team_2.team_id,
+          winnerTeamId:     winner.team_id,
           seriesScoreLoser: isPlayin ? null : Math.floor(Math.random() * 4),
         });
       }
@@ -424,15 +453,64 @@ export function randomFillBracket(bracketState, mode) {
   // Finals
   const f = state.final;
   if (f && !f.isTbd && !(mode === 'remaining' && f.hasPick)) {
+    const winner = pickWinnerByStrategy(f.team_1, f.team_2, strategy);
     state = applyPick(state, {
       round:            'final',
       conference:       'final',
       matchupPosition:  f.matchup_position ?? 1,
-      winnerTeamId:     Math.random() < 0.5 ? f.team_1.team_id : f.team_2.team_id,
+      winnerTeamId:     winner.team_id,
       seriesScoreLoser: Math.floor(Math.random() * 4),
     });
   }
 
+  return state;
+}
+
+/**
+ * Clears all picks and propagated team slots, returning the bracket to its
+ * base state (only structurally-assigned teams remain).
+ *
+ * Uses PROPAGATION_MAP to identify which team slots were filled by predictions
+ * and nulls them out, then clears pick fields on every matchup.
+ */
+export function clearAllPicks(bracketState) {
+  const state = JSON.parse(JSON.stringify(bracketState));
+
+  // Null out every propagated team slot defined in the propagation map
+  for (const entries of Object.values(PROPAGATION_MAP)) {
+    for (const { targetRound, targetPos, slot: slotDef } of entries) {
+      if (targetRound === 'final') {
+        // cf → final: both team slots are propagated (east→team_1, west→team_2)
+        if (state.final) {
+          state.final.team_1 = null;
+          state.final.team_2 = null;
+        }
+      } else {
+        for (const conf of ['east', 'west']) {
+          const target = getMatchupMut(state, conf, targetRound, targetPos);
+          if (target && slotDef) target[slotDef] = null;
+        }
+      }
+    }
+  }
+
+  // Clear picks and re-derive flags on every matchup
+  for (const conf of ['east', 'west']) {
+    for (const matchups of Object.values(state[conf])) {
+      for (const m of matchups) {
+        clearMatchupPick(m);
+        m.isTbd    = !m.team_1 || !m.team_2;
+        m.can_edit = !m.isTbd && !state.isLocked;
+      }
+    }
+  }
+  if (state.final) {
+    clearMatchupPick(state.final);
+    state.final.isTbd    = !state.final.team_1 || !state.final.team_2;
+    state.final.can_edit = !state.final.isTbd && !state.isLocked;
+  }
+
+  state.predictedMatchups = 0;
   return state;
 }
 
