@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Box, Typography, Collapse, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -190,16 +191,18 @@ function MobileRoundHeader({ label, pts, variant }) {
  */
 const DOT_NAV_LABELS = ['Play-In', 'R1', 'Semis', 'Conf', 'Finals'];
 
-function DotNav({ count, activeIndex, onDotClick }) {
+function DotNav({ count, activeIndex, onDotClick, zIndex = 10 }) {
   const theme = useTheme();
 
   return (
     <Box sx={{
+      position: 'fixed', bottom: 12, left: '50%', transform: 'translateX(-50%)',
       display: 'inline-flex', alignItems: 'center', gap: 1.5,
       background: theme.palette.background.paper,
       px: 2, py: 1, borderRadius: '24px',
       border: `1px solid ${theme.palette.divider}`,
       boxShadow: theme.shadows[4],
+      zIndex,
     }}>
       {Array.from({ length: count }, (_, i) => (
         <Box
@@ -268,7 +271,7 @@ function TappableCard({ children, delay, onTap, sx: sxProp, ...props }) {
  * 5 round columns: Play-In, R1, Semis, Conf Finals, Finals.
  * Each column has collapsible West/East sections.
  */
-const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, scoringConfig }) => {
+const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, scoringConfig, inDialog = false }) => {
   const theme = useTheme();
   const scrollRef = useRef(null);
   const colRefs = useRef([]);
@@ -332,20 +335,6 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
   // Card animation stagger counter — only used on first render
   const skipDelay = animatedRef.current;
   let cardIdx = { val: 0 };
-
-  // Lock page-level horizontal scroll when mobile bracket is mounted
-  useEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
-    const prevHtml = html.style.overflowX;
-    const prevBody = body.style.overflowX;
-    html.style.overflowX = 'hidden';
-    body.style.overflowX = 'hidden';
-    return () => {
-      html.style.overflowX = prevHtml;
-      body.style.overflowX = prevBody;
-    };
-  }, []);
 
   // Auto-hide swipe hint after 3s
   useEffect(() => {
@@ -558,10 +547,11 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
         </Box>
       </Box>
 
-      {/* Dot navigation — sticky at bottom, centered */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', position: 'sticky', bottom: 12, zIndex: 10 }}>
-        <DotNav count={5} activeIndex={activeRound} onDotClick={scrollToRound} />
-      </Box>
+      {/* Dot navigation — portaled to body so position:fixed works regardless of ancestor transforms */}
+      {createPortal(
+        <DotNav count={5} activeIndex={activeRound} onDotClick={scrollToRound} zIndex={inDialog ? theme.zIndex.modal + 100 : 10} />,
+        document.body,
+      )}
     </Box>
   );
 };
