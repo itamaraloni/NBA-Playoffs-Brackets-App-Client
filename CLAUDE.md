@@ -103,7 +103,6 @@ This guideline applies to all frontend work — code changes, PR reviews, planni
 - **sessionStorage keys in use:** `pendingInviteToken` (temporary, cleared after joining a league)
 - `active_player_id` stores the user's last-selected league player as UX convenience (survives page reload). AuthContext is the source of truth — localStorage is just a hint. See ADR-003
 - `theme-mode` is preserved on logout; all other keys are cleared
-- **Removed keys:** `auth_token` — replaced by httpOnly session cookie; `player_id`, `player_name`, `league_id`, `is_admin` — replaced by AuthContext state; `joinLeagueId` — replaced by invite-token flow
 
 ### API & Services
 
