@@ -14,12 +14,17 @@ import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import BoltIcon from '@mui/icons-material/Bolt';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
+import IosShareIcon from '@mui/icons-material/IosShare';
+import DownloadIcon from '@mui/icons-material/Download';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useAuth } from '../contexts/AuthContext';
+import { useAppTheme } from '../theme/ThemeProvider';
 import BracketView from '../components/bracket/BracketView';
 import PredictionDialog from '../components/bracket/PredictionDialog';
 import LeagueBracketsDialog from '../components/bracket/LeagueBracketsDialog';
 import BracketServices from '../services/BracketServices';
 import { applyPick, countPicks, picksMatch, flattenBracketPicks, computeBracketHealth, randomFillBracket, clearAllPicks } from '../utils/bracketUtils';
+import { captureBracketImage, downloadBracketImage, shareBracketImage, copyBracketImage } from '../utils/bracketExport';
 
 // PredictionDialog passes matchup.round (API key: 'playin_first', 'first', etc.)
 // but applyPick / bracketUtils work with component round keys ('playin', 'r1', etc.)
@@ -55,7 +60,12 @@ const BracketPage = () => {
   const [confirmFillOpen, setConfirmFillOpen]   = useState(false);
   const [pendingStrategy, setPendingStrategy]   = useState('random');
 
+  // Share / export
+  const [exporting, setExporting]       = useState(false);
+  const [shareAnchor, setShareAnchor]   = useState(null);
+
   const { activePlayer } = useAuth();
+  const { mode: themeMode } = useAppTheme();
   const theme    = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -211,6 +221,47 @@ const BracketPage = () => {
   }, [pendingStrategy]);
 
   // -------------------------------------------------------------------------
+  // Share / export handlers
+  // -------------------------------------------------------------------------
+  const canExport = bracketState?.isBracketSubmitted && !exporting;
+
+  const handleExport = useCallback(async (action) => {
+    if (exporting) return;
+    setShareAnchor(null);
+    setExporting(true);
+    try {
+      const blob = await captureBracketImage({
+        bracket: bracketState,
+        bonusPicks,
+        scoringConfig: bracketState.scoringConfig,
+        isLocked: bracketState.isLocked,
+        playerName: activePlayer.player_name,
+        leagueName: activePlayer.league_name,
+        themeMode,
+      });
+
+      if (action === 'share') {
+        await shareBracketImage(blob, activePlayer.player_name);
+      } else if (action === 'copy') {
+        const copied = await copyBracketImage(blob);
+        if (copied) {
+          if (window.notify) window.notify.success('Bracket copied to clipboard!');
+        } else {
+          downloadBracketImage(blob, activePlayer.player_name);
+          if (window.notify) window.notify.info('Clipboard unavailable — downloaded instead.');
+        }
+      } else {
+        downloadBracketImage(blob, activePlayer.player_name);
+      }
+    } catch (err) {
+      console.error('Export failed:', err);
+      if (window.notify) window.notify.error('Failed to export bracket. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  }, [exporting, bracketState, bonusPicks, activePlayer, themeMode]);
+
+  // -------------------------------------------------------------------------
   // Render guards
   // -------------------------------------------------------------------------
   if (loading) {
@@ -274,6 +325,31 @@ const BracketPage = () => {
         scoringConfig={bracketState.scoringConfig}
         actionButtons={
           <>
+            {/* Share — visible in both locked and unlocked modes */}
+            {isMobile ? (
+              <Tooltip title="Share Bracket">
+                <span>{/* span wrapper so Tooltip works on disabled button */}
+                  <IconButton
+                    onClick={() => handleExport('share')}
+                    disabled={!canExport}
+                    color="primary"
+                  >
+                    {exporting ? <CircularProgress size={20} /> : <IosShareIcon />}
+                  </IconButton>
+                </span>
+              </Tooltip>
+            ) : (
+              <Button
+                variant="outlined"
+                size="medium"
+                onClick={(e) => setShareAnchor(e.currentTarget)}
+                disabled={!canExport}
+                startIcon={exporting ? <CircularProgress size={18} /> : <IosShareIcon />}
+              >
+                Share
+              </Button>
+            )}
+
             {bracketState.isLocked && (
               <Button
                 variant="outlined"
@@ -335,6 +411,22 @@ const BracketPage = () => {
         leagueId={activePlayer.league_id}
         currentPlayerId={activePlayer.player_id}
       />
+
+      {/* Share menu (desktop only) */}
+      <Menu
+        anchorEl={shareAnchor}
+        open={Boolean(shareAnchor)}
+        onClose={() => setShareAnchor(null)}
+      >
+        <MenuItem onClick={() => handleExport('download')}>
+          <ListItemIcon><DownloadIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Download Image</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={() => handleExport('copy')}>
+          <ListItemIcon><ContentCopyIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Copy to Clipboard</ListItemText>
+        </MenuItem>
+      </Menu>
 
       {/* Random fill menu */}
       <Menu
