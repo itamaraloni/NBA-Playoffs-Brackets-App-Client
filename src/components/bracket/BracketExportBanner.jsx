@@ -10,6 +10,7 @@ import { Box, Typography, useTheme } from '@mui/material';
  */
 const BracketExportBanner = ({ playerName, leagueName }) => {
   const theme = useTheme();
+  const year = new Date().getFullYear();
 
   return (
     <Box sx={{
@@ -68,7 +69,7 @@ const BracketExportBanner = ({ playerName, leagueName }) => {
           color: theme.palette.text.secondary,
           whiteSpace: 'nowrap',
         }}>
-          2025-26 NBA Playoffs
+          {`${year - 1}-${String(year).slice(2)} NBA Playoffs`}
         </Typography>
       </Box>
     </Box>
