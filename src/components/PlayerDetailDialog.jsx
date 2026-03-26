@@ -62,8 +62,8 @@ const PlayerDetailDialog = ({ player, leagueName, open, onClose }) => {
         alignItems: 'center',
         p: 2
       }}>
-        <Typography variant="h5">
-          Player Dialog
+        <Typography variant="h5" fontWeight={600}>
+          {player?.name || 'Player Stats'}
         </Typography>
         <IconButton edge="end" color="inherit" onClick={onClose} aria-label="close">
           <CloseIcon />

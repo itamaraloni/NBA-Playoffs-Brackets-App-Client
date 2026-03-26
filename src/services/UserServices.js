@@ -155,6 +155,7 @@ const transformPlayerProfile = (response) => {
         playerAvatar: data.player.player_avatar,
         winningTeam: data.player.winning_team,
         totalPredictionPoints: data.player.total_prediction_points,
+        bracketScore: data.player.bracket_score || 0,
         totalScore: data.player.total_score,
         championshipTeamPoints: data.player.championship_team_points,
         mvpPoints: data.player.mvp_points,
