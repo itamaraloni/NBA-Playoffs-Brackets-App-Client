@@ -8,25 +8,16 @@ import {
   Alert,
   Button,
   Box,
-  useTheme,
-  useMediaQuery,
   CircularProgress
 } from '@mui/material';
-import AppExplanation from '../components/AppExplanation';
-import { CreateLeagueSection, JoinLeagueSection } from '../components/CreateJoinLeagueComponents';
 import PlayerStatsCard from '../components/PlayerStatsCard';
 import EditPicksDialog from '../components/EditPicksDialog';
 import UserServices from '../services/UserServices';
 import { useAuth } from '../contexts/AuthContext';
-import { extractTokenFromInput } from '../utils/inviteUtils';
 
 const Dashboard = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { activePlayer, userPlayers } = useAuth();
+  const { activePlayer } = useAuth();
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
-  const [inviteInput, setInviteInput] = useState('');
-  const [inputError, setInputError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [playerProfile, setPlayerProfile] = useState(null);
   const [playerProfileLoading, setPlayerProfileLoading] = useState(true);
@@ -60,21 +51,6 @@ const Dashboard = () => {
     
     fetchPlayerProfile();
   }, [playerId]);
-
-  const handleCreateLeague = () => {
-    navigate('/create-league');
-  };
-
-  const handleJoinLeague = () => {
-    const token = extractTokenFromInput(inviteInput);
-    if (!token) {
-      setInputError('Please paste an invite link or token');
-      return;
-    }
-
-    setInputError('');
-    navigate(`/invite/${token}`);
-  };
 
   const handleCloseAlert = () => {
     setAlert({ ...alert, open: false });
@@ -124,26 +100,6 @@ const Dashboard = () => {
     );
   }
 
-  // New user content (no player ID)
-  const renderNewUserContent = () => (
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={6}>
-        <CreateLeagueSection onCreateClick={handleCreateLeague} />
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <JoinLeagueSection
-          inviteInput={inviteInput}
-          setInviteInput={setInviteInput}
-          inputError={inputError}
-          onJoinClick={handleJoinLeague}
-        />
-      </Grid>
-      <Grid item xs={12}>
-        <AppExplanation elevation={2} />
-      </Grid>
-    </Grid>
-  );
-
   // Existing player content
   const renderExistingPlayerContent = () => {
     // Handle error state for player profile
@@ -187,10 +143,17 @@ const Dashboard = () => {
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       {/* Show player stats if user has an active league */}
-      {playerId && renderExistingPlayerContent()}
-
-      {/* Always show create/join options — users need this to join additional leagues */}
-      {renderNewUserContent()}
+      {playerId ? renderExistingPlayerContent() : (
+        <Box sx={{ textAlign: 'center', py: 6 }}>
+          <Typography variant="h6" gutterBottom>No active league</Typography>
+          <Typography variant="body1" color="textSecondary" sx={{ mb: 3 }}>
+            Create or join a league to see your stats here.
+          </Typography>
+          <Button variant="contained" onClick={() => navigate('/profile')}>
+            Go to Profile
+          </Button>
+        </Box>
+      )}
 
       {/* Edit Picks Dialog */}
       <EditPicksDialog

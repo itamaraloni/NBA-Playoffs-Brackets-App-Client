@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import StandaloneHeader from '../components/common/StandaloneHeader';
+import AppExplanation from '../components/AppExplanation';
 import {
   Box,
   Button,
@@ -188,8 +189,15 @@ const LandingPage = () => {
         </Container>
       </Box>
 
+      {/* How It Works Section */}
+      <Box sx={{ py: 6, bgcolor: 'background.default' }}>
+        <Container maxWidth="lg">
+          <AppExplanation elevation={2} />
+        </Container>
+      </Box>
+
       {/* Footer */}
-      <Box 
+      <Box
         component="footer"
         sx={{
           py: 3,
