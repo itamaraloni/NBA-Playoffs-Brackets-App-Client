@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import {
   Box,
   Typography,
+  Chip,
   useTheme,
   useMediaQuery
 } from '@mui/material';
@@ -44,16 +45,77 @@ const ChartTooltip = ({ active, payload }) => {
 };
 
 /**
+ * Renders a small status chip for championship/MVP pills when points are 0.
+ * Uses the same status vocabulary as PickCard: in_progress, eliminated, scored, unknown.
+ */
+const PillStatusChip = ({ pickStatus, theme }) => {
+  switch (pickStatus) {
+    case 'in_progress':
+      return (
+        <Chip
+          size="small"
+          label="Alive"
+          sx={{
+            height: 20,
+            fontSize: '0.6875rem',
+            fontWeight: 600,
+            bgcolor: theme.palette.mode === 'dark' ? 'rgba(46, 125, 50, 0.25)' : 'rgba(46, 125, 50, 0.12)',
+            color: theme.palette.success.main,
+            border: '1px solid',
+            borderColor: theme.palette.success.main
+          }}
+        />
+      );
+    case 'eliminated':
+      return (
+        <Chip
+          size="small"
+          label="Eliminated"
+          color="error"
+          variant="outlined"
+          sx={{ height: 20, fontSize: '0.6875rem' }}
+        />
+      );
+    case 'unknown':
+      return (
+        <Chip
+          size="small"
+          label="N/A"
+          variant="outlined"
+          sx={{ height: 20, fontSize: '0.6875rem' }}
+        />
+      );
+    default:
+      return (
+        <Typography component="span" variant="caption" color="text.disabled">
+          After Finals
+        </Typography>
+      );
+  }
+};
+
+/**
  * Donut chart showing the 4 scoring pillars with total score in the center.
+ *
+ * On desktop: donut + pills render side-by-side to reduce vertical footprint.
+ * On mobile: stacked vertically (current behaviour).
+ *
  * Zero-value segments are filtered out — most of the season only 2 colors show
  * (matchup + bracket), with championship/MVP unlocking after the Finals.
+ *
+ * Props:
+ *   championshipPickStatus / mvpPickStatus — forwarded from the player profile.
+ *   When these pills are locked (0 pts), this status drives the chip shown instead
+ *   of the static "After Finals" text.
  */
 const ScoreBreakdownChart = ({
   totalScore = 0,
   matchupPoints = 0,
   bracketPoints = 0,
   championshipPoints = 0,
-  mvpPoints = 0
+  mvpPoints = 0,
+  championshipPickStatus,
+  mvpPickStatus
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -75,15 +137,25 @@ const ScoreBreakdownChart = ({
 
   const hasData = totalScore > 0;
 
-  // Responsive donut sizing
-  const innerRadius = isMobile ? 32 : 48;
-  const outerRadius = isMobile ? 56 : 72;
-  const chartHeight = isMobile ? 150 : 190;
+  // Point values keyed by pillar
+  const pillarValues = { matchup: matchupPoints, bracket: bracketPoints, championship: championshipPoints, mvp: mvpPoints };
+  // Pick statuses keyed by pillar (only relevant for championship/mvp)
+  const pillarStatuses = { championship: championshipPickStatus, mvp: mvpPickStatus };
+
+  // Donut sizing — slightly smaller on desktop since it sits beside the pills
+  const innerRadius = isMobile ? 32 : 38;
+  const outerRadius = isMobile ? 56 : 60;
+  const chartSize = isMobile ? 150 : 156;
 
   return (
-    <Box>
-      {/* Donut chart with centered total */}
-      <Box sx={{ position: 'relative', width: '100%', height: chartHeight }}>
+    <Box sx={{
+      display: 'flex',
+      flexDirection: isMobile ? 'column' : 'row',
+      alignItems: 'center',
+      gap: isMobile ? 0 : 2.5
+    }}>
+      {/* ─── Donut chart ─── */}
+      <Box sx={{ position: 'relative', width: isMobile ? '100%' : chartSize, height: chartSize, flexShrink: 0 }}>
         {hasData ? (
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -135,7 +207,7 @@ const ScoreBreakdownChart = ({
           pointerEvents: 'none'
         }}>
           <Typography
-            variant={isMobile ? 'h5' : 'h4'}
+            variant={isMobile ? 'h5' : 'h5'}
             fontWeight="bold"
             lineHeight={1}
             color={hasData ? 'text.primary' : 'text.disabled'}
@@ -148,15 +220,18 @@ const ScoreBreakdownChart = ({
         </Box>
       </Box>
 
-      {/* Stat pills — one per pillar */}
+      {/* ─── Stat pills — one per pillar ─── */}
       <Box sx={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gap: 1,
-        mt: 1.5
+        mt: isMobile ? 1.5 : 0,
+        flex: isMobile ? undefined : 1,
+        width: isMobile ? '100%' : undefined,
+        alignSelf: 'stretch'
       }}>
         {SCORE_PILLARS.map((pillar) => {
-          const value = { matchup: matchupPoints, bracket: bracketPoints, championship: championshipPoints, mvp: mvpPoints }[pillar.key];
+          const value = pillarValues[pillar.key];
           const isLocked = (pillar.key === 'championship' || pillar.key === 'mvp') && value === 0;
           const Icon = pillar.icon;
 
@@ -175,7 +250,7 @@ const ScoreBreakdownChart = ({
                   : 'rgba(0,0,0,0.03)',
                 border: '1px solid',
                 borderColor: value > 0 ? pillar.color : 'transparent',
-                opacity: isLocked ? 0.55 : 1,
+                opacity: isLocked ? 0.6 : 1,
                 transition: 'opacity 0.2s'
               }}
             >
@@ -195,15 +270,15 @@ const ScoreBreakdownChart = ({
                 >
                   {pillar.label}
                 </Typography>
-                <Typography variant="body2" fontWeight="bold" lineHeight={1.2}>
+                <Box sx={{ mt: 0.25 }}>
                   {isLocked ? (
-                    <Typography component="span" variant="caption" color="text.disabled" fontWeight="normal">
-                      After Finals
-                    </Typography>
+                    <PillStatusChip pickStatus={pillarStatuses[pillar.key]} theme={theme} />
                   ) : (
-                    `${value} pts`
+                    <Typography variant="body2" fontWeight="bold" lineHeight={1.2}>
+                      {value} pts
+                    </Typography>
                   )}
-                </Typography>
+                </Box>
               </Box>
             </Box>
           );

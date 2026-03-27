@@ -64,8 +64,7 @@ const PickCard = ({
               color: theme.palette.success.main,
               fontWeight: 600,
               border: '1px solid',
-              borderColor: theme.palette.success.main,
-              '&::before': { content: '"\\2022"', mr: 0.5, fontSize: '1.2em' }
+              borderColor: theme.palette.success.main
             }}
           />
         );
@@ -152,8 +151,6 @@ const PickCard = ({
             sx={{
               width: 52,
               height: 52,
-              border: '2px solid',
-              borderColor: isScored ? '#FFD700' : accentColor,
               ...(isEliminated && {
                 filter: 'grayscale(0.8)',
                 opacity: 0.6

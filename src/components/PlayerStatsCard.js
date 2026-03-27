@@ -96,17 +96,15 @@ const PlayerStatsCard = ({
       </Box>
 
       {/* ─── Score Breakdown Donut ─── */}
-      <Box sx={{
-        maxWidth: isMobile ? '100%' : 380,
-        mx: 'auto',
-        mb: 2.5
-      }}>
+      <Box sx={{ mb: 2.5 }}>
         <ScoreBreakdownChart
           totalScore={totalScore}
           matchupPoints={matchupPoints}
           bracketPoints={bracketPoints}
           championshipPoints={championshipPoints}
           mvpPoints={mvpPoints}
+          championshipPickStatus={playerData.championshipPickStatus}
+          mvpPickStatus={playerData.mvpPickStatus}
         />
       </Box>
 

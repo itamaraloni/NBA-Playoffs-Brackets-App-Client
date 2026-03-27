@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import {
   Box,
   Typography,
+  Tooltip,
   ToggleButtonGroup,
   ToggleButton,
   useTheme,
@@ -100,14 +101,14 @@ const RoundBar = ({ row, isBestRound, isMobile, theme }) => {
   const hitPct = hasData ? (row.hits / total) * 100 : 0;
   const missPct = hasData ? (row.misses / total) * 100 : 0;
 
-  const barHeight = isMobile ? 14 : 18;
+  const barHeight = isMobile ? 14 : 26;
 
   return (
     <Box sx={{
       display: 'flex',
       alignItems: 'center',
-      gap: isMobile ? 1 : 1.5,
-      py: isMobile ? 0.75 : 1,
+      gap: isMobile ? 1 : 2,
+      py: isMobile ? 0.75 : 1.25,
       px: 1.5,
       borderRadius: 1,
       ...(isBestRound && hasData && {
@@ -118,19 +119,27 @@ const RoundBar = ({ row, isBestRound, isMobile, theme }) => {
         pl: 1.25
       })
     }}>
-      {/* Round label */}
-      <Typography
-        variant="body2"
-        fontWeight={isBestRound && hasData ? 700 : 500}
-        sx={{
-          width: isMobile ? 36 : 100,
-          flexShrink: 0,
-          fontSize: isMobile ? '0.75rem' : '0.8125rem'
-        }}
-        noWrap
+      {/* Round label — tappable tooltip on mobile reveals full name */}
+      <Tooltip
+        title={isMobile ? row.displayName : ''}
+        enterTouchDelay={0}
+        leaveTouchDelay={1500}
+        placement="top"
       >
-        {isMobile ? row.shortName : row.displayName}
-      </Typography>
+        <Typography
+          variant="body2"
+          fontWeight={isBestRound && hasData ? 700 : 500}
+          sx={{
+            width: isMobile ? 36 : 110,
+            flexShrink: 0,
+            fontSize: isMobile ? '0.75rem' : '0.9375rem',
+            cursor: isMobile ? 'help' : 'default'
+          }}
+          noWrap
+        >
+          {isMobile ? row.shortName : row.displayName}
+        </Typography>
+      </Tooltip>
 
       {/* Stacked bar */}
       <Box sx={{
@@ -172,21 +181,25 @@ const RoundBar = ({ row, isBestRound, isMobile, theme }) => {
       {/* Stats numbers */}
       <Box sx={{
         display: 'flex',
-        gap: isMobile ? 0.5 : 1,
+        gap: isMobile ? 0.5 : 1.5,
         alignItems: 'center',
         flexShrink: 0
       }}>
         {!isMobile && (
-          <Typography variant="caption" color="text.secondary" sx={{ width: 32, textAlign: 'right' }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ width: 40, textAlign: 'right', fontSize: '0.875rem' }}
+          >
             {hasData ? `${row.accuracy}%` : '—'}
           </Typography>
         )}
         <Typography
-          variant="body2"
           fontWeight={700}
           sx={{
-            width: isMobile ? 28 : 36,
+            width: isMobile ? 28 : 44,
             textAlign: 'right',
+            fontSize: isMobile ? '0.8125rem' : '1rem',
             color: row.totalPoints > 0 ? theme.palette.success.main : 'text.secondary'
           }}
         >
@@ -264,9 +277,9 @@ const PredictionStatsBars = ({ matchupStats, bracketStats = null }) => {
           sx={{
             '& .MuiToggleButton-root': {
               textTransform: 'none',
-              px: isMobile ? 1.5 : 2,
-              py: 0.25,
-              fontSize: '0.8125rem',
+              px: isMobile ? 1.5 : 2.5,
+              py: isMobile ? 0.25 : 0.5,
+              fontSize: isMobile ? '0.8125rem' : '0.9375rem',
               fontWeight: 600
             }
           }}
@@ -284,33 +297,33 @@ const PredictionStatsBars = ({ matchupStats, bracketStats = null }) => {
         px: 1.5,
         mb: 0.5
       }}>
-        <Box sx={{ display: 'flex', gap: isMobile ? 1 : 1.5, alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
-            <TbCrystalBall size={13} style={{ color: theme.palette.success.main }} />
-            <Typography variant="caption" color="text.secondary">
-              {isMobile ? 'BE' : 'Bulls-Eye'}
+        <Box sx={{ display: 'flex', gap: isMobile ? 1 : 2, alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <TbCrystalBall size={isMobile ? 13 : 17} style={{ color: theme.palette.success.main }} />
+            <Typography variant={isMobile ? 'caption' : 'body2'} color="text.secondary">
+              Bulls-Eye
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
-            <BsBullseye size={12} style={{ color: theme.palette.warning.main }} />
-            <Typography variant="caption" color="text.secondary">
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <BsBullseye size={isMobile ? 12 : 16} style={{ color: theme.palette.warning.main }} />
+            <Typography variant={isMobile ? 'caption' : 'body2'} color="text.secondary">
               {isMobile ? 'Hit' : 'Hits'}
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
-            <AiOutlineCloseCircle size={13} style={{ color: theme.palette.error.main }} />
-            <Typography variant="caption" color="text.secondary">
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <AiOutlineCloseCircle size={isMobile ? 13 : 17} style={{ color: theme.palette.error.main }} />
+            <Typography variant={isMobile ? 'caption' : 'body2'} color="text.secondary">
               {isMobile ? 'Miss' : 'Misses'}
             </Typography>
           </Box>
         </Box>
-        <Box sx={{ display: 'flex', gap: isMobile ? 0.5 : 1, alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', gap: isMobile ? 0.5 : 1.5, alignItems: 'center' }}>
           {!isMobile && (
-            <Typography variant="caption" color="text.secondary" sx={{ width: 32, textAlign: 'right' }}>
+            <Typography variant="body2" color="text.secondary" sx={{ width: 40, textAlign: 'right' }}>
               Acc%
             </Typography>
           )}
-          <Typography variant="caption" color="text.secondary" sx={{ width: isMobile ? 28 : 36, textAlign: 'right' }}>
+          <Typography variant={isMobile ? 'caption' : 'body2'} color="text.secondary" sx={{ width: isMobile ? 28 : 44, textAlign: 'right' }}>
             Pts
           </Typography>
         </Box>
@@ -371,22 +384,22 @@ const PredictionStatsBars = ({ matchupStats, bracketStats = null }) => {
               <Typography variant="body2" fontWeight={700} color="primary">
                 Total
               </Typography>
-              <Box sx={{ display: 'flex', gap: isMobile ? 1 : 2 }}>
+              <Box sx={{ display: 'flex', gap: isMobile ? 1 : 2.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <TbCrystalBall size={13} style={{ color: theme.palette.success.main }} />
-                  <Typography variant="body2" fontWeight={700}>{totals.bullsEyes}</Typography>
+                  <TbCrystalBall size={isMobile ? 13 : 17} style={{ color: theme.palette.success.main }} />
+                  <Typography variant={isMobile ? 'body2' : 'body1'} fontWeight={700}>{totals.bullsEyes}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <BsBullseye size={12} style={{ color: theme.palette.warning.main }} />
-                  <Typography variant="body2" fontWeight={700}>{totals.hits}</Typography>
+                  <BsBullseye size={isMobile ? 12 : 16} style={{ color: theme.palette.warning.main }} />
+                  <Typography variant={isMobile ? 'body2' : 'body1'} fontWeight={700}>{totals.hits}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <AiOutlineCloseCircle size={13} style={{ color: theme.palette.error.main }} />
-                  <Typography variant="body2" fontWeight={700}>{totals.misses}</Typography>
+                  <AiOutlineCloseCircle size={isMobile ? 13 : 17} style={{ color: theme.palette.error.main }} />
+                  <Typography variant={isMobile ? 'body2' : 'body1'} fontWeight={700}>{totals.misses}</Typography>
                 </Box>
               </Box>
             </Box>
-            <Typography variant="body1" fontWeight={700} color="success.main">
+            <Typography variant={isMobile ? 'body1' : 'h6'} fontWeight={700} color="success.main">
               {totals.points} pts
             </Typography>
           </Box>
