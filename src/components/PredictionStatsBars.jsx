@@ -12,28 +12,28 @@ import { TbCrystalBall } from 'react-icons/tb';
 import { BsBullseye } from 'react-icons/bs';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { Lock as LockIcon } from '@mui/icons-material';
-import { useScoringConfig } from '../hooks/useScoringConfig';
 
 /**
- * Combines play-in rounds and builds per-round stats rows from the raw
- * hits/bullsEye/misses objects returned by the API.
+ * Builds per-round stats rows from hits/bullsEye/misses/points objects returned by the API.
  *
- * This logic is extracted from the old PredictionStatsTable so the same
- * round aggregation is preserved.
+ * Points come directly from the server (actual stored points_scored / points_earned values),
+ * not recalculated from the scoring config. This ensures the tab always agrees with the
+ * per-player score totals stored in the DB regardless of any config changes over time.
  */
-const buildRoundRows = (stats, scoringConfig, predictionType = 'matchup') => {
+const buildRoundRows = (stats) => {
   if (!stats?.hits) return [];
 
-  const { hits = {}, bullsEye = {}, misses = {} } = stats;
+  const { hits = {}, bullsEye = {}, misses = {}, points = {} } = stats;
 
   const rounds = [
     {
       key: 'playin',
       displayName: 'Play-In',
       shortName: 'PI',
-      hits: (hits.playin_first || 0) + (hits.playin_second || 0),
+      hits:     (hits.playin_first || 0)     + (hits.playin_second || 0),
       bullsEyes: (bullsEye.playin_first || 0) + (bullsEye.playin_second || 0),
-      misses: (misses.playin_first || 0) + (misses.playin_second || 0)
+      misses:   (misses.playin_first || 0)   + (misses.playin_second || 0),
+      totalPoints: (points.playin_first ?? 0) + (points.playin_second ?? 0)
     },
     {
       key: 'first',
@@ -41,7 +41,8 @@ const buildRoundRows = (stats, scoringConfig, predictionType = 'matchup') => {
       shortName: 'R1',
       hits: hits.first || 0,
       bullsEyes: bullsEye.first || 0,
-      misses: misses.first || 0
+      misses: misses.first || 0,
+      totalPoints: points.first ?? 0
     },
     {
       key: 'second',
@@ -49,7 +50,8 @@ const buildRoundRows = (stats, scoringConfig, predictionType = 'matchup') => {
       shortName: 'CSF',
       hits: hits.second || 0,
       bullsEyes: bullsEye.second || 0,
-      misses: misses.second || 0
+      misses: misses.second || 0,
+      totalPoints: points.second ?? 0
     },
     {
       key: 'conference_final',
@@ -57,7 +59,8 @@ const buildRoundRows = (stats, scoringConfig, predictionType = 'matchup') => {
       shortName: 'CF',
       hits: hits.conference_final || 0,
       bullsEyes: bullsEye.conference_final || 0,
-      misses: misses.conference_final || 0
+      misses: misses.conference_final || 0,
+      totalPoints: points.conference_final ?? 0
     },
     {
       key: 'final',
@@ -65,26 +68,15 @@ const buildRoundRows = (stats, scoringConfig, predictionType = 'matchup') => {
       shortName: 'F',
       hits: hits.final || 0,
       bullsEyes: bullsEye.final || 0,
-      misses: misses.final || 0
+      misses: misses.final || 0,
+      totalPoints: points.final ?? 0
     }
   ];
 
-  // Calculate points per round using scoring config
   return rounds.map(round => {
-    let totalPoints = 0;
-    if (scoringConfig) {
-      const configKey = round.key === 'playin' ? 'playin_first' : round.key;
-      const config = scoringConfig[predictionType]?.[configKey];
-      if (config) {
-        const hitPts = config.hit || 0;
-        // Play-in has no bullseye scoring (null in config)
-        const bullsEyePts = config.bullseye ?? config.hit;
-        totalPoints = (round.hits * hitPts) + (round.bullsEyes * bullsEyePts);
-      }
-    }
     const total = round.hits + round.bullsEyes + round.misses;
     const accuracy = total > 0 ? Math.round(((round.hits + round.bullsEyes) / total) * 100) : null;
-    return { ...round, totalPoints, total, accuracy };
+    return { ...round, total, accuracy };
   });
 };
 
@@ -218,18 +210,10 @@ const RoundBar = ({ row, isBestRound, isMobile }) => {
 const PredictionStatsBars = ({ matchupStats, bracketStats = null }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { scoringConfig } = useScoringConfig();
   const [activeTab, setActiveTab] = useState('matchup');
 
-  const matchupRows = useMemo(
-    () => buildRoundRows(matchupStats, scoringConfig, 'matchup'),
-    [matchupStats, scoringConfig]
-  );
-
-  const bracketRows = useMemo(
-    () => buildRoundRows(bracketStats, scoringConfig, 'bracket'),
-    [bracketStats, scoringConfig]
-  );
+  const matchupRows = useMemo(() => buildRoundRows(matchupStats), [matchupStats]);
+  const bracketRows = useMemo(() => buildRoundRows(bracketStats), [bracketStats]);
 
   const activeRows = activeTab === 'matchup' ? matchupRows : bracketRows;
   const hasBracketData = bracketStats !== null;

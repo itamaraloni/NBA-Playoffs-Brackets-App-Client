@@ -143,12 +143,14 @@ const PlayerStatsCard = ({
         matchupStats={{
           hits: playerData.hits,
           bullsEye: playerData.bullsEye,
-          misses: playerData.misses
+          misses: playerData.misses,
+          points: playerData.matchupPoints
         }}
         bracketStats={playerData.bracketHits ? {
           hits: playerData.bracketHits,
           bullsEye: playerData.bracketBullsEye,
-          misses: playerData.bracketMisses
+          misses: playerData.bracketMisses,
+          points: playerData.bracketPoints
         } : null}
       />
     </Paper>
