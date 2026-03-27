@@ -26,24 +26,25 @@ const PlayerDetailDialog = ({ player, leagueName, open, onClose }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!open || !player) return;
+
+    setPlayerData(null);
+    setError(null);
+    setLoading(true);
+
     const fetchPlayerProfile = async () => {
-      if (!player?.id) return;
-      
-      setLoading(true);
       try {
         const response = await UserServices.getPlayerProfile(player.id);
         setPlayerData(response.player);
-        setLoading(false);
       } catch (err) {
         console.error('Failed to fetch player profile:', err);
         setError('Failed to load player data');
+      } finally {
         setLoading(false);
       }
     };
 
-    if (open && player) {
-      fetchPlayerProfile();
-    }
+    fetchPlayerProfile();
   }, [player, open]);
 
   if (!player) return null;
@@ -62,8 +63,8 @@ const PlayerDetailDialog = ({ player, leagueName, open, onClose }) => {
         alignItems: 'center',
         p: 2
       }}>
-        <Typography variant="h5">
-          Player Dialog
+        <Typography variant="h5" fontWeight={600}>
+          {player?.name || 'Player Stats'}
         </Typography>
         <IconButton edge="end" color="inherit" onClick={onClose} aria-label="close">
           <CloseIcon />
@@ -78,8 +79,8 @@ const PlayerDetailDialog = ({ player, leagueName, open, onClose }) => {
         ) : error ? (
           <Typography color="error" align="center">{error}</Typography>
         ) : (
-          <PlayerStatsCard 
-            playerData={playerData || player}
+          <PlayerStatsCard
+            playerData={playerData}
             leagueData={{ name: leagueName }}
             elevation={0}
             allowEditing={false}

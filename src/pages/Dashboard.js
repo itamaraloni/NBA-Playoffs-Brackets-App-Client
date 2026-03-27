@@ -186,14 +186,6 @@ const Dashboard = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Typography 
-        variant="h4" 
-        fontWeight="bold" 
-        sx={{ mb: isMobile ? 3 : 4 }}
-      >
-        NBA Playoff Predictions
-      </Typography>
-      
       {/* Show player stats if user has an active league */}
       {playerId && renderExistingPlayerContent()}
 
