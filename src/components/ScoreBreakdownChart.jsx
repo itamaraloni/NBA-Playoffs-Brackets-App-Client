@@ -48,7 +48,8 @@ const ChartTooltip = ({ active, payload }) => {
  * Renders a small status chip for championship/MVP pills when points are 0.
  * Uses the same status vocabulary as PickCard: in_progress, eliminated, scored, unknown.
  */
-const PillStatusChip = ({ pickStatus, theme }) => {
+const PillStatusChip = ({ pickStatus }) => {
+  const theme = useTheme();
   switch (pickStatus) {
     case 'in_progress':
       return (
@@ -207,7 +208,7 @@ const ScoreBreakdownChart = ({
           pointerEvents: 'none'
         }}>
           <Typography
-            variant={isMobile ? 'h5' : 'h5'}
+            variant="h5"
             fontWeight="bold"
             lineHeight={1}
             color={hasData ? 'text.primary' : 'text.disabled'}
@@ -272,7 +273,7 @@ const ScoreBreakdownChart = ({
                 </Typography>
                 <Box sx={{ mt: 0.25 }}>
                   {isLocked ? (
-                    <PillStatusChip pickStatus={pillarStatuses[pillar.key]} theme={theme} />
+                    <PillStatusChip pickStatus={pillarStatuses[pillar.key]} />
                   ) : (
                     <Typography variant="body2" fontWeight="bold" lineHeight={1.2}>
                       {value} pts

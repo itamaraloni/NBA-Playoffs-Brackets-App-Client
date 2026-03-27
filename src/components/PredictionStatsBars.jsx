@@ -92,7 +92,8 @@ const buildRoundRows = (stats, scoringConfig, predictionType = 'matchup') => {
  * A single horizontal stacked bar row representing one round's stats.
  * Green = bullseye, Amber = hit, Red = miss.
  */
-const RoundBar = ({ row, isBestRound, isMobile, theme }) => {
+const RoundBar = ({ row, isBestRound, isMobile }) => {
+  const theme = useTheme();
   const total = row.total;
   const hasData = total > 0;
 
@@ -231,7 +232,7 @@ const PredictionStatsBars = ({ matchupStats, bracketStats = null }) => {
   );
 
   const activeRows = activeTab === 'matchup' ? matchupRows : bracketRows;
-  const hasBracketData = bracketStats?.hits != null;
+  const hasBracketData = bracketStats !== null;
 
   // Find best round (highest points) for highlighting
   const bestRoundKey = useMemo(() => {
@@ -362,7 +363,6 @@ const PredictionStatsBars = ({ matchupStats, bracketStats = null }) => {
                 row={row}
                 isBestRound={row.key === bestRoundKey}
                 isMobile={isMobile}
-                theme={theme}
               />
             ))}
           </Box>

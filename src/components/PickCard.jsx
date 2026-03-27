@@ -9,6 +9,7 @@ import {
   useTheme,
   useMediaQuery
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   EmojiEvents as TrophyIcon,
   MilitaryTech as MvpIcon,
@@ -42,10 +43,8 @@ const PickCard = ({
   const accentColor = isChampionship ? theme.palette.primary.main : theme.palette.secondary.main;
   const Icon = isChampionship ? TrophyIcon : MvpIcon;
 
-  // Background tints per type
-  const bgColor = isChampionship
-    ? (theme.palette.mode === 'dark' ? 'rgba(25, 118, 210, 0.08)' : 'rgba(232, 244, 253, 0.8)')
-    : (theme.palette.mode === 'dark' ? 'rgba(156, 39, 176, 0.08)' : 'rgba(243, 229, 245, 0.8)');
+  // Background tints per type — use alpha() so the tint always matches the accent color
+  const bgColor = alpha(accentColor, theme.palette.mode === 'dark' ? 0.08 : 0.06);
 
   // Status-dependent styling
   const isEliminated = pickStatus === 'eliminated';
