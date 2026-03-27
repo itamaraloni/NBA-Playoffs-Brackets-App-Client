@@ -66,7 +66,7 @@ const AppExplanation = ({ elevation = 2 }) => {
                 sx={{ 
                   width: 48, 
                   height: 48, 
-                  bgcolor: theme.palette.primary.main,
+                  bgcolor: theme.palette.info.main,
                   mx: 'auto',
                   mb: 2
                 }}
