@@ -186,13 +186,10 @@ const LandingPage = () => {
               </Paper>
             </Grid>
           </Grid>
-        </Container>
-      </Box>
-
-      {/* How It Works Section */}
-      <Box sx={{ py: 6, bgcolor: 'background.default' }}>
-        <Container maxWidth="lg">
-          <AppExplanation elevation={2} />
+          {/* How It Works Section */}
+          <Box sx={{ mt: 8 }}>
+            <AppExplanation elevation={2} />
+          </Box>
         </Container>
       </Box>
 
