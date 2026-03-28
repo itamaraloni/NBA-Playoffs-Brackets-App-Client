@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Typography, 
+import {
+  Container,
+  Typography,
   Snackbar,
   Alert,
-  useMediaQuery,
-  useTheme,
   CircularProgress
 } from '@mui/material';
 import StandingsTable from '../components/StandingsTable';
@@ -17,8 +15,6 @@ import LeagueServices from '../services/LeagueServices';
 import { useAuth } from '../contexts/AuthContext';
 
 const LeaguePage = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { activePlayer } = useAuth();
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -29,53 +25,46 @@ const LeaguePage = () => {
   const [error, setError] = useState(null);
   const [regenerating, setRegenerating] = useState(false);
   const [pickDistribution, setPickDistribution] = useState(null);
-  const [pickDistributionLoading, setPickDistributionLoading] = useState(false);
   const [pickDistributionError, setPickDistributionError] = useState(null);
 
   // Get player_id and league_id from active player context
   const currentPlayerId = activePlayer?.player_id;
   const leagueId = activePlayer?.league_id;
-  
-  // Fetch league data from API using service
+
+  // Fetch all league page data in parallel
   useEffect(() => {
-    const fetchLeagueData = async () => {
-      setLoading(true);
-      try {
-        // Use league service to fetch data
-        const data = await LeagueServices.getLeagueWithPlayers(leagueId);
-        setLeagueData(data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Failed to fetch league data:', err);
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-    
-    if (leagueId) {
-      fetchLeagueData();
-    } else {
+    if (!leagueId) {
       setError('No league selected. Please join or create a league from the Dashboard.');
       setLoading(false);
+      return;
     }
-  }, [leagueId]); // Re-fetch when active player/league changes
 
-  // Fetch pick distribution separately — secondary data, non-blocking
-  useEffect(() => {
-    if (!leagueId) return;
-    const fetchPickDistribution = async () => {
-      setPickDistributionLoading(true);
-      setPickDistributionError(null);
-      try {
-        const data = await LeagueServices.getPickDistribution(leagueId);
-        setPickDistribution(data);
-      } catch (err) {
-        setPickDistributionError(err.message || 'Failed to load pick distribution');
-      } finally {
-        setPickDistributionLoading(false);
+    const fetchPageData = async () => {
+      setLoading(true);
+
+      const [leagueResult, pickResult] = await Promise.allSettled([
+        LeagueServices.getLeagueWithPlayers(leagueId),
+        LeagueServices.getPickDistribution(leagueId),
+      ]);
+
+      // League data is critical — page-level error if it fails
+      if (leagueResult.status === 'fulfilled') {
+        setLeagueData(leagueResult.value);
+      } else {
+        setError(leagueResult.reason?.message || 'Failed to load league data');
       }
+
+      // Pick distribution is supplementary — section-level error only
+      if (pickResult.status === 'fulfilled') {
+        setPickDistribution(pickResult.value);
+      } else {
+        setPickDistributionError(pickResult.reason?.message || 'Failed to load pick distribution');
+      }
+
+      setLoading(false);
     };
-    fetchPickDistribution();
+
+    fetchPageData();
   }, [leagueId]);
 
   const isCommissioner = activePlayer?.is_commissioner;
@@ -180,7 +169,7 @@ const LeaguePage = () => {
       <LeagueInsights
         pickDistribution={pickDistribution}
         currentPlayer={leagueData.players.find(p => p.id === currentPlayerId)}
-        loading={pickDistributionLoading}
+        loading={loading}
         error={pickDistributionError}
       />
 
