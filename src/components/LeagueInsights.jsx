@@ -9,14 +9,17 @@ import {
   Grid,
   Stack,
   Chip,
+  Avatar,
   useTheme,
 } from '@mui/material';
+import { getLogoPath } from '../shared/teamUtils';
+import { getPlayerAvatar } from '../shared/playerUtils';
 
 /**
  * Renders a single pick distribution card (champion or MVP).
  *
  * Each row shows:
- *  - pick name + optional "You" chip
+ *  - avatar (team logo or player headshot) + name + optional "You" chip
  *  - pick count and percentage on the right
  *  - LinearProgress bar sized by percentage
  *
@@ -56,7 +59,15 @@ const DistributionCard = ({ title, entries, currentPickName, progressColor }) =>
                     gap: 1,
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                    <Avatar
+                      src={entry.avatarSrc}
+                      alt={entry.name}
+                      variant="rounded"
+                      sx={{ width: 28, height: 28, flexShrink: 0 }}
+                    >
+                      {entry.name.charAt(0)}
+                    </Avatar>
                     <Typography
                       variant="body2"
                       fontWeight={isCurrentPick ? 700 : 500}
@@ -121,10 +132,11 @@ const LeagueInsights = ({ pickDistribution, currentPlayer, loading, error }) => 
 
   if (!pickDistribution) return null;
 
-  // Build normalised entries for each distribution card
+  // Build normalised entries — avatarSrc derived from name using shared utilities
   const championEntries = pickDistribution.championDistribution.map(d => ({
     id: d.teamId,
     name: d.teamName,
+    avatarSrc: getLogoPath(d.teamName),
     pickCount: d.pickCount,
     percentage: d.percentage,
   }));
@@ -132,6 +144,7 @@ const LeagueInsights = ({ pickDistribution, currentPlayer, loading, error }) => 
   const mvpEntries = pickDistribution.mvpDistribution.map(d => ({
     id: d.nbaPlayerId,
     name: d.playerName,
+    avatarSrc: getPlayerAvatar(d.playerName),
     pickCount: d.pickCount,
     percentage: d.percentage,
   }));
