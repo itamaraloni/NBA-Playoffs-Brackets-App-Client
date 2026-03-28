@@ -5,7 +5,9 @@ import {
   Box,
   Grid,
   Avatar,
+  Chip,
   Divider,
+  Tooltip,
   useTheme,
   useMediaQuery
 } from '@mui/material';
@@ -72,7 +74,7 @@ const PlayerStatsCard = ({
         bgcolor: theme.palette.background.paper
       }}
     >
-      {/* ─── Header: Player Identity ─── */}
+      {/* ─── Header: Player Identity + Ranking Pills ─── */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
         <Avatar
           src={playerAvatarSrc}
@@ -85,7 +87,7 @@ const PlayerStatsCard = ({
         >
           {playerData.name?.charAt(0)}
         </Avatar>
-        <Box>
+        <Box sx={{ flex: 1 }}>
           <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
             {playerData.name}
           </Typography>
@@ -93,6 +95,62 @@ const PlayerStatsCard = ({
             {leagueData?.name ? `${leagueData.name}` : 'No League'}
           </Typography>
         </Box>
+        {(playerData.leagueRank != null || playerData.globalRank != null) && (
+          <Box sx={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: 0.75,
+            alignItems: isMobile ? 'flex-end' : 'center',
+            flexShrink: 0
+          }}>
+            {playerData.leagueRank != null && (
+              <Tooltip title={`League ranking — including bot players`} enterTouchDelay={0} leaveTouchDelay={1500}>
+                <Chip
+                  label={`#${playerData.leagueRank} of ${playerData.leagueTotalPlayers} in ${leagueData?.name || 'league'}`}
+                  sx={{
+                    height: isMobile ? 26 : 30,
+                    maxWidth: isMobile ? 180 : 'none',
+                    fontSize: isMobile ? '0.75rem' : '0.8125rem',
+                    fontWeight: 600,
+                    letterSpacing: '0.01em',
+                    bgcolor: theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.08)'
+                      : 'rgba(0, 0, 0, 0.06)',
+                    color: theme.palette.text.primary,
+                    border: `1px solid ${
+                      theme.palette.mode === 'dark'
+                        ? 'rgba(255, 255, 255, 0.12)'
+                        : 'rgba(0, 0, 0, 0.10)'
+                    }`,
+                    '& .MuiChip-label': {
+                      px: isMobile ? 1.25 : 1.75,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    },
+                  }}
+                />
+              </Tooltip>
+            )}
+            {playerData.globalRank != null && (
+              <Tooltip title="Excluding bot players" enterTouchDelay={0} leaveTouchDelay={1500}>
+                <Chip
+                  label={`#${playerData.globalRank} of ${playerData.totalPlayers} globally`}
+                  sx={{
+                    height: isMobile ? 26 : 30,
+                    fontSize: isMobile ? '0.75rem' : '0.8125rem',
+                    fontWeight: 600,
+                    letterSpacing: '0.01em',
+                    bgcolor: `${theme.palette.primary.main}18`,
+                    color: theme.palette.primary[theme.palette.mode === 'dark' ? 'light' : 'main'],
+                    border: `1px solid ${theme.palette.primary.main}30`,
+                    '& .MuiChip-label': { px: isMobile ? 1.25 : 1.75 },
+                  }}
+                />
+              </Tooltip>
+            )}
+          </Box>
+        )}
       </Box>
 
       {/* ─── Score Breakdown Donut ─── */}

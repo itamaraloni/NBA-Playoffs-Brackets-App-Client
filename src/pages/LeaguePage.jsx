@@ -7,6 +7,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import StandingsTable from '../components/StandingsTable';
+import GlobalRankings from '../components/GlobalRankings';
 import ScoringRules from '../components/common/ScoringRules';
 import League from '../components/League';
 import LeagueInsights from '../components/LeagueInsights';
@@ -26,6 +27,7 @@ const LeaguePage = () => {
   const [regenerating, setRegenerating] = useState(false);
   const [pickDistribution, setPickDistribution] = useState(null);
   const [pickDistributionError, setPickDistributionError] = useState(null);
+  const [globalRankings, setGlobalRankings] = useState(null);
 
   // Get player_id and league_id from active player context
   const currentPlayerId = activePlayer?.player_id;
@@ -42,9 +44,10 @@ const LeaguePage = () => {
     const fetchPageData = async () => {
       setLoading(true);
 
-      const [leagueResult, pickResult] = await Promise.allSettled([
+      const [leagueResult, pickResult, globalResult] = await Promise.allSettled([
         LeagueServices.getLeagueWithPlayers(leagueId),
         LeagueServices.getPickDistribution(leagueId),
+        LeagueServices.getGlobalRankings(leagueId),
       ]);
 
       // League data is critical — page-level error if it fails
@@ -59,6 +62,11 @@ const LeaguePage = () => {
         setPickDistribution(pickResult.value);
       } else {
         setPickDistributionError(pickResult.reason?.message || 'Failed to load pick distribution');
+      }
+
+      // Global rankings are supplementary — banner simply won't render on failure
+      if (globalResult.status === 'fulfilled') {
+        setGlobalRankings(globalResult.value);
       }
 
       setLoading(false);
@@ -172,6 +180,16 @@ const LeaguePage = () => {
         loading={loading}
         error={pickDistributionError}
       />
+
+      {/* Global Rankings — top 10 across all leagues */}
+      {globalRankings && (
+        <>
+          <Typography variant="h5" component="h2" sx={{ mt: 4, mb: 2 }}>
+            Global Rankings
+          </Typography>
+          <GlobalRankings globalRankings={globalRankings} />
+        </>
+      )}
 
       {/* League Information */}
       <Typography variant="h5" component="h2" sx={{ mt: 4, mb: 2 }}>

@@ -216,7 +216,7 @@ const ScoreBreakdownChart = ({
             {totalScore}
           </Typography>
           <Typography variant="caption" color="text.secondary" sx={{ mt: 0.25, display: 'block' }}>
-            {hasData ? 'pts' : 'no scores yet'}
+            pts
           </Typography>
         </Box>
       </Box>

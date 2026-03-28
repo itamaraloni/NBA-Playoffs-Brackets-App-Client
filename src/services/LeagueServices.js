@@ -81,6 +81,33 @@ const LeagueServices = {
   },
 
   /**
+   * Get global player rankings across all leagues.
+   * Returns top-10 players, the current user's rank, and total player count.
+   */
+  async getGlobalRankings(leagueId) {
+    const data = await apiClient.get(`/league/${leagueId}/rankings/global`);
+    return {
+      topPlayers: data.top_players.map(p => ({
+        rank: p.rank,
+        playerId: p.player_id,
+        playerName: p.player_name,
+        playerAvatar: p.player_avatar,
+        totalScore: p.total_score,
+        leagueName: p.league_name,
+      })),
+      myRank: data.my_rank ? {
+        rank: data.my_rank.rank,
+        playerId: data.my_rank.player_id,
+        playerName: data.my_rank.player_name,
+        playerAvatar: data.my_rank.player_avatar,
+        totalScore: data.my_rank.total_score,
+        leagueName: data.my_rank.league_name ?? null,
+      } : null,
+      totalPlayers: data.total_players,
+    };
+  },
+
+  /**
    * Regenerate invite link for a league (commissioner only).
    * Invalidates the old token and returns a new one.
    */
