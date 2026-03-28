@@ -187,7 +187,7 @@ const LandingPage = () => {
             </Grid>
           </Grid>
           {/* How It Works Section */}
-          <Box sx={{ mt: 8 }}>
+          <Box sx={{ mt: 8, color: 'text.primary' }}>
             <AppExplanation elevation={2} />
           </Box>
         </Container>

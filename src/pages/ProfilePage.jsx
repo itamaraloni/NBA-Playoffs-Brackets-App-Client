@@ -146,7 +146,7 @@ function ProfilePage() {
       </Paper>
 
       {/* League Management Section */}
-      <Typography variant="h5" fontWeight="medium" sx={{ mb: 2 }}>
+      <Typography variant="h5" fontWeight="medium" sx={{ mt: 4, mb: 2 }}>
         League Management
       </Typography>
       <Grid container spacing={3}>
