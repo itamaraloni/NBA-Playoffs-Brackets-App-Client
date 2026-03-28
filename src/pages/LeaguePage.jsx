@@ -1,23 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Typography, 
+import {
+  Container,
+  Typography,
   Snackbar,
   Alert,
-  useMediaQuery,
-  useTheme,
   CircularProgress
 } from '@mui/material';
 import StandingsTable from '../components/StandingsTable';
 import ScoringRules from '../components/common/ScoringRules';
 import League from '../components/League';
+import LeagueInsights from '../components/LeagueInsights';
 import PlayerDetailDialog from '../components/PlayerDetailDialog';
 import LeagueServices from '../services/LeagueServices';
 import { useAuth } from '../contexts/AuthContext';
 
 const LeaguePage = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { activePlayer } = useAuth();
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -27,35 +24,49 @@ const LeaguePage = () => {
   const [leagueData, setLeagueData] = useState(null);
   const [error, setError] = useState(null);
   const [regenerating, setRegenerating] = useState(false);
+  const [pickDistribution, setPickDistribution] = useState(null);
+  const [pickDistributionError, setPickDistributionError] = useState(null);
 
   // Get player_id and league_id from active player context
   const currentPlayerId = activePlayer?.player_id;
   const leagueId = activePlayer?.league_id;
-  
-  // Fetch league data from API using service
+
+  // Fetch all league page data in parallel
   useEffect(() => {
-    const fetchLeagueData = async () => {
-      setLoading(true);
-      try {
-        // Use league service to fetch data
-        const data = await LeagueServices.getLeagueWithPlayers(leagueId);
-        setLeagueData(data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Failed to fetch league data:', err);
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-    
-    if (leagueId) {
-      fetchLeagueData();
-    } else {
+    if (!leagueId) {
       setError('No league selected. Please join or create a league from the Dashboard.');
       setLoading(false);
+      return;
     }
-  }, [leagueId]); // Re-fetch when active player/league changes
-  
+
+    const fetchPageData = async () => {
+      setLoading(true);
+
+      const [leagueResult, pickResult] = await Promise.allSettled([
+        LeagueServices.getLeagueWithPlayers(leagueId),
+        LeagueServices.getPickDistribution(leagueId),
+      ]);
+
+      // League data is critical — page-level error if it fails
+      if (leagueResult.status === 'fulfilled') {
+        setLeagueData(leagueResult.value);
+      } else {
+        setError(leagueResult.reason?.message || 'Failed to load league data');
+      }
+
+      // Pick distribution is supplementary — section-level error only
+      if (pickResult.status === 'fulfilled') {
+        setPickDistribution(pickResult.value);
+      } else {
+        setPickDistributionError(pickResult.reason?.message || 'Failed to load pick distribution');
+      }
+
+      setLoading(false);
+    };
+
+    fetchPageData();
+  }, [leagueId]);
+
   const isCommissioner = activePlayer?.is_commissioner;
 
   // Copy invite link to clipboard
@@ -145,12 +156,23 @@ const LeaguePage = () => {
       <Typography variant="h5" component="h2" sx={{ mt: 4, mb: 2 }}>
         Player Standings
       </Typography>
-      <StandingsTable 
-        players={leagueData.players} 
+      <StandingsTable
+        players={leagueData.players}
         currentPlayerId={currentPlayerId}
-        onPlayerSelect={handlePlayerSelect} 
+        onPlayerSelect={handlePlayerSelect}
       />
-      
+
+      {/* League Insights — champion & MVP pick distribution */}
+      <Typography variant="h5" component="h2" sx={{ mt: 4, mb: 2 }}>
+        League Insights
+      </Typography>
+      <LeagueInsights
+        pickDistribution={pickDistribution}
+        currentPlayer={leagueData.players.find(p => p.id === currentPlayerId)}
+        loading={loading}
+        error={pickDistributionError}
+      />
+
       {/* League Information */}
       <Typography variant="h5" component="h2" sx={{ mt: 4, mb: 2 }}>
         League Information
