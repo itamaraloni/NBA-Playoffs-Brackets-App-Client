@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Container,
@@ -16,14 +17,19 @@ import {
   Person as PersonIcon,
   CalendarToday as CalendarIcon
 } from '@mui/icons-material';
+import { CreateLeagueSection, JoinLeagueSection } from '../components/CreateJoinLeagueComponents';
 import UserServices from '../services/UserServices';
+import { extractTokenFromInput } from '../utils/inviteUtils';
 
 function ProfilePage() {
   const theme = useTheme();
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [inviteInput, setInviteInput] = useState('');
+  const [inputError, setInputError] = useState('');
   
   useEffect(() => {
     async function fetchProfileData() {
@@ -42,6 +48,20 @@ function ProfilePage() {
     
     fetchProfileData();
   }, []);
+
+  const handleCreateLeague = () => {
+    navigate('/create-league');
+  };
+
+  const handleJoinLeague = () => {
+    const token = extractTokenFromInput(inviteInput);
+    if (!token) {
+      setInputError('Please paste an invite link or token');
+      return;
+    }
+    setInputError('');
+    navigate(`/invite/${token}`);
+  };
 
   // Loading state
   if (loading && !profileData) {
@@ -124,6 +144,24 @@ function ProfilePage() {
           </Grid>
         </Grid>
       </Paper>
+
+      {/* League Management Section */}
+      <Typography variant="h5" fontWeight="medium" sx={{ mt: 4, mb: 2 }}>
+        League Management
+      </Typography>
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <CreateLeagueSection onCreateClick={handleCreateLeague} />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <JoinLeagueSection
+            inviteInput={inviteInput}
+            setInviteInput={setInviteInput}
+            inputError={inputError}
+            onJoinClick={handleJoinLeague}
+          />
+        </Grid>
+      </Grid>
     </Container>
   );
 }
