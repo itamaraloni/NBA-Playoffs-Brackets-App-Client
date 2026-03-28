@@ -149,6 +149,7 @@ const RoundBar = ({ row, isBestRound, isMobile }) => {
               <Tooltip title={`${row.bullsEyes} bulls-eye${row.bullsEyes !== 1 ? 's' : ''}`} enterTouchDelay={0} leaveTouchDelay={1500} placement="top">
                 <Box sx={{
                   width: `${bullsEyePct}%`,
+                  minWidth: 6,
                   bgcolor: theme.palette.success.main,
                   transition: 'width 0.4s ease',
                   cursor: 'pointer'
@@ -159,6 +160,7 @@ const RoundBar = ({ row, isBestRound, isMobile }) => {
               <Tooltip title={`${row.hits} hit${row.hits !== 1 ? 's' : ''}`} enterTouchDelay={0} leaveTouchDelay={1500} placement="top">
                 <Box sx={{
                   width: `${hitPct}%`,
+                  minWidth: 6,
                   bgcolor: theme.palette.warning.main,
                   transition: 'width 0.4s ease',
                   cursor: 'pointer'
@@ -169,6 +171,7 @@ const RoundBar = ({ row, isBestRound, isMobile }) => {
               <Tooltip title={`${row.misses} miss${row.misses !== 1 ? 'es' : ''}`} enterTouchDelay={0} leaveTouchDelay={1500} placement="top">
                 <Box sx={{
                   width: `${missPct}%`,
+                  minWidth: 6,
                   bgcolor: theme.palette.error.main,
                   opacity: 0.7,
                   transition: 'width 0.4s ease',

@@ -89,6 +89,7 @@ const LeagueServices = {
     return {
       topPlayers: data.top_players.map(p => ({
         rank: p.rank,
+        playerId: p.player_id,
         playerName: p.player_name,
         playerAvatar: p.player_avatar,
         totalScore: p.total_score,
@@ -100,6 +101,7 @@ const LeagueServices = {
         playerName: data.my_rank.player_name,
         playerAvatar: data.my_rank.player_avatar,
         totalScore: data.my_rank.total_score,
+        leagueName: data.my_rank.league_name ?? null,
       } : null,
       totalPlayers: data.total_players,
     };

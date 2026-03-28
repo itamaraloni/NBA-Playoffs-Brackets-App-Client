@@ -40,9 +40,9 @@ const GlobalRankings = ({ globalRankings }) => {
 
   const { topPlayers, myRank, totalPlayers } = globalRankings;
 
-  // Determine if the current user appears in the top-10 list
+  // Determine if the current user appears in the top-10 list (match on unique player ID)
   const myRankInTop = myRank
-    ? topPlayers.some(p => p.rank === myRank.rank && p.playerName === myRank.playerName)
+    ? topPlayers.some(p => p.playerId === myRank.playerId)
     : false;
 
   const resolveAvatar = (avatarId) =>
@@ -102,13 +102,11 @@ const GlobalRankings = ({ globalRankings }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {topPlayers.map((player) => {
-            const isMe = myRank
-              && player.rank === myRank.rank
-              && player.playerName === myRank.playerName;
+          {topPlayers.map((player, index) => {
+            const isMe = myRank && player.playerId === myRank.playerId;
 
             return (
-              <TableRow key={`${player.rank}-${player.playerName}`} sx={rowHighlight(isMe)}>
+              <TableRow key={player.playerId || `${player.rank}-${index}`} sx={rowHighlight(isMe)}>
                 <TableCell>{renderRankCell(player.rank)}</TableCell>
                 <TableCell>{renderPlayerCell(player.playerName, player.playerAvatar, isMe)}</TableCell>
                 <TableCell>{player.leagueName || '—'}</TableCell>
@@ -135,7 +133,7 @@ const GlobalRankings = ({ globalRankings }) => {
               <TableRow sx={rowHighlight(true)}>
                 <TableCell>{renderRankCell(myRank.rank)}</TableCell>
                 <TableCell>{renderPlayerCell(myRank.playerName, myRank.playerAvatar, true)}</TableCell>
-                <TableCell>—</TableCell>
+                <TableCell>{myRank.leagueName || '—'}</TableCell>
                 <TableCell align="right">
                   <Typography fontWeight="bold">{myRank.totalScore}</Typography>
                 </TableCell>

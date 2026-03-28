@@ -122,7 +122,12 @@ const PlayerStatsCard = ({
                         ? 'rgba(255, 255, 255, 0.12)'
                         : 'rgba(0, 0, 0, 0.10)'
                     }`,
-                    '& .MuiChip-label': { px: isMobile ? 1.25 : 1.75 },
+                    '& .MuiChip-label': {
+                      px: isMobile ? 1.25 : 1.75,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    },
                   }}
                 />
               </Tooltip>
