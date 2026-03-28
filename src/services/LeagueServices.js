@@ -57,6 +57,30 @@ const LeagueServices = {
   },
 
   /**
+   * Get champion and MVP pick distribution for a league (excludes bots).
+   * @returns {Promise<Object>}
+   */
+  async getPickDistribution(leagueId) {
+    const data = await apiClient.get(`/league/${leagueId}/stats/picks`);
+    return {
+      leagueId: data.league_id,
+      playerCount: data.player_count,
+      championDistribution: data.champion_distribution.map(d => ({
+        teamId: d.team_id,
+        teamName: d.team_name,
+        pickCount: d.pick_count,
+        percentage: d.percentage,
+      })),
+      mvpDistribution: data.mvp_distribution.map(d => ({
+        nbaPlayerId: d.nba_player_id,
+        playerName: d.player_name,
+        pickCount: d.pick_count,
+        percentage: d.percentage,
+      })),
+    };
+  },
+
+  /**
    * Regenerate invite link for a league (commissioner only).
    * Invalidates the old token and returns a new one.
    */

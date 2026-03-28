@@ -11,6 +11,7 @@ import {
 import StandingsTable from '../components/StandingsTable';
 import ScoringRules from '../components/common/ScoringRules';
 import League from '../components/League';
+import LeagueInsights from '../components/LeagueInsights';
 import PlayerDetailDialog from '../components/PlayerDetailDialog';
 import LeagueServices from '../services/LeagueServices';
 import { useAuth } from '../contexts/AuthContext';
@@ -27,6 +28,9 @@ const LeaguePage = () => {
   const [leagueData, setLeagueData] = useState(null);
   const [error, setError] = useState(null);
   const [regenerating, setRegenerating] = useState(false);
+  const [pickDistribution, setPickDistribution] = useState(null);
+  const [pickDistributionLoading, setPickDistributionLoading] = useState(false);
+  const [pickDistributionError, setPickDistributionError] = useState(null);
 
   // Get player_id and league_id from active player context
   const currentPlayerId = activePlayer?.player_id;
@@ -55,7 +59,25 @@ const LeaguePage = () => {
       setLoading(false);
     }
   }, [leagueId]); // Re-fetch when active player/league changes
-  
+
+  // Fetch pick distribution separately — secondary data, non-blocking
+  useEffect(() => {
+    if (!leagueId) return;
+    const fetchPickDistribution = async () => {
+      setPickDistributionLoading(true);
+      setPickDistributionError(null);
+      try {
+        const data = await LeagueServices.getPickDistribution(leagueId);
+        setPickDistribution(data);
+      } catch (err) {
+        setPickDistributionError(err.message || 'Failed to load pick distribution');
+      } finally {
+        setPickDistributionLoading(false);
+      }
+    };
+    fetchPickDistribution();
+  }, [leagueId]);
+
   const isCommissioner = activePlayer?.is_commissioner;
 
   // Copy invite link to clipboard
@@ -145,12 +167,23 @@ const LeaguePage = () => {
       <Typography variant="h5" component="h2" sx={{ mt: 4, mb: 2 }}>
         Player Standings
       </Typography>
-      <StandingsTable 
-        players={leagueData.players} 
+      <StandingsTable
+        players={leagueData.players}
         currentPlayerId={currentPlayerId}
-        onPlayerSelect={handlePlayerSelect} 
+        onPlayerSelect={handlePlayerSelect}
       />
-      
+
+      {/* League Insights — champion & MVP pick distribution */}
+      <Typography variant="h5" component="h2" sx={{ mt: 4, mb: 2 }}>
+        League Insights
+      </Typography>
+      <LeagueInsights
+        pickDistribution={pickDistribution}
+        currentPlayer={leagueData.players.find(p => p.id === currentPlayerId)}
+        loading={pickDistributionLoading}
+        error={pickDistributionError}
+      />
+
       {/* League Information */}
       <Typography variant="h5" component="h2" sx={{ mt: 4, mb: 2 }}>
         League Information
