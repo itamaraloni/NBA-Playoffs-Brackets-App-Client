@@ -10,7 +10,7 @@
 
 Frontend for Playoff Prophet — React 18 + MUI 6 SPA for NBA Playoffs predictions.
 
-**Stack:** React 18, Material-UI 6, React Router 7, Firebase Auth (Google SSO), Recharts, React Toastify. CRA-based build.
+**Stack:** React 18, Material-UI 6, React Router 7, Firebase Auth (Google SSO), Recharts, React Toastify, html2canvas. CRA-based build.
 
 **Structure:**
 - `src/pages/` — route-level page components (Dashboard, Predictions, League, Profile, etc.)
