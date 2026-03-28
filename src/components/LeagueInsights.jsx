@@ -6,7 +6,6 @@ import {
   Paper,
   CircularProgress,
   Alert,
-  Grid,
   Stack,
   Chip,
   Avatar,
@@ -37,17 +36,17 @@ const DistributionCard = ({ title, entries, currentPickName, progressColor }) =>
       </Typography>
 
       {entries.length > 0 ? (
-        <Stack spacing={1.5}>
+        <Stack spacing={2}>
           {entries.map((entry) => {
             const isCurrentPick = currentPickName && entry.name === currentPickName;
             return (
               <Box
                 key={entry.id}
                 sx={{
-                  pl: 1.5,
+                  pl: 2,
                   borderLeft: isCurrentPick
-                    ? `3px solid ${accentColor}`
-                    : '3px solid transparent',
+                    ? `4px solid ${accentColor}`
+                    : '4px solid transparent',
                 }}
               >
                 <Box
@@ -55,21 +54,21 @@ const DistributionCard = ({ title, entries, currentPickName, progressColor }) =>
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    mb: 0.5,
+                    mb: 1,
                     gap: 1,
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
                     <Avatar
                       src={entry.avatarSrc}
                       alt={entry.name}
                       variant="rounded"
-                      sx={{ width: 28, height: 28, flexShrink: 0 }}
+                      sx={{ width: 40, height: 40, flexShrink: 0 }}
                     >
                       {entry.name.charAt(0)}
                     </Avatar>
                     <Typography
-                      variant="body2"
+                      variant="body1"
                       fontWeight={isCurrentPick ? 700 : 500}
                       noWrap
                     >
@@ -80,7 +79,7 @@ const DistributionCard = ({ title, entries, currentPickName, progressColor }) =>
                         label="You"
                         size="small"
                         color={progressColor}
-                        sx={{ height: 18, fontSize: '0.625rem', flexShrink: 0 }}
+                        sx={{ height: 20, fontSize: '0.6875rem', flexShrink: 0 }}
                       />
                     )}
                   </Box>
@@ -92,7 +91,7 @@ const DistributionCard = ({ title, entries, currentPickName, progressColor }) =>
                   variant="determinate"
                   value={entry.percentage}
                   color={isCurrentPick ? progressColor : 'inherit'}
-                  sx={{ height: 8, borderRadius: 1 }}
+                  sx={{ height: 10, borderRadius: 1 }}
                 />
               </Box>
             );
@@ -159,25 +158,20 @@ const LeagueInsights = ({ pickDistribution, currentPlayer, loading, error }) => 
         {pickDistribution.playerCount} member{pickDistribution.playerCount !== 1 ? 's' : ''} (excluding bots)
       </Typography>
 
-      {/* Grid: side-by-side on md+, stacked on mobile */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <DistributionCard
-            title="Championship Picks"
-            entries={championEntries}
-            currentPickName={currentChampPick}
-            progressColor="primary"
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <DistributionCard
-            title="MVP Picks"
-            entries={mvpEntries}
-            currentPickName={currentMvpPick}
-            progressColor="secondary"
-          />
-        </Grid>
-      </Grid>
+      <Stack spacing={3}>
+        <DistributionCard
+          title="Championship Picks"
+          entries={championEntries}
+          currentPickName={currentChampPick}
+          progressColor="primary"
+        />
+        <DistributionCard
+          title="MVP Picks"
+          entries={mvpEntries}
+          currentPickName={currentMvpPick}
+          progressColor="secondary"
+        />
+      </Stack>
     </Box>
   );
 };
