@@ -25,9 +25,6 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
-  
-  // Sort players by score
-  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
 
   // Responsive table columns based on screen size
   const getTableColumns = () => {
@@ -67,9 +64,9 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
   };
 
   // Responsive table rows based on screen size
-  const getTableRows = (player, index) => {
+  const getTableRows = (player) => {
     const isCurrentPlayer = player.id === currentPlayerId;
-    const isLeader = index === 0;
+    const isLeader = player.rank === 1;
     
     if (isMobile) {
       return (
@@ -78,10 +75,10 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
             {isLeader ? (
               <Box display="flex" alignItems="center">
                 <TrophyIcon fontSize="small" sx={{ color: 'gold', mr: 0.5 }} />
-                <Typography variant="body2" fontWeight="bold">{index + 1}</Typography>
+                <Typography variant="body2" fontWeight="bold">{player.rank}</Typography>
               </Box>
             ) : (
-              index + 1
+              player.rank
             )}
           </TableCell>
           <TableCell>
@@ -121,10 +118,10 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
             {isLeader ? (
               <Box display="flex" alignItems="center">
                 <TrophyIcon fontSize="small" sx={{ color: 'gold', mr: 0.5 }} />
-                <Typography variant="body2" fontWeight="bold">{index + 1}</Typography>
+                <Typography variant="body2" fontWeight="bold">{player.rank}</Typography>
               </Box>
             ) : (
-              index + 1
+              player.rank
             )}
           </TableCell>
           <TableCell>
@@ -162,10 +159,10 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
             {isLeader ? (
               <Box display="flex" alignItems="center">
                 <TrophyIcon fontSize="small" sx={{ color: 'gold', mr: 0.5 }} />
-                <Typography variant="body2" fontWeight="bold">{index + 1}</Typography>
+                <Typography variant="body2" fontWeight="bold">{player.rank}</Typography>
               </Box>
             ) : (
-              index + 1
+              player.rank
             )}
           </TableCell>
           <TableCell>
@@ -209,7 +206,7 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {sortedPlayers.map((player, index) => (
+          {players.map((player) => (
             <Tooltip 
               key={player.id}
               title="Click to view player details" 
@@ -229,7 +226,7 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
                 }}
                 onClick={() => onPlayerSelect && onPlayerSelect(player.id)}
               >
-                {getTableRows(player, index)}
+                {getTableRows(player)}
               </TableRow>
             </Tooltip>
           ))}

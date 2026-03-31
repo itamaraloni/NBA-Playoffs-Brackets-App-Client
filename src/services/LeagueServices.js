@@ -130,6 +130,7 @@ const transformPlayerData = (player) => ({
   championshipPrediction: player.winning_team,
   mvpPrediction: player.mvp_prediction,
   leagueId: player.league_id,
+  rank: player.rank,
   score: player.total_score,
   totalPredictionPoints: player.total_prediction_points,
   championship_team_points: player.championship_team_points,
