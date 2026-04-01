@@ -91,7 +91,7 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
                 bgcolor: isCurrentPlayer ? theme.palette.primary.main : theme.palette.grey[300],
                 fontSize: '0.875rem'
               }}
-              src={PLAYER_AVATARS.find(avatar => avatar.id === player.player_avatar)?.src}
+              src={PLAYER_AVATARS.find(avatar => avatar.id === player.playerAvatar)?.src}
               alt={player.name}
             >
               {player.name.charAt(0)}
@@ -134,7 +134,7 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
                 bgcolor: isCurrentPlayer ? theme.palette.primary.main : theme.palette.grey[300],
                 fontSize: '0.875rem'
               }}
-              src={PLAYER_AVATARS.find(avatar => avatar.id === player.player_avatar)?.src}
+              src={PLAYER_AVATARS.find(avatar => avatar.id === player.playerAvatar)?.src}
               alt={player.name}
             >
               {player.name.charAt(0)}
@@ -175,7 +175,7 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
                 bgcolor: isCurrentPlayer ? theme.palette.primary.main : theme.palette.grey[300],
                 fontSize: '0.875rem'
               }}
-              src={PLAYER_AVATARS.find(avatar => avatar.id === player.player_avatar)?.src}
+              src={PLAYER_AVATARS.find(avatar => avatar.id === player.playerAvatar)?.src}
               alt={player.name}
             >
               {player.name.charAt(0)}
@@ -241,9 +241,10 @@ StandingsTable.propTypes = {
     PropTypes.shape({
       id: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
+      rank: PropTypes.number.isRequired,
       championshipPrediction: PropTypes.string,
       mvpPrediction: PropTypes.string,
-      player_avatar: PropTypes.string,
+      playerAvatar: PropTypes.string,
       bracketScore: PropTypes.number,
       score: PropTypes.number.isRequired
     })

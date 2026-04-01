@@ -93,17 +93,8 @@ const PlayerDetailDialog = ({ player, leagueName, open, onClose }) => {
 
 PlayerDetailDialog.propTypes = {
   player: PropTypes.shape({
-    id: PropTypes.string,
-    name: PropTypes.string,
-    championshipPrediction: PropTypes.string,
-    mvpPrediction: PropTypes.string,
-    bullsEye: PropTypes.number,
-    hits: PropTypes.number,
-    misses: PropTypes.number,
-    player_avatar: PropTypes.string,
-    score: PropTypes.number,
-    championship_team_points: PropTypes.number,
-    mvp_points: PropTypes.number
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
   }),
   leagueName: PropTypes.string,
   open: PropTypes.bool.isRequired,
