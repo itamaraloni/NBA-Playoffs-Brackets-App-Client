@@ -11,7 +11,6 @@ import {
 import { TbCrystalBall } from 'react-icons/tb';
 import { BsBullseye } from 'react-icons/bs';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
-import { Lock as LockIcon } from '@mui/icons-material';
 
 /**
  * Builds per-round stats rows from hits/bullsEye/misses/points objects returned by the API.
@@ -225,10 +224,12 @@ const PredictionStatsBars = ({ matchupStats, bracketStats = null }) => {
   const [activeTab, setActiveTab] = useState('matchup');
 
   const matchupRows = useMemo(() => buildRoundRows(matchupStats), [matchupStats]);
-  const bracketRows = useMemo(() => buildRoundRows(bracketStats), [bracketStats]);
+  const bracketRows = useMemo(
+    () => buildRoundRows(bracketStats ?? { hits: {}, bullsEye: {}, misses: {}, points: {} }),
+    [bracketStats]
+  );
 
   const activeRows = activeTab === 'matchup' ? matchupRows : bracketRows;
-  const hasBracketData = bracketStats !== null;
 
   // Find best round (highest points) for highlighting
   const bestRoundKey = useMemo(() => {
@@ -326,81 +327,61 @@ const PredictionStatsBars = ({ matchupStats, bracketStats = null }) => {
         </Box>
       </Box>
 
-      {/* Bracket "coming soon" placeholder */}
-      {activeTab === 'bracket' && !hasBracketData ? (
-        <Box sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          py: 5,
-          gap: 1,
-          opacity: 0.5
-        }}>
-          <LockIcon sx={{ fontSize: 32 }} />
-          <Typography variant="body2" color="text.secondary">
-            Bracket stats coming soon
-          </Typography>
-        </Box>
-      ) : (
-        <>
-          {/* Round bars */}
-          <Box sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 0.25,
-            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
-            borderRadius: 1.5,
-            py: 0.5
-          }}>
-            {activeRows.map(row => (
-              <RoundBar
-                key={row.key}
-                row={row}
-                isBestRound={row.key === bestRoundKey}
-                isMobile={isMobile}
-              />
-            ))}
-          </Box>
+      {/* Round bars */}
+      <Box sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0.25,
+        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
+        borderRadius: 1.5,
+        py: 0.5
+      }}>
+        {activeRows.map(row => (
+          <RoundBar
+            key={row.key}
+            row={row}
+            isBestRound={row.key === bestRoundKey}
+            isMobile={isMobile}
+          />
+        ))}
+      </Box>
 
-          {/* Totals row */}
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mt: 1,
-            px: 1.5,
-            py: 1,
-            borderTop: '1px solid',
-            borderColor: 'divider',
-            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
-            borderRadius: 1
-          }}>
-            <Box sx={{ display: 'flex', gap: isMobile ? 1.5 : 2.5, alignItems: 'center' }}>
-              <Typography variant="body2" fontWeight={700} color="primary">
-                Total
-              </Typography>
-              <Box sx={{ display: 'flex', gap: isMobile ? 1 : 2.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <TbCrystalBall size={isMobile ? 13 : 17} style={{ color: theme.palette.success.main }} />
-                  <Typography variant={isMobile ? 'body2' : 'body1'} fontWeight={700}>{totals.bullsEyes}</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <BsBullseye size={isMobile ? 12 : 16} style={{ color: theme.palette.warning.main }} />
-                  <Typography variant={isMobile ? 'body2' : 'body1'} fontWeight={700}>{totals.hits}</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <AiOutlineCloseCircle size={isMobile ? 13 : 17} style={{ color: theme.palette.error.main }} />
-                  <Typography variant={isMobile ? 'body2' : 'body1'} fontWeight={700}>{totals.misses}</Typography>
-                </Box>
-              </Box>
+      {/* Totals row */}
+      <Box sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        mt: 1,
+        px: 1.5,
+        py: 1,
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+        borderRadius: 1
+      }}>
+        <Box sx={{ display: 'flex', gap: isMobile ? 1.5 : 2.5, alignItems: 'center' }}>
+          <Typography variant="body2" fontWeight={700} color="primary">
+            Total
+          </Typography>
+          <Box sx={{ display: 'flex', gap: isMobile ? 1 : 2.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <TbCrystalBall size={isMobile ? 13 : 17} style={{ color: theme.palette.success.main }} />
+              <Typography variant={isMobile ? 'body2' : 'body1'} fontWeight={700}>{totals.bullsEyes}</Typography>
             </Box>
-            <Typography variant={isMobile ? 'body1' : 'h6'} fontWeight={700} color="success.main">
-              {totals.points} pts
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <BsBullseye size={isMobile ? 12 : 16} style={{ color: theme.palette.warning.main }} />
+              <Typography variant={isMobile ? 'body2' : 'body1'} fontWeight={700}>{totals.hits}</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <AiOutlineCloseCircle size={isMobile ? 13 : 17} style={{ color: theme.palette.error.main }} />
+              <Typography variant={isMobile ? 'body2' : 'body1'} fontWeight={700}>{totals.misses}</Typography>
+            </Box>
           </Box>
-        </>
-      )}
+        </Box>
+        <Typography variant={isMobile ? 'body1' : 'h6'} fontWeight={700} color="success.main">
+          {totals.points} pts
+        </Typography>
+      </Box>
     </Box>
   );
 };
