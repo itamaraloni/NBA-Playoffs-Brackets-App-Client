@@ -13,7 +13,7 @@ const ROUND_KEY_MAP = {
  * Enriches a raw matchup object from the API with computed boolean flags
  * that drive display logic in BracketMatchup.
  */
-function enrichMatchup(m) {
+function enrichMatchup(m, isActualBracket = false) {
   const isPlayin  = m.round === 'playin_first' || m.round === 'playin_second';
   const hasPick   = m.predicted_winner_team_id != null;
   const isPlayed  = m.actual_winner_team_id != null;
@@ -25,6 +25,7 @@ function enrichMatchup(m) {
     hasPick,
     isPlayed,
     isMatchupExist,
+    isActualBracket,
     predWinnerIsTeam1:   hasPick  && m.predicted_winner_team_id === m.team_1?.team_id,
     predWinnerIsTeam2:   hasPick  && m.predicted_winner_team_id === m.team_2?.team_id,
     actualWinnerIsTeam1: isPlayed && m.actual_winner_team_id    === m.team_1?.team_id,
@@ -40,12 +41,12 @@ function enrichMatchup(m) {
  * Groups a flat conference matchup array (9 matchups) into round buckets,
  * sorted by matchup_position within each bucket.
  */
-function groupByRound(matchups) {
+function groupByRound(matchups, isActualBracket = false) {
   const groups = { playin: [], survivor: [], r1: [], semis: [], cf: [] };
 
   for (const m of matchups) {
     const key = ROUND_KEY_MAP[m.round];
-    if (key) groups[key].push(enrichMatchup(m));
+    if (key) groups[key].push(enrichMatchup(m, isActualBracket));
   }
 
   for (const key of Object.keys(groups)) {
@@ -63,19 +64,22 @@ function groupByRound(matchups) {
  * Output: { bracketId, east, west, final, isLocked, isBracketSubmitted, ... }
  */
 function transformBracketData(apiResponse) {
+  const isActualBracket = apiResponse.is_actual_bracket || false;
+
   return {
     bracketId:           apiResponse.bracket_id,
     playerId:            apiResponse.player_id,
     leagueId:            apiResponse.league_id,
     isBracketSubmitted:  apiResponse.is_bracket_submitted,
     bracketSubmittedAt:  apiResponse.bracket_submitted_at,
-    predictedMatchups:   apiResponse.predicted_matchups,
+    predictedMatchups:   apiResponse.predicted_matchups ?? apiResponse.total_matchups,
     totalMatchups:       apiResponse.total_matchups,
     deadline:            apiResponse.deadline,
     isLocked:            apiResponse.is_locked,
-    east:  groupByRound(apiResponse.conferences.east),
-    west:  groupByRound(apiResponse.conferences.west),
-    final: enrichMatchup(apiResponse.final),
+    isActualBracket,
+    east:  groupByRound(apiResponse.conferences.east, isActualBracket),
+    west:  groupByRound(apiResponse.conferences.west, isActualBracket),
+    final: enrichMatchup(apiResponse.final, isActualBracket),
     // New optional fields from server (graceful fallback if missing)
     championshipPick:       apiResponse.championship_pick ?? null,
     mvpPick:                apiResponse.mvp_pick ?? null,
@@ -145,6 +149,15 @@ const BracketServices = {
     const params = new URLSearchParams({ league_id: leagueId });
     if (playerId) params.append('player_id', playerId);
     const data = await apiClient.get(`/bracket/get_player_bracket?${params.toString()}`);
+    return transformBracketData(data);
+  },
+
+  /**
+   * Fetches the actual NBA bracket (real playoff progression, no predictions).
+   * Only available after the bracket deadline.
+   */
+  async getActualBracket() {
+    const data = await apiClient.get('/bracket/actual');
     return transformBracketData(data);
   },
 

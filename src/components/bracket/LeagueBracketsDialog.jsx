@@ -30,6 +30,16 @@ import BracketServices from '../../services/BracketServices';
 import BracketView from './BracketView';
 import { computeBracketHealth } from '../../utils/bracketUtils';
 
+const ADAM_SILVER_AVATAR = '/resources/commissioner/adam-silver.png';
+
+const ACTUAL_BRACKET_ENTRY = {
+  playerId: '__actual__',
+  playerName: 'Adam Silver',
+  playerAvatar: null,
+  isBracketSubmitted: true,
+  bracketSubmittedAt: null,
+};
+
 /**
  * Dialog for viewing league members' brackets after the deadline.
  * Shows a player list with bracket status; clicking a player loads their full bracket.
@@ -79,7 +89,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
     }
   }, [open]);
 
-  // Load a player's full bracket
+  // Load a player's full bracket (or the actual NBA bracket for Adam Silver)
   const handlePlayerClick = useCallback(async (player) => {
     if (!player.isBracketSubmitted) return;
 
@@ -89,10 +99,12 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
     setBracketData(null);
 
     try {
-      const data = await BracketServices.getBracket(player.playerId, leagueId);
+      const data = player.playerId === ACTUAL_BRACKET_ENTRY.playerId
+        ? await BracketServices.getActualBracket()
+        : await BracketServices.getBracket(player.playerId, leagueId);
       setBracketData(data);
     } catch (err) {
-      console.error('Failed to load player bracket:', err);
+      console.error('Failed to load bracket:', err);
       setBracketError('Failed to load bracket.');
     } finally {
       setLoadingBracket(false);
@@ -106,8 +118,10 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
     setBracketError(null);
   }, []);
 
-  const getAvatarSrc = (avatarId) =>
-    PLAYER_AVATARS.find(a => a.id === avatarId)?.src;
+  const getAvatarSrc = (player) =>
+    player.playerId === ACTUAL_BRACKET_ENTRY.playerId
+      ? ADAM_SILVER_AVATAR
+      : PLAYER_AVATARS.find(a => a.id === player.playerAvatar)?.src;
 
   // -------------------------------------------------------------------------
   // Render: Player list view
@@ -143,6 +157,52 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
 
     return (
       <List disablePadding>
+        {/* Adam Silver — Actual NBA Bracket */}
+        <ListItemButton
+          onClick={() => handlePlayerClick(ACTUAL_BRACKET_ENTRY)}
+          sx={{
+            py: 1.5,
+            px: 2,
+            '&:hover': {
+              bgcolor: alpha(theme.palette.warning.main, 0.08),
+            },
+            borderBottom: `1px solid ${theme.palette.divider}`,
+          }}
+        >
+          <ListItemAvatar>
+            <Avatar
+              src={ADAM_SILVER_AVATAR}
+              sx={{
+                width: 40,
+                height: 40,
+                bgcolor: theme.palette.warning.main,
+              }}
+            >
+              AS
+            </Avatar>
+          </ListItemAvatar>
+          <ListItemText
+            primary={
+              <Typography variant="body1" fontWeight={600}>
+                Adam Silver
+              </Typography>
+            }
+            secondary="NBA Commissioner — The Actual Bracket"
+          />
+          <Chip
+            label="Official"
+            size="small"
+            variant="outlined"
+            sx={{
+              fontWeight: 500,
+              color: theme.palette.warning.main,
+              borderColor: alpha(theme.palette.warning.main, 0.5),
+            }}
+          />
+        </ListItemButton>
+
+        <Divider sx={{ borderStyle: 'dashed' }} />
+
         {sorted.map((player) => {
           const isCurrentUser = player.playerId === currentPlayerId;
 
@@ -167,7 +227,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
             >
               <ListItemAvatar>
                 <Avatar
-                  src={getAvatarSrc(player.playerAvatar)}
+                  src={getAvatarSrc(player)}
                   sx={{
                     width: 40,
                     height: 40,
@@ -246,8 +306,9 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
 
     if (!bracketData) return null;
 
-    const health = computeBracketHealth(bracketData, bracketData.scoringConfig);
-    const bPicks = {
+    const isActual = bracketData.isActualBracket;
+    const health = isActual ? null : computeBracketHealth(bracketData, bracketData.scoringConfig);
+    const bPicks = isActual ? null : {
       championshipPick:       bracketData.championshipPick,
       mvpPick:                bracketData.mvpPick,
       championshipPickStatus: bracketData.championshipPickStatus,
@@ -268,6 +329,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
         bonusPicks={bPicks}
         scoringConfig={bracketData.scoringConfig}
         stickyHeaderTop={0}
+        isActualBracket={isActual}
       />
     );
   };
@@ -285,7 +347,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
         <ArrowBackIcon />
       </IconButton>
       <Avatar
-        src={getAvatarSrc(selectedPlayer.playerAvatar)}
+        src={getAvatarSrc(selectedPlayer)}
         sx={{ width: 28, height: 28 }}
       >
         {selectedPlayer.playerName?.charAt(0)}
