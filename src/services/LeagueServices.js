@@ -136,7 +136,9 @@ const transformPlayerData = (player) => ({
   championshipTeamPoints: player.championship_team_points,
   mvpPoints: player.mvp_points,
   bracketScore: player.bracket_score || 0,
-  isCommissioner: player.is_commissioner
+  isCommissioner: player.is_commissioner,
+  championshipPickStatus: player.championship_pick_status ?? null,
+  mvpPickStatus: player.mvp_pick_status ?? null
 });
 
 /**
