@@ -205,7 +205,8 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
 
     return [...players].sort((a, b) => {
       const diff = getValue(a) - getValue(b);
-      return sortDirection === 'asc' ? diff : -diff;
+      if (diff !== 0) return sortDirection === 'asc' ? diff : -diff;
+      return a.rank - b.rank;
     });
   }, [players, sortColumn, sortDirection]);
 
