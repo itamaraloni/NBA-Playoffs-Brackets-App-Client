@@ -72,7 +72,7 @@ function transformBracketData(apiResponse) {
     leagueId:            apiResponse.league_id,
     isBracketSubmitted:  apiResponse.is_bracket_submitted,
     bracketSubmittedAt:  apiResponse.bracket_submitted_at,
-    predictedMatchups:   apiResponse.predicted_matchups,
+    predictedMatchups:   apiResponse.predicted_matchups ?? apiResponse.total_matchups,
     totalMatchups:       apiResponse.total_matchups,
     deadline:            apiResponse.deadline,
     isLocked:            apiResponse.is_locked,

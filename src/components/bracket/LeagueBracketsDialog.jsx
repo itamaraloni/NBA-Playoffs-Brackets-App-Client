@@ -99,7 +99,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
     setBracketData(null);
 
     try {
-      const data = player.playerId === '__actual__'
+      const data = player.playerId === ACTUAL_BRACKET_ENTRY.playerId
         ? await BracketServices.getActualBracket()
         : await BracketServices.getBracket(player.playerId, leagueId);
       setBracketData(data);
@@ -119,7 +119,7 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
   }, []);
 
   const getAvatarSrc = (player) =>
-    player.playerId === '__actual__'
+    player.playerId === ACTUAL_BRACKET_ENTRY.playerId
       ? ADAM_SILVER_AVATAR
       : PLAYER_AVATARS.find(a => a.id === player.playerAvatar)?.src;
 
