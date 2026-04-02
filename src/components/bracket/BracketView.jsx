@@ -24,7 +24,7 @@ function formatCountdown(ms) {
  * BracketHeader — adapts between write mode (progress bar + countdown) and
  * read mode (health stats + accuracy bar + viewing badge).
  */
-function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline, bracketHealth, viewingPlayerName, actionButtons, flat }) {
+function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline, bracketHealth, viewingPlayerName, actionButtons, flat, isActualBracket }) {
   const theme = useTheme();
   const [now, setNow] = useState(Date.now());
 
@@ -38,6 +38,43 @@ function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline, b
   const remaining   = deadline ? new Date(deadline).getTime() - now : 0;
   const isUrgent    = remaining > 0 && remaining < 24 * 60 * 60 * 1000;
   const countdownStr = formatCountdown(remaining);
+
+  // Actual bracket mode: minimal header — viewing badge + locked indicator, no health stats
+  if (isActualBracket) {
+    return (
+      <Box sx={{
+        display: 'flex', alignItems: 'center', flexWrap: 'wrap',
+        gap: 1.5, p: 1.5, mb: flat ? 0 : 1.5,
+        background: theme.palette.background.paper,
+        borderRadius: flat ? 0 : 2,
+        border: flat ? 'none' : `1px solid ${theme.palette.divider}`,
+        ...(flat && { borderBottom: `1px solid ${theme.palette.divider}` }),
+      }}>
+        {viewingPlayerName && (
+          <Box sx={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            fontSize: '0.75rem', fontWeight: 600,
+            color: theme.palette.text.secondary,
+            px: 1.5, py: 0.5, borderRadius: '6px',
+            background: alpha(theme.palette.warning.main, 0.1),
+            border: `1px solid ${alpha(theme.palette.warning.main, 0.3)}`,
+          }}>
+            <Box sx={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: theme.palette.warning.main,
+            }} />
+            Viewing {viewingPlayerName}'s bracket
+          </Box>
+        )}
+        <Typography variant="body2" sx={{
+          fontSize: '0.8rem', whiteSpace: 'nowrap', fontWeight: 600,
+          color: 'text.secondary',
+        }}>
+          {'\uD83C\uDFC0'} Actual NBA Playoff Results
+        </Typography>
+      </Box>
+    );
+  }
 
   // Read mode: show health stats + accuracy bar
   if (isLocked && bracketHealth) {
@@ -197,7 +234,7 @@ const APPBAR_HEIGHT_MOBILE = 56; // MUI default mobile toolbar height
 const BracketView = ({
   bracket, isLocked, predictedMatchups, totalMatchups, deadline, onMatchupClick,
   bracketHealth, viewingPlayerName, bonusPicks, scoringConfig, actionButtons,
-  stickyHeaderTop = APPBAR_HEIGHT_MOBILE,
+  stickyHeaderTop = APPBAR_HEIGHT_MOBILE, isActualBracket,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'), { noSsr: true });
@@ -214,6 +251,7 @@ const BracketView = ({
       viewingPlayerName={viewingPlayerName}
       actionButtons={actionButtons}
       flat={inDialog}
+      isActualBracket={isActualBracket}
     />
   );
 

@@ -219,10 +219,37 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
   const resultState = !isLocked
     ? (m.hasPick ? 'pending' : 'na')
     : getMatchupResultState(m);
-  const resultChip = getResultChipConfig(resultState, theme);
-  const resultTooltip = getResultTooltip(resultState);
+  let resultChip = getResultChipConfig(resultState, theme);
+  let resultTooltip = getResultTooltip(resultState);
+  let resultChipLabel = null; // computed below, after actual bracket override
   const isMiss = resultState === 'miss';
   const isVoided = resultState === 'voided';
+
+  // Actual bracket: override chip to show real results instead of prediction states
+  if (m.isActualBracket) {
+    if (m.isPlayed) {
+      const winnerName = getShortTeamName(m.actualWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name);
+      const scoreStr = m.isPlayin ? '' : ` ${m.actual_series_score}`;
+      resultChip = getResultChipConfig('hit', theme);
+      resultChipLabel = `${winnerName}${scoreStr}`;
+      resultTooltip = 'Series completed';
+    } else if (m.seriesProgress) {
+      resultChip = getResultChipConfig('pending', theme);
+      resultChipLabel = `In Progress \u00B7 ${m.seriesProgress}`;
+      resultTooltip = 'Series in progress';
+    } else if (!m.isTbd) {
+      resultChip = {
+        label: 'Upcoming',
+        sx: {
+          color: theme.palette.text.secondary,
+          background: alpha(theme.palette.text.primary, 0.08),
+          borderColor: theme.palette.divider,
+        },
+      };
+      resultChipLabel = 'Upcoming';
+      resultTooltip = 'Series not yet started';
+    }
+  }
 
   const isClickable = Boolean(onMatchupClick && m.can_edit && !isLocked);
 
@@ -260,23 +287,25 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
   const t2IsActualWinner = m.actualWinnerIsTeam2;
 
   // Build chip label with team name + score appended
-  const actualWinnerName = m.isPlayed
-    ? getShortTeamName(m.actualWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name)
-    : null;
+  // (skip for actual bracket — label was already set above)
+  if (!resultChipLabel) {
+    const actualWinnerName = m.isPlayed
+      ? getShortTeamName(m.actualWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name)
+      : null;
 
-  let chipSuffix = '';
-  if (resultState === 'bullseye' || resultState === 'hit' || resultState === 'miss') {
-    // Append actual winner + actual score for best-of-7, just winner for play-in
-    chipSuffix = m.isPlayin
-      ? (actualWinnerName ? ` \u00B7 ${actualWinnerName}` : '')
-      : (actualWinnerName && m.actual_series_score
-          ? ` \u00B7 ${actualWinnerName} ${m.actual_series_score}`
-          : '');
-  } else if (resultState === 'pending' && m.seriesProgress && isLocked) {
-    chipSuffix = ` \u00B7 ${m.seriesProgress}`;
+    let chipSuffix = '';
+    if (resultState === 'bullseye' || resultState === 'hit' || resultState === 'miss') {
+      chipSuffix = m.isPlayin
+        ? (actualWinnerName ? ` \u00B7 ${actualWinnerName}` : '')
+        : (actualWinnerName && m.actual_series_score
+            ? ` \u00B7 ${actualWinnerName} ${m.actual_series_score}`
+            : '');
+    } else if (resultState === 'pending' && m.seriesProgress && isLocked) {
+      chipSuffix = ` \u00B7 ${m.seriesProgress}`;
+    }
+
+    resultChipLabel = `${resultChip.label}${chipSuffix}`;
   }
-
-  const resultChipLabel = `${resultChip.label}${chipSuffix}`;
 
   // Score bar: "Prediction: Team 4-1" — hidden for play-in (team row highlight is sufficient)
   const showScoreBar = m.hasPick && !m.isPlayin;
