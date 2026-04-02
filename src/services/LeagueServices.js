@@ -126,19 +126,17 @@ const LeagueServices = {
 const transformPlayerData = (player) => ({
   id: player.player_id,
   name: player.name,
-  player_avatar: player.player_avatar,
+  playerAvatar: player.player_avatar,
   championshipPrediction: player.winning_team,
   mvpPrediction: player.mvp_prediction,
   leagueId: player.league_id,
+  rank: player.rank,
   score: player.total_score,
   totalPredictionPoints: player.total_prediction_points,
-  championship_team_points: player.championship_team_points,
-  mvp_points: player.mvp_points,
+  championshipTeamPoints: player.championship_team_points,
+  mvpPoints: player.mvp_points,
   bracketScore: player.bracket_score || 0,
-  bullsEye: player.bullsEye,
-  hits: player.hits,
-  misses: player.misses,
-  is_commissioner: player.is_commissioner
+  isCommissioner: player.is_commissioner
 });
 
 /**
