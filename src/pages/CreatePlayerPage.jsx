@@ -17,7 +17,6 @@ import {
   CardActionArea,
   CardContent,
   Divider,
-  Snackbar,
   Autocomplete
 } from '@mui/material';
 import {
@@ -29,6 +28,7 @@ import LeagueServices from '../services/LeagueServices';
 import { PLAYER_AVATARS } from '../shared/GeneralConsts';
 import { useTeams } from '../hooks/useTeams';
 import { useMvpCandidates } from '../hooks/useMvpCandidates';
+import WelcomeDialog from '../components/common/WelcomeDialog';
 
 const CreatePlayerPage = () => {
   const navigate = useNavigate();
@@ -61,7 +61,7 @@ const CreatePlayerPage = () => {
   const [selectedMVP, setSelectedMVP] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
+  const [welcomeData, setWelcomeData] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -77,12 +77,14 @@ const CreatePlayerPage = () => {
 
     try {
       let token = inviteToken;
-      let messageToDisplay = '';
       const leagueSetup = localStorage.getItem('leagueSetup');
+      const isCommissioner = !!leagueSetup;
+      let leagueName = null;
 
       if (leagueSetup) {
         // Create-league flow: create the league, then join via its invite token
-        const { name: leagueName } = JSON.parse(leagueSetup);
+        const parsedLeagueSetup = JSON.parse(leagueSetup);
+        leagueName = parsedLeagueSetup.name;
 
         const createLeagueResponse = await LeagueServices.createLeague({
           league_name: leagueName,
@@ -92,8 +94,6 @@ const CreatePlayerPage = () => {
           throw new Error('Failed to create league');
         }
 
-        localStorage.removeItem('leagueSetup');
-        messageToDisplay = 'League created successfully';
         token = createLeagueResponse.inviteToken;
       }
 
@@ -113,19 +113,20 @@ const CreatePlayerPage = () => {
       };
       const createPlayerResponse = await LeagueServices.joinViaInvite(token, playerData);
 
-      messageToDisplay = `${messageToDisplay ? messageToDisplay + ' and ' : ''}Player created successfully`;
-
       // Clean up sessionStorage now that the join succeeded
       sessionStorage.removeItem('pendingInviteToken');
+      localStorage.removeItem('leagueSetup');
 
       // Set active_player_id before refreshing so AuthContext restores to the new player
       localStorage.setItem('active_player_id', createPlayerResponse.playerId);
       await refreshLeagueData();
 
-      setAlert({
-        open: true,
-        message: messageToDisplay,
-        severity: 'success'
+      setWelcomeData({
+        playerName,
+        avatarId: selectedAvatar,
+        leagueName: isCommissioner ? leagueName : null,
+        isCommissioner,
+        inviteToken: isCommissioner ? token : null
       });
     } catch (error) {
       console.error('Error creating player:', error);
@@ -137,11 +138,6 @@ const CreatePlayerPage = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleCloseAlert = () => {
-    setAlert({ ...alert, open: false });
-    navigate('/dashboard'); // Navigate only when user closes the alert
   };
 
   return (
@@ -356,31 +352,17 @@ const CreatePlayerPage = () => {
           </Box>
         </Box>
       </Paper>
-      
-      <Snackbar 
-        open={alert.open} 
-        autoHideDuration={6000} 
-        onClose={handleCloseAlert}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }} // Center position
-      >
-        <Alert 
-          onClose={handleCloseAlert} 
-          severity={alert.severity}
-          sx={{ 
-            width: '100%',
-            maxWidth: '400px',
-            boxShadow: 3,
-            '& .MuiAlert-action': { alignItems: 'center' }
+
+      {welcomeData && (
+        <WelcomeDialog
+          open
+          onClose={(destination) => {
+            setWelcomeData(null);
+            navigate(destination);
           }}
-          action={
-            <Button color="inherit" size="small" onClick={handleCloseAlert}>
-              Click to continue
-            </Button>
-          }
-        >
-          {alert.message}
-        </Alert>
-      </Snackbar>
+          {...welcomeData}
+        />
+      )}
     </Container>
   );
 };

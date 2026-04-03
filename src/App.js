@@ -1,11 +1,12 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ThemeProvider from './theme/ThemeProvider';
 import Layout from './components/Layout';
 import StandaloneHeader from './components/common/StandaloneHeader';
+import FirstLoginDialog from './components/common/FirstLoginDialog';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
@@ -19,85 +20,144 @@ import InviteLandingPage from './pages/InviteLandingPage';
 import AdminPage from './pages/AdminPage';
 import AdminRoute from './components/admin/AdminRoute';
 
-function AppContent() {
-  const { logout, isAuthenticated } = useAuth();
-  
-  const handleLogout = () => {
-    logout(); // From AuthContext.useAuth()
+const PENDING_FIRST_LOGIN_WELCOME_KEY = 'pendingFirstLoginWelcome';
+
+function FirstLoginGuard() {
+  const { isNewUser, clearIsNewUser } = useAuth();
+  const location = useLocation();
+  const isInvitePage = location.pathname.startsWith('/invite');
+  const isPublicLandingPage = location.pathname === '/';
+  const [dismissed, setDismissed] = useState(false);
+  const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+  const hasPendingFirstLoginWelcome = sessionStorage.getItem(PENDING_FIRST_LOGIN_WELCOME_KEY) === 'true';
+
+  useEffect(() => {
+    setDismissed(false);
+  }, [isNewUser, location.pathname]);
+
+  const show = !dismissed
+    && (isNewUser || hasPendingFirstLoginWelcome)
+    && !isInvitePage
+    && !isPublicLandingPage
+    && !hasSeenWelcome;
+
+  useEffect(() => {
+    if ((isNewUser || hasPendingFirstLoginWelcome) && isInvitePage && !hasSeenWelcome) {
+      sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
+      localStorage.setItem('hasSeenWelcome', 'true');
+      setDismissed(true);
+      clearIsNewUser();
+    }
+  }, [clearIsNewUser, hasPendingFirstLoginWelcome, hasSeenWelcome, isInvitePage, isNewUser]);
+
+  const handleClose = () => {
+    sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
+    localStorage.setItem('hasSeenWelcome', 'true');
+    setDismissed(true);
+    clearIsNewUser();
   };
-  
+
+  return <FirstLoginDialog open={show} onClose={handleClose} />;
+}
+
+function AppContent() {
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <Router>
-<Routes>
-  {/* Public landing page now at "/" */}
-  <Route path="/" element={<LandingPage />} />
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/invite/:token" element={<InviteLandingPage />} />
 
-  {/* Public invite landing page — must be before ProtectedRoute */}
-  <Route path="/invite/:token" element={<InviteLandingPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route
+            path="/create-league"
+            element={
+              <>
+                <StandaloneHeader title="Create League" onLogout={handleLogout} />
+                <div className="container mx-auto mt-8 px-4">
+                  <CreateLeaguePage />
+                </div>
+              </>
+            }
+          />
 
-  {/* Protected routes */}
-  <Route element={<ProtectedRoute />}>
-    <Route path="/create-league" element={
-      <>
-        <StandaloneHeader title="Create League" onLogout={handleLogout} />
-        <div className="container mx-auto mt-8 px-4">
-          <CreateLeaguePage />
-        </div>
-      </>
-    } />
-    
-    <Route path="/create-player" element={
-      <>
-        <StandaloneHeader title="Create Player" onLogout={handleLogout} />
-        <div className="container mx-auto mt-8 px-4">
-          <CreatePlayerPage />
-        </div>
-      </>
-    } />
+          <Route
+            path="/create-player"
+            element={
+              <>
+                <StandaloneHeader title="Create Player" onLogout={handleLogout} />
+                <div className="container mx-auto mt-8 px-4">
+                  <CreatePlayerPage />
+                </div>
+              </>
+            }
+          />
 
-    <Route path="/dashboard" element={
-      <Layout onLogout={handleLogout}>
-        <Dashboard />
-      </Layout>
-    } />
+          <Route
+            path="/dashboard"
+            element={
+              <Layout onLogout={handleLogout}>
+                <Dashboard />
+              </Layout>
+            }
+          />
 
-    <Route path="/predictions" element={
-      <Layout onLogout={handleLogout}>
-        <PredictionsPage />
-      </Layout>
-    } />
+          <Route
+            path="/predictions"
+            element={
+              <Layout onLogout={handleLogout}>
+                <PredictionsPage />
+              </Layout>
+            }
+          />
 
-    <Route path="/league" element={
-      <Layout onLogout={handleLogout}>
-        <LeaguePage />
-      </Layout>
-    } />
+          <Route
+            path="/league"
+            element={
+              <Layout onLogout={handleLogout}>
+                <LeaguePage />
+              </Layout>
+            }
+          />
 
-    <Route path="/profile" element={
-      <Layout onLogout={handleLogout}>
-        <ProfilePage />
-      </Layout>
-    } />
+          <Route
+            path="/profile"
+            element={
+              <Layout onLogout={handleLogout}>
+                <ProfilePage />
+              </Layout>
+            }
+          />
 
-    <Route path="/bracket" element={
-      <Layout onLogout={handleLogout}>
-        <BracketPage />
-      </Layout>
-    } />
+          <Route
+            path="/bracket"
+            element={
+              <Layout onLogout={handleLogout}>
+                <BracketPage />
+              </Layout>
+            }
+          />
 
-    <Route path="/admin" element={
-      <AdminRoute>
-        <Layout onLogout={handleLogout}>
-          <AdminPage />
-        </Layout>
-      </AdminRoute>
-    } />
-  </Route>
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <Layout onLogout={handleLogout}>
+                  <AdminPage />
+                </Layout>
+              </AdminRoute>
+            }
+          />
+        </Route>
 
-  {/* Redirect anything unknown to "/" (landing) */}
-  <Route path="*" element={<Navigate to="/" replace />} />
-</Routes>
-
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <FirstLoginGuard />
     </Router>
   );
 }

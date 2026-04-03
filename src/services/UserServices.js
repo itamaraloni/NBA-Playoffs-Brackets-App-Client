@@ -40,8 +40,12 @@ const UserServices = {
       }
 
       // Response: { is_admin: bool } with 200 (existing user) or 201 (new user)
+      const status = response.status;
       const userData = await response.json();
-      return userData;
+      return {
+        ...userData,
+        isNewUser: status === 201
+      };
     } catch (error) {
       console.error("Error syncing user with database:", error);
       throw error;
