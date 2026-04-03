@@ -248,8 +248,13 @@ const WelcomeDialog = ({
         )}
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button fullWidth={fullScreen} variant="contained" onClick={() => onClose('/dashboard')}>
+      <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'center' }}>
+        <Button
+          fullWidth={fullScreen}
+          variant="contained"
+          onClick={() => onClose('/dashboard')}
+          sx={{ minWidth: fullScreen ? '100%' : 220 }}
+        >
           Go Explore App
         </Button>
       </DialogActions>

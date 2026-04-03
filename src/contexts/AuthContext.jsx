@@ -112,6 +112,8 @@ export function AuthProvider({ children }) {
 
           if (userData?.isNewUser) {
             sessionStorage.setItem(PENDING_FIRST_LOGIN_WELCOME_KEY, 'true');
+          } else {
+            sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
           }
 
           // Set admin status from server response
@@ -177,6 +179,7 @@ export function AuthProvider({ children }) {
       setCurrentUser(null);
       setIsAdmin(false);
       setIsNewUser(false);
+      sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
 
       // Clear multi-league state
       setUserPlayers([]);
@@ -221,13 +224,17 @@ export function AuthProvider({ children }) {
             if (!userData) {
               // Exchange Firebase token for session cookie via /auth/session_login.
               userData = await UserServices.syncUserWithDatabase(user, retryCount);
-              if (userData?.isNewUser) {
-                sessionStorage.setItem(PENDING_FIRST_LOGIN_WELCOME_KEY, 'true');
-              }
+            }
+
+            if (userData?.isNewUser) {
+              sessionStorage.setItem(PENDING_FIRST_LOGIN_WELCOME_KEY, 'true');
+            } else {
+              sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
             }
 
             // Set admin status from server response
             setIsAdmin(userData?.is_admin || false);
+            setIsNewUser(Boolean(userData?.isNewUser));
 
             // Update current user with userData
             setCurrentUser({
@@ -274,6 +281,7 @@ export function AuthProvider({ children }) {
         setCurrentUser(null);
         setIsAdmin(false);
         setIsNewUser(false);
+        sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
         setUserPlayers([]);
         setActivePlayer(null);
       }

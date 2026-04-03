@@ -136,8 +136,13 @@ const FirstLoginDialog = ({ open, onClose }) => {
         </Stack>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button fullWidth={fullScreen} variant="contained" onClick={onClose}>
+      <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'center' }}>
+        <Button
+          fullWidth={fullScreen}
+          variant="contained"
+          onClick={onClose}
+          sx={{ minWidth: fullScreen ? '100%' : 220 }}
+        >
           Go Explore App
         </Button>
       </DialogActions>

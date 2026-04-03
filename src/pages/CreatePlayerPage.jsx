@@ -30,11 +30,14 @@ import { useTeams } from '../hooks/useTeams';
 import { useMvpCandidates } from '../hooks/useMvpCandidates';
 import WelcomeDialog from '../components/common/WelcomeDialog';
 
+const PENDING_FIRST_LOGIN_WELCOME_KEY = 'pendingFirstLoginWelcome';
+const HAS_COMPLETED_ONBOARDING_KEY = 'hasCompletedOnboarding';
+
 const CreatePlayerPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const { refreshLeagueData } = useAuth();
+  const { refreshLeagueData, clearIsNewUser } = useAuth();
   const { teams, loading: teamsLoading } = useTeams();
   const { mvpCandidates, loading: mvpLoading } = useMvpCandidates();
 
@@ -357,6 +360,9 @@ const CreatePlayerPage = () => {
         <WelcomeDialog
           open
           onClose={(destination) => {
+            sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
+            localStorage.setItem(HAS_COMPLETED_ONBOARDING_KEY, 'true');
+            clearIsNewUser();
             setWelcomeData(null);
             navigate(destination);
           }}
