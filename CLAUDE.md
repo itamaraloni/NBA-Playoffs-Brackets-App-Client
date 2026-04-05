@@ -99,12 +99,13 @@ This guideline applies to all frontend work - code changes, PR reviews, planning
 
 - **Global state:** React Context only (AuthContext for auth, ThemeContext for theme). No Redux or other state libraries
 - **Page-level data:** `useState` in page components, fetched in `useEffect`
-- **localStorage keys in use:** `active_player_id`, `theme-mode`, `sidebar-collapsed`, `hasCompletedOnboarding`
+- **localStorage keys in use:** `active_player_id`, `theme-mode`, `sidebar-collapsed`, `hasCompletedOnboarding`, `leagueJoinPending`
 - **sessionStorage keys in use:** `pendingInviteToken`, `pendingFirstLoginWelcome`
 - `active_player_id` stores the user's last-selected league player as UX convenience (survives page reload). AuthContext is the source of truth - localStorage is just a hint. See ADR-003
 - `hasCompletedOnboarding` records that the current signed-in user already dismissed an onboarding dialog, so first-login onboarding does not re-open during the same signed-in lifecycle
 - `pendingInviteToken` keeps the invite-join flow alive across refreshes on `/create-player`
 - `pendingFirstLoginWelcome` is an ephemeral auth/onboarding handoff flag used when a brand-new app user is detected before the app decides which onboarding dialog to show
+- `leagueJoinPending` is a transient recovery key written by `CreatePlayerPage` immediately after `createLeague()` succeeds, holding `{ inviteToken, leagueName }`. It is consumed (and removed) after `joinViaInvite()` succeeds. Its presence means the league was created but join has not completed yet — on retry, `createLeague()` is skipped and the stored token is reused to avoid creating a duplicate orphan league
 - `theme-mode` is preserved on logout; all other keys are cleared
 
 ### API & Services

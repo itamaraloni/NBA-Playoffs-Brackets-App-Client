@@ -81,11 +81,18 @@ const CreatePlayerPage = () => {
     try {
       let token = inviteToken;
       const leagueSetup = localStorage.getItem('leagueSetup');
-      const isCommissioner = !!leagueSetup;
+      const leagueJoinPending = localStorage.getItem('leagueJoinPending');
+      const isCommissioner = !!(leagueSetup || leagueJoinPending);
       let leagueName = null;
 
-      if (leagueSetup) {
-        // Create-league flow: create the league, then join via its invite token
+      if (leagueJoinPending) {
+        // createLeague() already succeeded on a previous attempt but joinViaInvite()
+        // failed. Reuse the saved token so we do not create a second orphan league.
+        const pending = JSON.parse(leagueJoinPending);
+        token = pending.inviteToken;
+        leagueName = pending.leagueName;
+      } else if (leagueSetup) {
+        // Create-league flow: create the league, then join via its invite token.
         const parsedLeagueSetup = JSON.parse(leagueSetup);
         leagueName = parsedLeagueSetup.name;
 
@@ -97,6 +104,14 @@ const CreatePlayerPage = () => {
           throw new Error('Failed to create league');
         }
 
+        // League created. Atomically swap leagueSetup → leagueJoinPending so that
+        // if joinViaInvite fails and the user retries, createLeague is not called
+        // again and no orphan league is created.
+        localStorage.removeItem('leagueSetup');
+        localStorage.setItem('leagueJoinPending', JSON.stringify({
+          inviteToken: createLeagueResponse.inviteToken,
+          leagueName
+        }));
         token = createLeagueResponse.inviteToken;
       }
 
@@ -116,9 +131,9 @@ const CreatePlayerPage = () => {
       };
       const createPlayerResponse = await LeagueServices.joinViaInvite(token, playerData);
 
-      // Clean up sessionStorage now that the join succeeded
+      // Clean up now that both steps have succeeded
       sessionStorage.removeItem('pendingInviteToken');
-      localStorage.removeItem('leagueSetup');
+      localStorage.removeItem('leagueJoinPending');
 
       // Set active_player_id before refreshing so AuthContext restores to the new player
       localStorage.setItem('active_player_id', createPlayerResponse.playerId);
