@@ -226,15 +226,21 @@ export function AuthProvider({ children }) {
               userData = await UserServices.syncUserWithDatabase(user, retryCount);
             }
 
-            if (userData?.isNewUser) {
-              sessionStorage.setItem(PENDING_FIRST_LOGIN_WELCOME_KEY, 'true');
-            } else {
-              sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
+            // Only write/clear the onboarding flag when the data source is
+            // syncUserWithDatabase(), which returns isNewUser. checkUserWithSession()
+            // returns only { is_admin } — leave the existing flag untouched so a
+            // new user who refreshes before dismissing the dialog does not lose onboarding.
+            if ('isNewUser' in (userData ?? {})) {
+              if (userData.isNewUser) {
+                sessionStorage.setItem(PENDING_FIRST_LOGIN_WELCOME_KEY, 'true');
+              } else {
+                sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
+              }
+              setIsNewUser(userData.isNewUser);
             }
 
             // Set admin status from server response
             setIsAdmin(userData?.is_admin || false);
-            setIsNewUser(Boolean(userData?.isNewUser));
 
             // Update current user with userData
             setCurrentUser({
