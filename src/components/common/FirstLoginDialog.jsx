@@ -37,7 +37,7 @@ const FirstLoginDialog = ({ open, onClose }) => {
             : 'rgba(232, 244, 253, 0.95)'
         }}
       >
-        <Typography variant="h6">Welcome to Playoff Prophet</Typography>
+        <Typography variant="h6" component="span">Welcome to Playoff Prophet</Typography>
         <Stack direction="row" spacing={1} alignItems="center">
           <HeaderLogoPlaceholder />
           <IconButton edge="end" color="inherit" onClick={onClose} aria-label="close">

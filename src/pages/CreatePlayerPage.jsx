@@ -58,6 +58,46 @@ const CreatePlayerPage = () => {
     }
   }, [location.state?.inviteToken]);
 
+  // Clean up abandoned flow state when the user navigates away from this page.
+  //
+  // Two keys need clearing on navigate-away:
+  //   - leagueSetup     (create-league flow): stale key would silently create an
+  //                     unwanted league on a future visit to this page.
+  //   - pendingInviteToken (invite flow):  stale key would make inviteToken truthy
+  //                     on a future create-league visit, triggering the submit-time
+  //                     guard and discarding leagueSetup by mistake.
+  //
+  // Three timing guards keep this safe:
+  //   1. setTimeout(0)  — canCleanup is false during React StrictMode's synchronous
+  //                       mount→cleanup→remount cycle, so the keys survive to the form.
+  //   2. beforeunload   — isPageRefresh is set to true before a refresh/tab-close.
+  //                       beforeunload does NOT fire for React Router SPA navigation,
+  //                       so a real navigate-away leaves isPageRefresh false and the
+  //                       cleanup runs, while a page refresh leaves isPageRefresh true
+  //                       and the keys are preserved (refresh-recovery for both flows).
+  //   3. leagueJoinPending check — if createLeague() already succeeded, leave that
+  //                       key alone so joinViaInvite can retry with the saved token.
+  useEffect(() => {
+    let canCleanup = false;
+    let isPageRefresh = false;
+
+    const ready = setTimeout(() => { canCleanup = true; }, 0);
+    const markRefresh = () => { isPageRefresh = true; };
+    window.addEventListener('beforeunload', markRefresh);
+
+    return () => {
+      clearTimeout(ready);
+      window.removeEventListener('beforeunload', markRefresh);
+      if (canCleanup && !isPageRefresh) {
+        sessionStorage.removeItem('pendingInviteToken');
+        if (!localStorage.getItem('leagueJoinPending')) {
+          localStorage.removeItem('leagueSetup');
+        }
+      }
+    };
+  }, []);
+
+
   const [playerName, setPlayerName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
@@ -80,8 +120,17 @@ const CreatePlayerPage = () => {
 
     try {
       let token = inviteToken;
-      const leagueSetup = localStorage.getItem('leagueSetup');
       const leagueJoinPending = localStorage.getItem('leagueJoinPending');
+
+      // If arriving via invite link, any leagueSetup in localStorage is stale from
+      // an abandoned create-league flow. Discard it so the invite-join takes priority.
+      // leagueJoinPending takes precedence over this check: it means createLeague()
+      // already succeeded and the stored token must be reused for the join retry.
+      if (inviteToken && !leagueJoinPending) {
+        localStorage.removeItem('leagueSetup');
+      }
+
+      const leagueSetup = localStorage.getItem('leagueSetup');
       const isCommissioner = !!(leagueSetup || leagueJoinPending);
       let leagueName = null;
 

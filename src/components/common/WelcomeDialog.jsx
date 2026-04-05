@@ -104,7 +104,7 @@ const WelcomeDialog = ({
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <EmojiEventsIcon sx={{ color: 'warning.main' }} />
-          <Typography variant="h6">You&apos;re in.</Typography>
+          <Typography variant="h6" component="span">You&apos;re in.</Typography>
         </Box>
         <Stack direction="row" spacing={1} alignItems="center">
           <HeaderLogoPlaceholder />
