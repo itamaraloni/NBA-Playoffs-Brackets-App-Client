@@ -11,6 +11,7 @@ import {
   MenuItem,
   Stack,
   Alert,
+  TextField,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
@@ -42,16 +43,23 @@ const CreateMatchupDialog = ({ open, onClose, onCreate, teams }) => {
   const [awayTeamId, setAwayTeamId] = useState('');
   const [round, setRound] = useState('');
   const [conference, setConference] = useState('');
+  const [predictionDeadlineAt, setPredictionDeadlineAt] = useState('');
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isValid = homeTeamId && awayTeamId && round && conference && homeTeamId !== awayTeamId;
+  const isValid = homeTeamId && awayTeamId && round && conference && predictionDeadlineAt && homeTeamId !== awayTeamId;
 
   const handleSubmit = async () => {
     try {
       setError(null);
       setIsSubmitting(true);
-      await onCreate({ homeTeamId, awayTeamId, round, conference });
+      await onCreate({
+        homeTeamId,
+        awayTeamId,
+        round,
+        conference,
+        predictionDeadlineAt: new Date(predictionDeadlineAt).toISOString(),
+      });
       handleClose();
     } catch (err) {
       setError(err.message || 'Failed to create matchup');
@@ -65,6 +73,7 @@ const CreateMatchupDialog = ({ open, onClose, onCreate, teams }) => {
     setAwayTeamId('');
     setRound('');
     setConference('');
+    setPredictionDeadlineAt('');
     setError(null);
     onClose();
   };
@@ -139,6 +148,16 @@ const CreateMatchupDialog = ({ open, onClose, onCreate, teams }) => {
               ))}
             </Select>
           </FormControl>
+
+          <TextField
+            label="Prediction Deadline"
+            type="datetime-local"
+            value={predictionDeadlineAt}
+            onChange={(e) => setPredictionDeadlineAt(e.target.value)}
+            fullWidth
+            required
+            InputLabelProps={{ shrink: true }}
+          />
         </Stack>
       </DialogContent>
       <DialogActions>

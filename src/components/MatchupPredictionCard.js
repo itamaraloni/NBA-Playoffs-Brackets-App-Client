@@ -13,7 +13,7 @@ import {
   Alert,
   Chip
 } from '@mui/material';
-import { RocketLaunch, EmojiEvents } from '@mui/icons-material';
+import { RocketLaunch, EmojiEvents, AccessTime, Lock } from '@mui/icons-material';
 import { Close } from '@mui/icons-material';
 import { BsBullseye } from 'react-icons/bs';
 import { TbCrystalBall } from 'react-icons/tb';
@@ -32,6 +32,7 @@ const MatchupPredictionCard = ({
   predictedHomeScore = null,
   predictedAwayScore = null,
   round = 1,
+  predictionDeadlineAt = null,
   onSubmitPrediction,
   onViewDetails
 }) => {
@@ -131,6 +132,25 @@ const MatchupPredictionCard = ({
    * Render prediction input for upcoming games
    */
   const renderUpcomingMatchup = () => {
+    const isDeadlinePassed = predictionDeadlineAt
+      && Date.now() >= new Date(predictionDeadlineAt).getTime();
+
+    const deadlineDisplay = predictionDeadlineAt ? (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 2 }}>
+        {isDeadlinePassed
+          ? <Lock fontSize="small" sx={{ color: 'error.main' }} />
+          : <AccessTime fontSize="small" sx={{ color: 'warning.main' }} />}
+        <Typography
+          variant="body2"
+          sx={{ color: isDeadlinePassed ? 'error.main' : 'warning.main', fontWeight: 500 }}
+        >
+          {isDeadlinePassed
+            ? `Predictions closed at ${new Date(predictionDeadlineAt).toLocaleString()}`
+            : `Predictions close at ${new Date(predictionDeadlineAt).toLocaleString()}`}
+        </Typography>
+      </Box>
+    ) : null;
+
     // For Play-In games (single elimination)
     if (round === "playin_first" || round === "playin_second") {
       const handleTeamSelect = (team) => {
@@ -171,15 +191,18 @@ const MatchupPredictionCard = ({
             validationError={validationError}
           />
 
-          <Box sx={{ textAlign: 'center', mt: 3 }}>
+          {deadlineDisplay}
+
+          <Box sx={{ textAlign: 'center', mt: 1 }}>
             <Button
               variant="contained"
               color="primary"
-              startIcon={<RocketLaunch />}
+              startIcon={isDeadlinePassed ? <Lock /> : <RocketLaunch />}
               onClick={handlePlayInPrediction}
+              disabled={!!isDeadlinePassed}
               sx={{ minWidth: '180px' }}
             >
-              Submit Prediction
+              {isDeadlinePassed ? 'Predictions Closed' : 'Submit Prediction'}
             </Button>
           </Box>
         </Box>
@@ -225,15 +248,18 @@ const MatchupPredictionCard = ({
           </Alert>
         )}
 
-        <Box sx={{ textAlign: 'center', mt: 2 }}>
+        {deadlineDisplay}
+
+        <Box sx={{ textAlign: 'center', mt: 1 }}>
           <Button
             variant="contained"
             color="primary"
-            startIcon={<RocketLaunch />}
+            startIcon={isDeadlinePassed ? <Lock /> : <RocketLaunch />}
             onClick={handleSubmitPrediction}
+            disabled={!!isDeadlinePassed}
             sx={{ minWidth: '180px' }}
           >
-            Submit Prediction
+            {isDeadlinePassed ? 'Predictions Closed' : 'Submit Prediction'}
           </Button>
         </Box>
       </Box>

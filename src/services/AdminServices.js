@@ -45,6 +45,7 @@ const AdminServices = {
         round: m.round,
         conference: m.conference,
         bracketPosition: m.bracket_position,
+        predictionDeadlineAt: m.prediction_deadline_at || null,
         createdAt: m.created_at,
         updatedAt: m.updated_at,
       }));
@@ -68,6 +69,7 @@ const AdminServices = {
         away_team_id: data.awayTeamId,
         round: data.round,
         conference: data.conference,
+        prediction_deadline_at: data.predictionDeadlineAt,
       });
 
       return {

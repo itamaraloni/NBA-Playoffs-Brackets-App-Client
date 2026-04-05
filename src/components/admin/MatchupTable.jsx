@@ -131,6 +131,13 @@ const MatchupTable = ({ matchups, onActivate, onUpdateScore, onViewStats }) => {
                 </Stack>
               </Box>
 
+              {/* Deadline */}
+              <Typography variant="caption" color="text.secondary">
+                Deadline: {matchup.predictionDeadlineAt
+                  ? new Date(matchup.predictionDeadlineAt).toLocaleString()
+                  : '—'}
+              </Typography>
+
               {/* Actions — stacked vertically, full width */}
               <Stack spacing={0.5}>
                 {matchup.status === 'upcoming' && (
@@ -203,6 +210,7 @@ const MatchupTable = ({ matchups, onActivate, onUpdateScore, onViewStats }) => {
             <TableCell>Round</TableCell>
             <TableCell>Status</TableCell>
             <TableCell align="center">Score</TableCell>
+            <TableCell>Deadline</TableCell>
             <TableCell align="right">Actions</TableCell>
           </TableRow>
         </TableHead>
@@ -265,6 +273,15 @@ const MatchupTable = ({ matchups, onActivate, onUpdateScore, onViewStats }) => {
                 ) : (
                   <Typography variant="body2" color="text.secondary">—</Typography>
                 )}
+              </TableCell>
+
+              {/* Deadline */}
+              <TableCell>
+                <Typography variant="body2">
+                  {matchup.predictionDeadlineAt
+                    ? new Date(matchup.predictionDeadlineAt).toLocaleString()
+                    : '—'}
+                </Typography>
               </TableCell>
 
               {/* Actions */}

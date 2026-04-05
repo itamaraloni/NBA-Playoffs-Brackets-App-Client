@@ -77,7 +77,14 @@ const PredictionsPage = () => {
         
         // Organize matchups by status
         const organized = {
-          upcoming: data.filter(m => m.status === 'upcoming'),
+          upcoming: data
+            .filter(m => m.status === 'upcoming')
+            .sort((a, b) => {
+              if (!a.predictionDeadlineAt && !b.predictionDeadlineAt) return 0;
+              if (!a.predictionDeadlineAt) return 1;
+              if (!b.predictionDeadlineAt) return -1;
+              return new Date(a.predictionDeadlineAt) - new Date(b.predictionDeadlineAt);
+            }),
           inProgress: data.filter(m => m.status === 'in-progress'),
           completed: data.filter(m => m.status === 'completed')
         };
@@ -125,12 +132,15 @@ const PredictionsPage = () => {
       }
   
     } catch (err) {
-      setError('Failed to submit prediction. Please try again.');
       console.error('Error submitting prediction:', err);
-      
-      // Show error notification
+
       if (window.notify) {
-        window.notify.error('Failed to submit prediction');
+        // 423 = prediction deadline has passed — show the server's specific message
+        if (err.status === 423) {
+          window.notify.error(err.message);
+        } else {
+          window.notify.error('Failed to submit prediction');
+        }
       }
     }
   };
@@ -209,6 +219,7 @@ const PredictionsPage = () => {
         predictedHomeScore={matchup.predictedHomeScore}
         predictedAwayScore={matchup.predictedAwayScore}
         round={matchup.round}
+        predictionDeadlineAt={matchup.predictionDeadlineAt}
         onSubmitPrediction={handleSubmitPrediction}
         onViewDetails={handleViewDetails}
       />
