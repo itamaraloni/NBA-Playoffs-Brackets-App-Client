@@ -17,7 +17,6 @@ import {
   CardActionArea,
   CardContent,
   Divider,
-  Snackbar,
   Autocomplete
 } from '@mui/material';
 import {
@@ -29,12 +28,16 @@ import LeagueServices from '../services/LeagueServices';
 import { PLAYER_AVATARS } from '../shared/GeneralConsts';
 import { useTeams } from '../hooks/useTeams';
 import { useMvpCandidates } from '../hooks/useMvpCandidates';
+import WelcomeDialog from '../components/common/WelcomeDialog';
+
+const PENDING_FIRST_LOGIN_WELCOME_KEY = 'pendingFirstLoginWelcome';
+const HAS_COMPLETED_ONBOARDING_KEY = 'hasCompletedOnboarding';
 
 const CreatePlayerPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const { refreshLeagueData } = useAuth();
+  const { refreshLeagueData, clearIsNewUser } = useAuth();
   const { teams, loading: teamsLoading } = useTeams();
   const { mvpCandidates, loading: mvpLoading } = useMvpCandidates();
 
@@ -55,13 +58,53 @@ const CreatePlayerPage = () => {
     }
   }, [location.state?.inviteToken]);
 
+  // Clean up abandoned flow state when the user navigates away from this page.
+  //
+  // Two keys need clearing on navigate-away:
+  //   - leagueSetup     (create-league flow): stale key would silently create an
+  //                     unwanted league on a future visit to this page.
+  //   - pendingInviteToken (invite flow):  stale key would make inviteToken truthy
+  //                     on a future create-league visit, triggering the submit-time
+  //                     guard and discarding leagueSetup by mistake.
+  //
+  // Three timing guards keep this safe:
+  //   1. setTimeout(0)  — canCleanup is false during React StrictMode's synchronous
+  //                       mount→cleanup→remount cycle, so the keys survive to the form.
+  //   2. beforeunload   — isPageRefresh is set to true before a refresh/tab-close.
+  //                       beforeunload does NOT fire for React Router SPA navigation,
+  //                       so a real navigate-away leaves isPageRefresh false and the
+  //                       cleanup runs, while a page refresh leaves isPageRefresh true
+  //                       and the keys are preserved (refresh-recovery for both flows).
+  //   3. leagueJoinPending check — if createLeague() already succeeded, leave that
+  //                       key alone so joinViaInvite can retry with the saved token.
+  useEffect(() => {
+    let canCleanup = false;
+    let isPageRefresh = false;
+
+    const ready = setTimeout(() => { canCleanup = true; }, 0);
+    const markRefresh = () => { isPageRefresh = true; };
+    window.addEventListener('beforeunload', markRefresh);
+
+    return () => {
+      clearTimeout(ready);
+      window.removeEventListener('beforeunload', markRefresh);
+      if (canCleanup && !isPageRefresh) {
+        sessionStorage.removeItem('pendingInviteToken');
+        if (!localStorage.getItem('leagueJoinPending')) {
+          localStorage.removeItem('leagueSetup');
+        }
+      }
+    };
+  }, []);
+
+
   const [playerName, setPlayerName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedMVP, setSelectedMVP] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
+  const [welcomeData, setWelcomeData] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -77,12 +120,30 @@ const CreatePlayerPage = () => {
 
     try {
       let token = inviteToken;
-      let messageToDisplay = '';
-      const leagueSetup = localStorage.getItem('leagueSetup');
+      const leagueJoinPending = localStorage.getItem('leagueJoinPending');
 
-      if (leagueSetup) {
-        // Create-league flow: create the league, then join via its invite token
-        const { name: leagueName } = JSON.parse(leagueSetup);
+      // If arriving via invite link, any leagueSetup in localStorage is stale from
+      // an abandoned create-league flow. Discard it so the invite-join takes priority.
+      // leagueJoinPending takes precedence over this check: it means createLeague()
+      // already succeeded and the stored token must be reused for the join retry.
+      if (inviteToken && !leagueJoinPending) {
+        localStorage.removeItem('leagueSetup');
+      }
+
+      const leagueSetup = localStorage.getItem('leagueSetup');
+      const isCommissioner = !!(leagueSetup || leagueJoinPending);
+      let leagueName = null;
+
+      if (leagueJoinPending) {
+        // createLeague() already succeeded on a previous attempt but joinViaInvite()
+        // failed. Reuse the saved token so we do not create a second orphan league.
+        const pending = JSON.parse(leagueJoinPending);
+        token = pending.inviteToken;
+        leagueName = pending.leagueName;
+      } else if (leagueSetup) {
+        // Create-league flow: create the league, then join via its invite token.
+        const parsedLeagueSetup = JSON.parse(leagueSetup);
+        leagueName = parsedLeagueSetup.name;
 
         const createLeagueResponse = await LeagueServices.createLeague({
           league_name: leagueName,
@@ -92,8 +153,14 @@ const CreatePlayerPage = () => {
           throw new Error('Failed to create league');
         }
 
+        // League created. Atomically swap leagueSetup → leagueJoinPending so that
+        // if joinViaInvite fails and the user retries, createLeague is not called
+        // again and no orphan league is created.
         localStorage.removeItem('leagueSetup');
-        messageToDisplay = 'League created successfully';
+        localStorage.setItem('leagueJoinPending', JSON.stringify({
+          inviteToken: createLeagueResponse.inviteToken,
+          leagueName
+        }));
         token = createLeagueResponse.inviteToken;
       }
 
@@ -113,19 +180,20 @@ const CreatePlayerPage = () => {
       };
       const createPlayerResponse = await LeagueServices.joinViaInvite(token, playerData);
 
-      messageToDisplay = `${messageToDisplay ? messageToDisplay + ' and ' : ''}Player created successfully`;
-
-      // Clean up sessionStorage now that the join succeeded
+      // Clean up now that both steps have succeeded
       sessionStorage.removeItem('pendingInviteToken');
+      localStorage.removeItem('leagueJoinPending');
 
       // Set active_player_id before refreshing so AuthContext restores to the new player
       localStorage.setItem('active_player_id', createPlayerResponse.playerId);
       await refreshLeagueData();
 
-      setAlert({
-        open: true,
-        message: messageToDisplay,
-        severity: 'success'
+      setWelcomeData({
+        playerName,
+        avatarId: selectedAvatar,
+        leagueName: isCommissioner ? leagueName : null,
+        isCommissioner,
+        inviteToken: isCommissioner ? token : null
       });
     } catch (error) {
       console.error('Error creating player:', error);
@@ -137,11 +205,6 @@ const CreatePlayerPage = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleCloseAlert = () => {
-    setAlert({ ...alert, open: false });
-    navigate('/dashboard'); // Navigate only when user closes the alert
   };
 
   return (
@@ -356,31 +419,20 @@ const CreatePlayerPage = () => {
           </Box>
         </Box>
       </Paper>
-      
-      <Snackbar 
-        open={alert.open} 
-        autoHideDuration={6000} 
-        onClose={handleCloseAlert}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }} // Center position
-      >
-        <Alert 
-          onClose={handleCloseAlert} 
-          severity={alert.severity}
-          sx={{ 
-            width: '100%',
-            maxWidth: '400px',
-            boxShadow: 3,
-            '& .MuiAlert-action': { alignItems: 'center' }
+
+      {welcomeData && (
+        <WelcomeDialog
+          open
+          onClose={(destination) => {
+            sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
+            localStorage.setItem(HAS_COMPLETED_ONBOARDING_KEY, 'true');
+            clearIsNewUser();
+            setWelcomeData(null);
+            navigate(destination);
           }}
-          action={
-            <Button color="inherit" size="small" onClick={handleCloseAlert}>
-              Click to continue
-            </Button>
-          }
-        >
-          {alert.message}
-        </Alert>
-      </Snackbar>
+          {...welcomeData}
+        />
+      )}
     </Container>
   );
 };

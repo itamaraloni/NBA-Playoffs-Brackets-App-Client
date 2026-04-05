@@ -8,6 +8,8 @@ import {
 import { auth } from '../firebase';
 import UserServices from '../services/UserServices';
 
+const PENDING_FIRST_LOGIN_WELCOME_KEY = 'pendingFirstLoginWelcome';
+
 // Create the authentication context
 const AuthContext = createContext();
 
@@ -23,6 +25,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false);
 
   // Multi-league state: all user's players across leagues, and the currently active one
   const [userPlayers, setUserPlayers] = useState([]);
@@ -80,6 +83,10 @@ export function AuthProvider({ children }) {
     }
   }, [userPlayers]);
 
+  const clearIsNewUser = useCallback(() => {
+    setIsNewUser(false);
+  }, []);
+
   // Sign in with Google with retry logic
   const signInWithGoogle = async () => {
     const MAX_RETRIES = 3;
@@ -103,8 +110,16 @@ export function AuthProvider({ children }) {
           // The server sets an httpOnly session cookie + CSRF token cookie automatically.
           const userData = await UserServices.syncUserWithDatabase(user, retryCount);
 
+          if (userData?.isNewUser) {
+            sessionStorage.setItem(PENDING_FIRST_LOGIN_WELCOME_KEY, 'true');
+          }
+          // Never clear the flag from an API response — only clear on dialog
+          // dismiss or sign-out. The parallel onAuthStateChanged call will get
+          // a 200 (user already exists) and must not race away a 201-set flag.
+
           // Set admin status from server response
           setIsAdmin(userData?.is_admin || false);
+          setIsNewUser(Boolean(userData?.isNewUser));
 
           // Update currentUser
           setCurrentUser({
@@ -164,6 +179,8 @@ export function AuthProvider({ children }) {
       // Clear authentication state
       setCurrentUser(null);
       setIsAdmin(false);
+      setIsNewUser(false);
+      sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
 
       // Clear multi-league state
       setUserPlayers([]);
@@ -208,6 +225,18 @@ export function AuthProvider({ children }) {
             if (!userData) {
               // Exchange Firebase token for session cookie via /auth/session_login.
               userData = await UserServices.syncUserWithDatabase(user, retryCount);
+            }
+
+            // Only touch the onboarding flag when syncUserWithDatabase() was the
+            // data source (it returns isNewUser; checkUserWithSession() does not).
+            // Only ever SET the flag here — never clear it from an API response.
+            // Clearing is handled exclusively by the dialog close handler and sign-out
+            // so that a concurrent 200 response cannot race away a 201-set flag.
+            if ('isNewUser' in (userData ?? {})) {
+              if (userData.isNewUser) {
+                sessionStorage.setItem(PENDING_FIRST_LOGIN_WELCOME_KEY, 'true');
+              }
+              setIsNewUser(userData.isNewUser);
             }
 
             // Set admin status from server response
@@ -257,6 +286,8 @@ export function AuthProvider({ children }) {
         // User is signed out
         setCurrentUser(null);
         setIsAdmin(false);
+        setIsNewUser(false);
+        sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
         setUserPlayers([]);
         setActivePlayer(null);
       }
@@ -265,7 +296,7 @@ export function AuthProvider({ children }) {
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, []);
+  }, [fetchAndSetPlayerData]);
 
     // Add isAuthenticated derived property
     const isAuthenticated = !!currentUser;
@@ -277,10 +308,12 @@ export function AuthProvider({ children }) {
     error,
     isAuthenticated,
     isAdmin,
+    isNewUser,
     userPlayers,          // All user's players across leagues
     activePlayer,         // Currently selected player (contains player_id, league_id, etc.)
     switchActivePlayer,   // Method to switch between leagues
     refreshLeagueData: fetchAndSetPlayerData, // Re-fetch all leagues (call after joining/creating)
+    clearIsNewUser,
     signInWithGoogle,
     logout
   };
