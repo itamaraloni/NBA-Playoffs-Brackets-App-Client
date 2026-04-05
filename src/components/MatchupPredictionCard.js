@@ -13,11 +13,12 @@ import {
   Alert,
   Chip
 } from '@mui/material';
-import { RocketLaunch, EmojiEvents } from '@mui/icons-material';
+import { RocketLaunch, EmojiEvents, AccessTime, Lock } from '@mui/icons-material';
 import { Close } from '@mui/icons-material';
 import { BsBullseye } from 'react-icons/bs';
 import { TbCrystalBall } from 'react-icons/tb';
 import { useScoringConfig } from '../hooks/useScoringConfig';
+import { formatDeadline, getDeadlineTimestamp } from '../utils/deadlineUtils';
 
 /**
  * Card component displaying a playoff matchup with prediction functionality
@@ -32,6 +33,7 @@ const MatchupPredictionCard = ({
   predictedHomeScore = null,
   predictedAwayScore = null,
   round = 1,
+  predictionDeadlineAt = null,
   onSubmitPrediction,
   onViewDetails
 }) => {
@@ -131,6 +133,48 @@ const MatchupPredictionCard = ({
    * Render prediction input for upcoming games
    */
   const renderUpcomingMatchup = () => {
+    const deadlineTimestamp = getDeadlineTimestamp(predictionDeadlineAt);
+    const deadlineLabel = formatDeadline(predictionDeadlineAt, { compact: true });
+    const isDeadlinePassed = deadlineTimestamp !== null && Date.now() >= deadlineTimestamp;
+    const deadlineColor = isDeadlinePassed ? 'error.main' : 'warning.main';
+    const DeadlineIcon = isDeadlinePassed ? Lock : AccessTime;
+    const deadlineTitle = isDeadlinePassed ? 'Predictions closed at' : 'Predictions close at';
+
+    const deadlineDisplay = deadlineLabel ? (
+      <Box
+        sx={{
+          mt: 2,
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          px: { xs: 1, sm: 0 }
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, maxWidth: '100%' }}>
+          <DeadlineIcon fontSize="small" sx={{ color: deadlineColor, mt: 0.15, flexShrink: 0 }} />
+          <Box sx={{ minWidth: 0, textAlign: 'center' }}>
+            <Typography
+              variant="caption"
+              sx={{ color: deadlineColor, fontWeight: 600, display: 'block', lineHeight: 1.2 }}
+            >
+              {deadlineTitle}
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: deadlineColor,
+                fontWeight: 500,
+                lineHeight: 1.2,
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {deadlineLabel}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+    ) : null;
+
     // For Play-In games (single elimination)
     if (round === "playin_first" || round === "playin_second") {
       const handleTeamSelect = (team) => {
@@ -171,15 +215,18 @@ const MatchupPredictionCard = ({
             validationError={validationError}
           />
 
-          <Box sx={{ textAlign: 'center', mt: 3 }}>
+          {deadlineDisplay}
+
+          <Box sx={{ textAlign: 'center', mt: 1 }}>
             <Button
               variant="contained"
               color="primary"
-              startIcon={<RocketLaunch />}
+              startIcon={isDeadlinePassed ? <Lock /> : <RocketLaunch />}
               onClick={handlePlayInPrediction}
+              disabled={!!isDeadlinePassed}
               sx={{ minWidth: '180px' }}
             >
-              Submit Prediction
+              {isDeadlinePassed ? 'Predictions Closed' : 'Submit Prediction'}
             </Button>
           </Box>
         </Box>
@@ -225,15 +272,18 @@ const MatchupPredictionCard = ({
           </Alert>
         )}
 
-        <Box sx={{ textAlign: 'center', mt: 2 }}>
+        {deadlineDisplay}
+
+        <Box sx={{ textAlign: 'center', mt: 1 }}>
           <Button
             variant="contained"
             color="primary"
-            startIcon={<RocketLaunch />}
+            startIcon={isDeadlinePassed ? <Lock /> : <RocketLaunch />}
             onClick={handleSubmitPrediction}
+            disabled={!!isDeadlinePassed}
             sx={{ minWidth: '180px' }}
           >
-            Submit Prediction
+            {isDeadlinePassed ? 'Predictions Closed' : 'Submit Prediction'}
           </Button>
         </Box>
       </Box>
