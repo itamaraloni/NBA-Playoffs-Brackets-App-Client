@@ -18,6 +18,7 @@ import { Close } from '@mui/icons-material';
 import { BsBullseye } from 'react-icons/bs';
 import { TbCrystalBall } from 'react-icons/tb';
 import { useScoringConfig } from '../hooks/useScoringConfig';
+import { formatDeadline, getDeadlineTimestamp } from '../utils/deadlineUtils';
 
 /**
  * Card component displaying a playoff matchup with prediction functionality
@@ -132,22 +133,45 @@ const MatchupPredictionCard = ({
    * Render prediction input for upcoming games
    */
   const renderUpcomingMatchup = () => {
-    const isDeadlinePassed = predictionDeadlineAt
-      && Date.now() >= new Date(predictionDeadlineAt).getTime();
+    const deadlineTimestamp = getDeadlineTimestamp(predictionDeadlineAt);
+    const deadlineLabel = formatDeadline(predictionDeadlineAt, { compact: true });
+    const isDeadlinePassed = deadlineTimestamp !== null && Date.now() >= deadlineTimestamp;
+    const deadlineColor = isDeadlinePassed ? 'error.main' : 'warning.main';
+    const DeadlineIcon = isDeadlinePassed ? Lock : AccessTime;
+    const deadlineTitle = isDeadlinePassed ? 'Predictions closed at' : 'Predictions close at';
 
-    const deadlineDisplay = predictionDeadlineAt ? (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 2 }}>
-        {isDeadlinePassed
-          ? <Lock fontSize="small" sx={{ color: 'error.main' }} />
-          : <AccessTime fontSize="small" sx={{ color: 'warning.main' }} />}
-        <Typography
-          variant="body2"
-          sx={{ color: isDeadlinePassed ? 'error.main' : 'warning.main', fontWeight: 500 }}
-        >
-          {isDeadlinePassed
-            ? `Predictions closed at ${new Date(predictionDeadlineAt).toLocaleString()}`
-            : `Predictions close at ${new Date(predictionDeadlineAt).toLocaleString()}`}
-        </Typography>
+    const deadlineDisplay = deadlineLabel ? (
+      <Box
+        sx={{
+          mt: 2,
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          px: { xs: 1, sm: 0 }
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, maxWidth: '100%' }}>
+          <DeadlineIcon fontSize="small" sx={{ color: deadlineColor, mt: 0.15, flexShrink: 0 }} />
+          <Box sx={{ minWidth: 0, textAlign: 'center' }}>
+            <Typography
+              variant="caption"
+              sx={{ color: deadlineColor, fontWeight: 600, display: 'block', lineHeight: 1.2 }}
+            >
+              {deadlineTitle}
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: deadlineColor,
+                fontWeight: 500,
+                lineHeight: 1.2,
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {deadlineLabel}
+            </Typography>
+          </Box>
+        </Box>
       </Box>
     ) : null;
 

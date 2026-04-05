@@ -14,6 +14,7 @@ import MatchupPredictionCard from '../components/MatchupPredictionCard';
 import MatchupDetailsDialog from '../components/MatchupDetailsDialog';
 import MatchupServices from '../services/MatchupServices';
 import { useAuth } from '../contexts/AuthContext';
+import { getDeadlineTimestamp } from '../utils/deadlineUtils';
 
 // Tab Panel component for accessibility
 function TabPanel(props) {
@@ -83,7 +84,7 @@ const PredictionsPage = () => {
               if (!a.predictionDeadlineAt && !b.predictionDeadlineAt) return 0;
               if (!a.predictionDeadlineAt) return 1;
               if (!b.predictionDeadlineAt) return -1;
-              return new Date(a.predictionDeadlineAt) - new Date(b.predictionDeadlineAt);
+              return getDeadlineTimestamp(a.predictionDeadlineAt) - getDeadlineTimestamp(b.predictionDeadlineAt);
             }),
           inProgress: data.filter(m => m.status === 'in-progress'),
           completed: data.filter(m => m.status === 'completed')

@@ -22,6 +22,7 @@ import {
   BarChart as StatsIcon,
 } from '@mui/icons-material';
 import { getShortTeamName } from '../../shared/teamUtils';
+import { formatDeadline } from '../../utils/deadlineUtils';
 
 const STATUS_COLORS = {
   upcoming: 'default',
@@ -134,7 +135,7 @@ const MatchupTable = ({ matchups, onActivate, onUpdateScore, onViewStats }) => {
               {/* Deadline */}
               <Typography variant="caption" color="text.secondary">
                 Deadline: {matchup.predictionDeadlineAt
-                  ? new Date(matchup.predictionDeadlineAt).toLocaleString()
+                  ? formatDeadline(matchup.predictionDeadlineAt)
                   : '—'}
               </Typography>
 
@@ -279,7 +280,7 @@ const MatchupTable = ({ matchups, onActivate, onUpdateScore, onViewStats }) => {
               <TableCell>
                 <Typography variant="body2">
                   {matchup.predictionDeadlineAt
-                    ? new Date(matchup.predictionDeadlineAt).toLocaleString()
+                    ? formatDeadline(matchup.predictionDeadlineAt)
                     : '—'}
                 </Typography>
               </TableCell>
