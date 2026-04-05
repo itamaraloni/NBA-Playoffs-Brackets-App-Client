@@ -112,9 +112,10 @@ export function AuthProvider({ children }) {
 
           if (userData?.isNewUser) {
             sessionStorage.setItem(PENDING_FIRST_LOGIN_WELCOME_KEY, 'true');
-          } else {
-            sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
           }
+          // Never clear the flag from an API response — only clear on dialog
+          // dismiss or sign-out. The parallel onAuthStateChanged call will get
+          // a 200 (user already exists) and must not race away a 201-set flag.
 
           // Set admin status from server response
           setIsAdmin(userData?.is_admin || false);
@@ -226,15 +227,14 @@ export function AuthProvider({ children }) {
               userData = await UserServices.syncUserWithDatabase(user, retryCount);
             }
 
-            // Only write/clear the onboarding flag when the data source is
-            // syncUserWithDatabase(), which returns isNewUser. checkUserWithSession()
-            // returns only { is_admin } — leave the existing flag untouched so a
-            // new user who refreshes before dismissing the dialog does not lose onboarding.
+            // Only touch the onboarding flag when syncUserWithDatabase() was the
+            // data source (it returns isNewUser; checkUserWithSession() does not).
+            // Only ever SET the flag here — never clear it from an API response.
+            // Clearing is handled exclusively by the dialog close handler and sign-out
+            // so that a concurrent 200 response cannot race away a 201-set flag.
             if ('isNewUser' in (userData ?? {})) {
               if (userData.isNewUser) {
                 sessionStorage.setItem(PENDING_FIRST_LOGIN_WELCOME_KEY, 'true');
-              } else {
-                sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
               }
               setIsNewUser(userData.isNewUser);
             }
