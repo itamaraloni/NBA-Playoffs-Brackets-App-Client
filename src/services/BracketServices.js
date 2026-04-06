@@ -18,6 +18,8 @@ function enrichMatchup(m, isActualBracket = false) {
   const hasPick   = m.predicted_winner_team_id != null;
   const isPlayed  = m.actual_winner_team_id != null;
   const isMatchupExist = m.is_matchup_exist ?? true;
+  const actualWinnerIsTeam1 = isPlayed && m.actual_winner_team_id === m.team_1?.team_id;
+  const actualWinnerIsTeam2 = isPlayed && m.actual_winner_team_id === m.team_2?.team_id;
 
   return {
     ...m,
@@ -26,10 +28,12 @@ function enrichMatchup(m, isActualBracket = false) {
     isPlayed,
     isMatchupExist,
     isActualBracket,
+    actualWinnerName: m.actual_winner_name ?? null,
     predWinnerIsTeam1:   hasPick  && m.predicted_winner_team_id === m.team_1?.team_id,
     predWinnerIsTeam2:   hasPick  && m.predicted_winner_team_id === m.team_2?.team_id,
-    actualWinnerIsTeam1: isPlayed && m.actual_winner_team_id    === m.team_1?.team_id,
-    actualWinnerIsTeam2: isPlayed && m.actual_winner_team_id    === m.team_2?.team_id,
+    actualWinnerIsTeam1,
+    actualWinnerIsTeam2,
+    actualWinnerIsOther: isPlayed && !actualWinnerIsTeam1 && !actualWinnerIsTeam2,
     isTbd: !m.team_1 || !m.team_2,
     isCorrect: m.is_correct ?? null,
     // Series progress for in-progress matchups (e.g., "3-1")
