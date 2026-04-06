@@ -109,7 +109,7 @@ function BonusCard({ title, chipLabel, chipSx, name, subText, logo, avatar, icon
             sx={{
               height: 18,
               fontSize: '0.5625rem', fontWeight: 800,
-              letterSpacing: '0.04em', textTransform: 'uppercase',
+              letterSpacing: '0.04em',
               '& .MuiChip-label': { px: '6px' },
               ...chipSx,
             }}
@@ -166,37 +166,35 @@ const BonusPicks = ({
 }) => {
   const theme = useTheme();
 
+  // Map bracket pick statuses → PickCard-style chip treatments:
+  //   pending  → "Alive"      (green  — pick is still in contention)
+  //   wrong    → "Eliminated" (red    — pick was knocked out)
+  //   correct  → "Scored!"    (gold   — pick came through)
+  //   null     → "N/A"        (muted  — no status available yet)
   const getStatusConfig = (status) => {
-    if (!isLocked || !status) return { chipLabel: null, chipSx: {}, bodyBg: 'transparent', icon: null };
+    if (!isLocked) return { chipLabel: null, chipSx: {}, bodyBg: 'transparent', icon: null };
 
     switch (status) {
-      case 'correct':
+      case 'pending':
         return {
-          chipLabel: 'Hit',
+          chipLabel: 'Alive',
           chipSx: {
             color: theme.palette.success.main,
-            background: alpha(theme.palette.success.main, 0.14),
-            borderColor: alpha(theme.palette.success.main, 0.35),
+            background: alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.25 : 0.12),
+            borderColor: theme.palette.success.main,
           },
-          bodyBg: alpha(theme.palette.success.main, 0.12),
-          icon: (
-            <Typography component="span" sx={{
-              fontSize: '0.6875rem', color: theme.palette.success.light,
-              width: 14, textAlign: 'center', lineHeight: 1, flexShrink: 0,
-            }}>
-              {'\u2713'}
-            </Typography>
-          ),
+          bodyBg: 'transparent',
+          icon: null,
         };
       case 'wrong':
         return {
-          chipLabel: 'Miss',
+          chipLabel: 'Eliminated',
           chipSx: {
             color: theme.palette.error.main,
             background: alpha(theme.palette.error.main, 0.14),
-            borderColor: alpha(theme.palette.error.main, 0.35),
+            borderColor: alpha(theme.palette.error.main, 0.5),
           },
-          bodyBg: alpha(theme.palette.error.main, 0.12),
+          bodyBg: alpha(theme.palette.error.main, 0.08),
           icon: (
             <Typography component="span" sx={{
               fontSize: '0.6875rem', color: theme.palette.error.light,
@@ -206,14 +204,33 @@ const BonusPicks = ({
             </Typography>
           ),
         };
-      case 'pending':
-      default:
+      case 'correct':
         return {
-          chipLabel: 'Pending',
+          chipLabel: 'Scored!',
           chipSx: {
-            color: theme.palette.warning.main,
-            background: alpha(theme.palette.warning.main, 0.14),
-            borderColor: alpha(theme.palette.warning.main, 0.35),
+            background: 'rgba(255,215,0,0.15)',
+            color: theme.palette.mode === 'dark' ? '#FFD700' : '#B8860B',
+            borderColor: '#FFD700',
+          },
+          bodyBg: 'rgba(255,215,0,0.06)',
+          icon: (
+            <Typography component="span" sx={{
+              fontSize: '0.6875rem',
+              color: theme.palette.mode === 'dark' ? '#FFD700' : '#B8860B',
+              width: 14, textAlign: 'center', lineHeight: 1, flexShrink: 0,
+            }}>
+              {'\u2713'}
+            </Typography>
+          ),
+        };
+      default:
+        // Locked bracket but status unknown / pick not made
+        return {
+          chipLabel: 'N/A',
+          chipSx: {
+            color: theme.palette.text.disabled,
+            background: 'transparent',
+            borderColor: theme.palette.divider,
           },
           bodyBg: 'transparent',
           icon: null,

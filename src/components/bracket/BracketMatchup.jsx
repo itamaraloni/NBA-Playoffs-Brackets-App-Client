@@ -118,7 +118,7 @@ function TeamLogo({ name }) {
   );
 }
 
-function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed, isMiss, isVoided, compact }) {
+function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed, isMiss, isVoided, isEliminated, compact }) {
   const theme = useTheme();
 
   if (!team) {
@@ -201,6 +201,12 @@ function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed, 
           ...(isVoided && isPredWinner && {
             textDecoration: 'line-through',
             color: theme.palette.text.disabled,
+          }),
+          // Team was eliminated in an earlier round — show strikethrough on their name
+          // to signal that this prediction can no longer come true.
+          ...(isEliminated && !isVoided && {
+            textDecoration: 'line-through',
+            opacity: 0.55,
           }),
         }}
       >
@@ -373,6 +379,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
         isPlayed={isLocked && m.isPlayed}
         isMiss={isMiss}
         isVoided={isVoided}
+        isEliminated={isLocked && m.team_1?.is_active === false && !t1IsActualWinner}
         compact={compact}
       />
       <Box sx={{ borderTop: `1px solid ${theme.palette.divider}` }}>
@@ -385,6 +392,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
           isPlayed={isLocked && m.isPlayed}
           isMiss={isMiss}
           isVoided={isVoided}
+          isEliminated={isLocked && m.team_2?.is_active === false && !t2IsActualWinner}
           compact={compact}
         />
       </Box>

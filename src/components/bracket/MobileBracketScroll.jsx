@@ -237,7 +237,7 @@ function DotNav({ count, activeIndex, onDotClick, zIndex = 10 }) {
             },
           }}
         >
-          {i === activeIndex && (
+          {i === activeIndex ? (
             <Typography sx={{
               position: 'absolute', bottom: '100%', mb: '4px',
               fontSize: '0.5625rem', fontWeight: 700,
@@ -248,7 +248,7 @@ function DotNav({ count, activeIndex, onDotClick, zIndex = 10 }) {
             }}>
               {DOT_NAV_LABELS[i]}
             </Typography>
-          )}
+          ) : null}
         </Box>
       ))}
     </Box>
