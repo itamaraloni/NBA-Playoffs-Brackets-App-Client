@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Box, Chip, Typography, useTheme } from '@mui/material';
+import { Box, Chip, Tooltip, Typography, useTheme } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { alpha } from '@mui/material/styles';
 import { getLogoPath } from '../../shared/teamUtils';
 import { getPlayerAvatar } from '../../shared/playerUtils';
@@ -228,13 +229,24 @@ const BonusPicks = ({
       {/* Bonus Picks divider */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: '4px' }}>
         <Box sx={{ flex: 1, height: '1px', background: alpha(theme.palette.warning.main, 0.18) }} />
-        <Typography sx={{
-          fontSize: '0.625rem', fontWeight: 800,
-          textTransform: 'uppercase', letterSpacing: '0.12em',
-          color: theme.palette.warning.main, opacity: 0.7,
-        }}>
-          Bonus Picks
-        </Typography>
+        <Tooltip
+          title="These picks are tied to your player profile, not the bracket — Championship winner and Finals MVP can be updated independently from the Dashboard."
+          placement="top"
+          arrow
+          enterTouchDelay={0}
+          leaveTouchDelay={3000}
+        >
+          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'help' }}>
+            <Typography sx={{
+              fontSize: '0.625rem', fontWeight: 800,
+              textTransform: 'uppercase', letterSpacing: '0.12em',
+              color: theme.palette.warning.main, opacity: 0.7,
+            }}>
+              Bonus Picks
+            </Typography>
+            <InfoOutlinedIcon sx={{ fontSize: '0.625rem', color: theme.palette.warning.main, opacity: 0.7 }} />
+          </Box>
+        </Tooltip>
         <Box sx={{ flex: 1, height: '1px', background: alpha(theme.palette.warning.main, 0.18) }} />
       </Box>
 

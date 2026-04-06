@@ -296,7 +296,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
     let chipSuffix = '';
     if (resultState === 'bullseye' || resultState === 'hit' || resultState === 'miss') {
       chipSuffix = m.isPlayin
-        ? (actualWinnerName ? ` \u00B7 ${actualWinnerName}` : '')
+        ? (actualWinnerName ? ` \u00B7 ${actualWinnerName} won` : '')
         : (actualWinnerName && m.actual_series_score
             ? ` \u00B7 ${actualWinnerName} ${m.actual_series_score}`
             : '');
@@ -307,8 +307,8 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
     resultChipLabel = `${resultChip.label}${chipSuffix}`;
   }
 
-  // Score bar: "Prediction: Team 4-1" — hidden for play-in (team row highlight is sufficient)
-  const showScoreBar = m.hasPick && !m.isPlayin;
+  // Score bar: "Prediction: Team" — shown for all matchup types including play-in
+  const showScoreBar = m.hasPick;
   const predictedWinnerName = m.hasPick
     ? getShortTeamName(m.predWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name)
     : null;

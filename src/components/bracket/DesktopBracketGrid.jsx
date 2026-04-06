@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Tooltip, Typography, useTheme } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { alpha } from '@mui/material/styles';
 import BracketMatchup from './BracketMatchup';
 import BonusPicks from './BonusPicks';
@@ -278,9 +279,14 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
       }}>
         {westSurvivor && (
           <>
-            <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.palette.text.disabled, textAlign: 'center' }}>
-              Survivor
-            </Typography>
+            <Tooltip title="Loser of #7 vs #8 VS Winner of #9 vs #10" placement="top" arrow enterTouchDelay={0} leaveTouchDelay={3000}>
+              <Box sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'help', width: '100%', mb: '2px' }}>
+                <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.palette.text.disabled }}>
+                  Survivor
+                </Typography>
+                <InfoOutlinedIcon sx={{ fontSize: '0.625rem', color: theme.palette.text.disabled, flexShrink: 0 }} />
+              </Box>
+            </Tooltip>
             <HoverCard data-card-id="w-surv" data-feeds="w-pi-1,w-pi-2" delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}>
               <BracketMatchup matchup={westSurvivor} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
             </HoverCard>
@@ -383,9 +389,15 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
         }}>
           NBA Finals
         </Typography>
-        <Box sx={{ width: '100%' }}>
+        <HoverCard
+          data-card-id="final"
+          data-feeds="w-cf,e-cf"
+          delay={skipDelay ? undefined : cardIdx++ * 40}
+          onHoverStart={handleMouseEnter}
+          onHoverEnd={handleMouseLeave}
+        >
           <BracketMatchup matchup={bracket.final} isLocked={isLocked} isFinals onMatchupClick={onMatchupClick} compact />
-        </Box>
+        </HoverCard>
         {bonusPicks && (
           <Box sx={{ width: '100%', mt: '16px' }}>
             <BonusPicks {...bonusPicks} isLocked={isLocked} />
@@ -462,9 +474,14 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
       }}>
         {eastSurvivor && (
           <>
-            <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.palette.text.disabled, textAlign: 'center' }}>
-              Survivor
-            </Typography>
+            <Tooltip title="Loser of #7 vs #8 VS Winner of #9 vs #10" placement="top" arrow enterTouchDelay={0} leaveTouchDelay={3000}>
+              <Box sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'help', width: '100%', mb: '2px' }}>
+                <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.palette.text.disabled }}>
+                  Survivor
+                </Typography>
+                <InfoOutlinedIcon sx={{ fontSize: '0.625rem', color: theme.palette.text.disabled, flexShrink: 0 }} />
+              </Box>
+            </Tooltip>
             <HoverCard data-card-id="e-surv" data-feeds="e-pi-1,e-pi-2" delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}>
               <BracketMatchup matchup={eastSurvivor} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
             </HoverCard>

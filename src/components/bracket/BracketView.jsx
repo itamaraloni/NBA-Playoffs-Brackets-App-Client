@@ -285,13 +285,15 @@ const BracketView = ({
   return (
     <Box>
       {header}
-      <DesktopBracketGrid
-        bracket={bracket}
-        isLocked={isLocked}
-        onMatchupClick={onMatchupClick}
-        bonusPicks={bonusPicks}
-        scoringConfig={scoringConfig}
-      />
+      <Box sx={{ overflowX: 'auto' }}>
+        <DesktopBracketGrid
+          bracket={bracket}
+          isLocked={isLocked}
+          onMatchupClick={onMatchupClick}
+          bonusPicks={bonusPicks}
+          scoringConfig={scoringConfig}
+        />
+      </Box>
     </Box>
   );
 };
