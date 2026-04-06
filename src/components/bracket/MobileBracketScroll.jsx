@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Box, Typography, Collapse, useTheme } from '@mui/material';
+import { Box, Tooltip, Typography, Collapse, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import BracketMatchup from './BracketMatchup';
 import BonusPicks from './BonusPicks';
 import { reorderR1 } from '../../utils/bracketUtils';
@@ -86,9 +87,14 @@ function PlayinSection({ survivor, playinGames, isLocked, onMatchupClick, confer
       {/* Survivor card on top */}
       {survivor && (
         <Box sx={{ mb: '4px' }}>
-          <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.palette.text.disabled, textAlign: 'center', mb: '4px' }}>
-            Survivor
-          </Typography>
+          <Tooltip title="Loser of #7 vs #8 VS Winner of #9 vs #10" placement="top" arrow enterTouchDelay={0} leaveTouchDelay={3000}>
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'help', width: '100%', mb: '4px' }}>
+              <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.palette.text.disabled }}>
+                Survivor
+              </Typography>
+              <InfoOutlinedIcon sx={{ fontSize: '0.625rem', color: theme.palette.text.disabled, flexShrink: 0 }} />
+            </Box>
+          </Tooltip>
           <TappableCard data-card-id={`${c}-surv`} data-feeds={`${c}-pi-1,${c}-pi-2`} delay={skipDelay ? undefined : cardIdx.val++ * 40} onTap={onTap}>
             <BracketMatchup matchup={survivor} isLocked={isLocked} onMatchupClick={onMatchupClick} />
           </TappableCard>
@@ -231,7 +237,7 @@ function DotNav({ count, activeIndex, onDotClick, zIndex = 10 }) {
             },
           }}
         >
-          {i === activeIndex && (
+          {i === activeIndex ? (
             <Typography sx={{
               position: 'absolute', bottom: '100%', mb: '4px',
               fontSize: '0.5625rem', fontWeight: 700,
@@ -242,7 +248,7 @@ function DotNav({ count, activeIndex, onDotClick, zIndex = 10 }) {
             }}>
               {DOT_NAV_LABELS[i]}
             </Typography>
-          )}
+          ) : null}
         </Box>
       ))}
     </Box>

@@ -9,10 +9,17 @@ export function getLogoPath(teamName) {
   return `/resources/team-logos/${teamName.toLowerCase().replace(/ /g, '-')}.png`;
 }
 
+// Some last-word extractions are still too long for compact chip display.
+// Map the full last word → shorter display name.
+const SHORT_NAME_OVERRIDES = {
+  Timberwolves: 'Wolves',
+};
+
 export function getShortTeamName(teamName) {
   if (!teamName)
     return null;
 
   const parts = teamName.trim().split(/\s+/);
-  return parts[parts.length - 1] || teamName;
+  const lastName = parts[parts.length - 1] || teamName;
+  return SHORT_NAME_OVERRIDES[lastName] || lastName;
 }

@@ -33,6 +33,15 @@ function getResultChipConfig(state, theme) {
           borderColor: alpha(theme.palette.error.main, 0.35),
         },
       };
+    case 'path_miss':
+      return {
+        label: 'Path Miss',
+        sx: {
+          color: theme.palette.error.main,
+          background: alpha(theme.palette.error.main, 0.18),
+          borderColor: alpha(theme.palette.error.main, 0.5),
+        },
+      };
     case 'pending':
       return {
         label: 'Pending',
@@ -71,6 +80,8 @@ function getResultTooltip(state) {
       return 'Correct winner, wrong series score.';
     case 'miss':
       return 'Wrong winner prediction.';
+    case 'path_miss':
+      return 'Neither predicted team reached this bracket position.';
     case 'pending':
       return 'Series not yet decided.';
     case 'voided':
@@ -118,7 +129,7 @@ function TeamLogo({ name }) {
   );
 }
 
-function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed, isMiss, isVoided, compact }) {
+function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed, isMiss, isVoided, isEliminated, compact }) {
   const theme = useTheme();
 
   if (!team) {
@@ -202,6 +213,12 @@ function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed, 
             textDecoration: 'line-through',
             color: theme.palette.text.disabled,
           }),
+          // Team was eliminated in an earlier round — show strikethrough on their name
+          // to signal that this prediction can no longer come true.
+          ...(isEliminated && !isVoided && {
+            textDecoration: 'line-through',
+            opacity: 0.55,
+          }),
         }}
       >
         {compact ? getShortTeamName(team.name) : team.name}
@@ -222,13 +239,15 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
   let resultChip = getResultChipConfig(resultState, theme);
   let resultTooltip = getResultTooltip(resultState);
   let resultChipLabel = null; // computed below, after actual bracket override
-  const isMiss = resultState === 'miss';
+  const isMiss = resultState === 'miss' || resultState === 'path_miss';
   const isVoided = resultState === 'voided';
 
   // Actual bracket: override chip to show real results instead of prediction states
   if (m.isActualBracket) {
     if (m.isPlayed) {
-      const winnerName = getShortTeamName(m.actualWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name);
+      const winnerName = getShortTeamName(
+        m.actualWinnerName || (m.actualWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name)
+      );
       const scoreStr = m.isPlayin ? '' : ` ${m.actual_series_score}`;
       resultChip = getResultChipConfig('hit', theme);
       resultChipLabel = `${winnerName}${scoreStr}`;
@@ -290,13 +309,20 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
   // (skip for actual bracket — label was already set above)
   if (!resultChipLabel) {
     const actualWinnerName = m.isPlayed
-      ? getShortTeamName(m.actualWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name)
+      ? getShortTeamName(
+          m.actualWinnerName || (m.actualWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name)
+        )
       : null;
 
     let chipSuffix = '';
-    if (resultState === 'bullseye' || resultState === 'hit' || resultState === 'miss') {
+    if (
+      resultState === 'bullseye' ||
+      resultState === 'hit' ||
+      resultState === 'miss' ||
+      resultState === 'path_miss'
+    ) {
       chipSuffix = m.isPlayin
-        ? (actualWinnerName ? ` \u00B7 ${actualWinnerName}` : '')
+        ? (actualWinnerName ? ` \u00B7 ${actualWinnerName} won` : '')
         : (actualWinnerName && m.actual_series_score
             ? ` \u00B7 ${actualWinnerName} ${m.actual_series_score}`
             : '');
@@ -307,8 +333,8 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
     resultChipLabel = `${resultChip.label}${chipSuffix}`;
   }
 
-  // Score bar: "Prediction: Team 4-1" — hidden for play-in (team row highlight is sufficient)
-  const showScoreBar = m.hasPick && !m.isPlayin;
+  // Score bar: "Prediction: Team" — shown for all matchup types including play-in
+  const showScoreBar = m.hasPick;
   const predictedWinnerName = m.hasPick
     ? getShortTeamName(m.predWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name)
     : null;
@@ -373,6 +399,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
         isPlayed={isLocked && m.isPlayed}
         isMiss={isMiss}
         isVoided={isVoided}
+        isEliminated={isLocked && m.team_1?.is_active === false && !t1IsActualWinner}
         compact={compact}
       />
       <Box sx={{ borderTop: `1px solid ${theme.palette.divider}` }}>
@@ -385,6 +412,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
           isPlayed={isLocked && m.isPlayed}
           isMiss={isMiss}
           isVoided={isVoided}
+          isEliminated={isLocked && m.team_2?.is_active === false && !t2IsActualWinner}
           compact={compact}
         />
       </Box>

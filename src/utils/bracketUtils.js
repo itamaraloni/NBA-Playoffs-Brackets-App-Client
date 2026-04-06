@@ -27,7 +27,7 @@ const COMPONENT_TO_API_ROUND = {
 
 /**
  * Determines the result state of a matchup for display purposes.
- * Returns: 'bullseye' | 'hit' | 'miss' | 'pending' | 'voided' | 'na'
+ * Returns: 'bullseye' | 'hit' | 'miss' | 'path_miss' | 'pending' | 'voided' | 'na'
  */
 export function getMatchupResultState(m) {
   if (!m?.hasPick) return 'na';
@@ -43,6 +43,7 @@ export function getMatchupResultState(m) {
 
   if (isBullseye) return 'bullseye';
   if (m.isCorrect === true) return 'hit';
+  if (m.isCorrect === false && m.actualWinnerIsOther) return 'path_miss';
   if (m.isCorrect === false) return 'miss';
   return 'na';
 }
@@ -79,6 +80,7 @@ export function computeBracketHealth(bracket, scoringConfig) {
         totalPotential += maxPts;
         break;
       case 'miss':
+      case 'path_miss':
         wrong++;
         totalPotential += maxPts;
         break;
