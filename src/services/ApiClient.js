@@ -1,6 +1,9 @@
 import { clearLocalStoragePreserveTheme } from '../utils/authStorage';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL;
+if (!API_BASE_URL) {
+  throw new Error('REACT_APP_API_URL is not set. Set it in your .env file.');
+}
 
 /**
  * Base API client using fetch with retry logic
