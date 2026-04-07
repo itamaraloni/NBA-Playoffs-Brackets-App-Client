@@ -183,9 +183,12 @@ const PredictionsPage = () => {
     } catch (error) {
       console.error("Error fetching league predictions:", error);
       setLeaguePredictions([]);
-      
+
       if (window.notify) {
-        window.notify.error('Failed to load league predictions');
+        const message = error.status === 403
+          ? 'You are not a member of this league'
+          : 'Failed to load league predictions';
+        window.notify.error(message);
       }
     }
   };
