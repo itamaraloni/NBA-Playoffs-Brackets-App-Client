@@ -153,7 +153,7 @@ useEffect(() => {
 ### Auth Flow
 
 1. Google OAuth popup via Firebase `signInWithPopup()`
-2. Firebase ID token exchanged for httpOnly session cookie via `POST /auth/session-login` (server also sets a JS-readable `csrf_token` cookie)
+2. Firebase ID token exchanged for httpOnly session cookie via `POST /auth/session_login` (server also sets a JS-readable `csrf_token` cookie)
 3. Backend sync via `UserServices.syncUserWithDatabase()` - no token stored in localStorage
 4. All subsequent API calls authenticated via session cookie (`credentials: 'include'`); CSRF token sent as `X-CSRF-Token` header on POST/PUT/DELETE
 5. `AuthContext` provides: `currentUser`, `isAuthenticated`, `isAdmin`, `isNewUser`, `userPlayers`, `activePlayer`, `switchActivePlayer()`, `clearIsNewUser()`, `signInWithGoogle()`, `logout()`
