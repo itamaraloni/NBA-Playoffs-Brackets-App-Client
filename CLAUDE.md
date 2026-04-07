@@ -73,7 +73,7 @@ This guideline applies to all frontend work - code changes, PR reviews, planning
 
 ### Environment Variables
 
-- **REACT_APP_API_URL** - Backend API endpoint (dev: localhost:5000, prod: api.playoffprophet.com)
+- **REACT_APP_API_URL** - Backend API endpoint (dev: localhost:5000, prod: api.playoffprophet.com). **Required** — `ApiClient.js` throws on startup if unset. Also referenced as `%REACT_APP_API_URL%` in `public/index.html` for the Content-Security-Policy `connect-src` directive; CRA substitutes it at build time, so dev and prod builds get the correct URL automatically
 - **REACT_APP_FIREBASE_*** - Firebase config values (7 total, see `.env.example` for all)
   - `REACT_APP_FIREBASE_API_KEY` - Firebase API key
   - `REACT_APP_FIREBASE_AUTH_DOMAIN` - Firebase auth domain
@@ -112,6 +112,7 @@ This guideline applies to all frontend work - code changes, PR reviews, planning
 
 - **All API calls go through `apiClient`** (`src/services/ApiClient.js`) - never use `fetch` directly (exception: `UserServices.syncUserWithDatabase` and `logout` use direct fetch for auth bootstrap/teardown)
 - `apiClient` handles: session cookie auth (`credentials: 'include'`), CSRF token header for state-changing requests, retry with exponential backoff (3 retries), connection monitoring, 401 auto-logout
+- **`console.log` is suppressed in production** via a guard in `src/index.js` (`process.env.NODE_ENV === 'production'`). Do not rely on `console.log` for anything that needs to surface in production — use error boundaries or notification service instead
 - **Service modules** (`UserServices`, `LeagueServices`, `MatchupServices`) are plain objects with async methods - not classes
 - **Data transformation happens in services** - services convert snake_case API responses to camelCase UI objects before returning. Components should never deal with raw API response shapes
 - **Notifications:** use `window.notify.success()`, `.error()`, `.warning()`, `.info()` (React Toastify via `NotificationService.js`). Always guard with `if (window.notify)`
