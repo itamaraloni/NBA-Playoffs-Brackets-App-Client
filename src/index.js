@@ -5,6 +5,11 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import './services/NotificationService'; // Import notification service for global use
 
+// Suppress console.log in production to avoid leaking internal paths and API details
+if (process.env.NODE_ENV === 'production') {
+  console.log = () => {};
+}
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
