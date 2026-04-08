@@ -62,7 +62,9 @@ const UserServices = {
    * Lightweight auth check using existing cookies (no new session creation).
    */
   async checkUserWithSession() {
-    return apiClient.post('/user/check', {});
+    // Suppress the global 401 handler here: auth bootstrap should fall back to
+    // session_login instead of dispatching session-expired mid-recovery.
+    return apiClient.post('/user/check', {}, { suppressAuthEvent: true });
   },
   
   /**

@@ -37,6 +37,7 @@ export function AuthProvider({ children }) {
   // the first and can produce spurious 401s on /user/leagues.
   const UNINITIALIZED = useRef(Symbol('uninitialized'));
   const lastProcessedUid = useRef(UNINITIALIZED.current);
+  const interactiveSignInRef = useRef(null);
 
   /**
    * Fetch player/league data from /user/leagues and set active player.
@@ -85,8 +86,10 @@ export function AuthProvider({ children }) {
           applyLeagueData(leaguesData);
         } catch (retryErr) {
           if (retryErr.status === 401) {
-            // Genuine session expiry after retry — trigger full sign-out.
+            // Genuine session expiry after retry — trigger full sign-out and
+            // abort the auth flow so currentUser is never set.
             window.dispatchEvent(new CustomEvent('auth:session-expired'));
+            throw retryErr;
           } else {
             console.error("Error fetching user leagues (retry):", retryErr);
             setUserPlayers([]);
@@ -123,31 +126,27 @@ export function AuthProvider({ children }) {
   }, []);
 
   // Sign in with Google.
-  // Session sync (syncUserWithDatabase), state updates (setCurrentUser, setIsAdmin,
-  // setIsNewUser), and league data fetching (fetchAndSetPlayerData) are all handled
-  // exclusively by the onAuthStateChanged listener below. Doing that work here too
-  // would create two concurrent /auth/session_login calls, producing duplicate
-  // session + CSRF cookies in the browser. That race causes the very next
-  // /user/leagues request to 401 (wrong cookie sent) and logout to 403 (CSRF mismatch).
+  // Session sync (syncUserWithDatabase), state updates, and league-data fetching are
+  // all handled exclusively by onAuthStateChanged below. This function only starts
+  // the popup flow, then waits for that auth pipeline to finish so callers can still
+  // await "login is done" without reintroducing duplicate /auth/session_login calls.
   const signInWithGoogle = async () => {
     try {
       setError(null);
+      const completionPromise = new Promise((resolve, reject) => {
+        interactiveSignInRef.current = { resolve, reject, uid: null };
+      });
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
-      // onAuthStateChanged fires automatically and owns all server-side sync.
+      if (interactiveSignInRef.current) {
+        interactiveSignInRef.current.uid = result.user.uid;
+      }
+      await completionPromise;
       return result;
     } catch (err) {
+      interactiveSignInRef.current = null;
       setError(err.message || "Error signing in with Google");
-
-      if (window.notify) {
-        window.notify.error("Error signing in with Google. Please try again.");
-      }
-
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 2500);
-
       throw err;
     }
   };
@@ -234,6 +233,9 @@ export function AuthProvider({ children }) {
 
         while (retryCount <= MAX_RETRIES && !syncSucceeded) {
           try {
+            const pendingInteractiveSignIn = interactiveSignInRef.current;
+            const matchesPendingInteractiveSignIn = Boolean(pendingInteractiveSignIn)
+              && (!pendingInteractiveSignIn.uid || pendingInteractiveSignIn.uid === user.uid);
             let userData = null;
             const hasCsrfCookie = document.cookie.includes('csrf_token=');
 
@@ -254,6 +256,8 @@ export function AuthProvider({ children }) {
               userData = await UserServices.syncUserWithDatabase(user, retryCount);
             }
 
+            await fetchAndSetPlayerData();
+
             // Only touch the onboarding flag when syncUserWithDatabase() was the
             // data source (it returns isNewUser; checkUserWithSession() does not).
             // Only ever SET the flag here — never clear it from an API response.
@@ -266,25 +270,32 @@ export function AuthProvider({ children }) {
               setIsNewUser(userData.isNewUser);
             }
 
-            // Set admin status from server response
+            setError(null);
             setIsAdmin(userData?.is_admin || false);
-
-            // Update current user with userData
             setCurrentUser({
               ...user,
               userData: userData
             });
 
-            // Fetch player/league data after successful auth
-            await fetchAndSetPlayerData();
-
+            if (matchesPendingInteractiveSignIn && interactiveSignInRef.current) {
+              interactiveSignInRef.current.resolve();
+              interactiveSignInRef.current = null;
+            }
             syncSucceeded = true;
           } catch (error) {
+            const pendingInteractiveSignIn = interactiveSignInRef.current;
+            const matchesPendingInteractiveSignIn = Boolean(pendingInteractiveSignIn)
+              && (!pendingInteractiveSignIn.uid || pendingInteractiveSignIn.uid === user.uid);
+
             if (error.status) {
               // Server explicitly rejected auth with an HTTP error (e.g. 401 invalid token).
               // Do NOT set currentUser — the user has no valid server session.
               console.error(`Auth sync rejected by server (HTTP ${error.status}):`, error.code, error.message);
               setError('Sign in failed. Please try again.');
+              if (matchesPendingInteractiveSignIn && interactiveSignInRef.current) {
+                interactiveSignInRef.current.reject(error);
+                interactiveSignInRef.current = null;
+              }
               break;
             }
 
@@ -305,14 +316,23 @@ export function AuthProvider({ children }) {
               if (window.notify && retryCount >= MAX_RETRIES) {
                 window.notify.warning("Could not load user data. Some features may be unavailable.");
               }
+              setError(null);
               setCurrentUser(user);
               setIsAdmin(false);
+              if (matchesPendingInteractiveSignIn && interactiveSignInRef.current) {
+                interactiveSignInRef.current.resolve();
+                interactiveSignInRef.current = null;
+              }
               break;
             }
           }
         }
       } else {
         // User is signed out
+        if (interactiveSignInRef.current) {
+          interactiveSignInRef.current.reject(new Error('Sign in was interrupted.'));
+          interactiveSignInRef.current = null;
+        }
         setCurrentUser(null);
         setIsAdmin(false);
         setIsNewUser(false);

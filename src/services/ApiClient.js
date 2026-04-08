@@ -74,19 +74,21 @@ const apiClient = {
       // Handle auth errors (401 Unauthorized)
       if (response.status === 401) {
         console.log(`Auth error: ${errorMessage}`);
-        clearLocalStoragePreserveTheme();
 
         if (suppressAuthEvent) {
           // Caller handles this 401 (e.g. with retry logic) — throw so they
           // can catch it without triggering the global sign-out event yet.
           const error = new Error(errorMessage || 'Unauthorized');
           error.status = 401;
+          error.code = errorCode;
+          error.data = errorData;
           throw error;
         }
 
         // Standard path: session genuinely expired mid-session.
         // Dispatch so AuthContext can signOut(Firebase) before redirecting,
         // preventing the silent re-auth loop on next page load.
+        clearLocalStoragePreserveTheme();
         window.dispatchEvent(new CustomEvent('auth:session-expired'));
         return;
       }
@@ -155,14 +157,14 @@ const apiClient = {
   /**
    * POST request with retry logic
    */
-  async post(endpoint, data) {
+  async post(endpoint, data, options = {}) {
     const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: this.getHeaders('POST'),
       body: JSON.stringify(data),
     });
 
-    return this.handleResponse(response);
+    return this.handleResponse(response, options);
   },
 
   /**
