@@ -11,6 +11,8 @@ Read this together with:
 - Ask the user before running `git commit`
 - Ask the user again before running `git push`
 - Do not treat a staged diff, passing build, or "looks ready" state as implicit approval
+- Write commit subjects with enough intent and scope that the change is understandable without opening the diff
+- Prefer fuller, explicit wording over terse labels when a UI change spans multiple visible behaviors
 
 ## UI Diff Discipline
 
