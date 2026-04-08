@@ -111,7 +111,8 @@ This guideline applies to all frontend work - code changes, PR reviews, planning
 ### API & Services
 
 - **All API calls go through `apiClient`** (`src/services/ApiClient.js`) - never use `fetch` directly (exception: `UserServices.syncUserWithDatabase` and `logout` use direct fetch for auth bootstrap/teardown)
-- `apiClient` handles: session cookie auth (`credentials: 'include'`), CSRF token header for state-changing requests, retry with exponential backoff (3 retries), connection monitoring, 401 auto-logout
+- `apiClient` handles: session cookie auth (`credentials: 'include'`), CSRF token header for state-changing requests, retry with exponential backoff (3 retries), connection monitoring, and standard 401 session-expiry handling via the `auth:session-expired` event
+- Auth bootstrap/retry code may suppress the global 401 handler for a specific request (for example `/user/check` or the first `/user/leagues` retry) and resolve recovery locally instead of forcing sign-out
 - **`console.log` is suppressed in production** via a guard in `src/index.js` (`process.env.NODE_ENV === 'production'`). Do not rely on `console.log` for anything that needs to surface in production — use error boundaries or notification service instead
 - **Service modules** (`UserServices`, `LeagueServices`, `MatchupServices`) are plain objects with async methods - not classes
 - **Data transformation happens in services** - services convert snake_case API responses to camelCase UI objects before returning. Components should never deal with raw API response shapes
@@ -152,13 +153,13 @@ useEffect(() => {
 
 ### Auth Flow
 
-1. Google OAuth popup via Firebase `signInWithPopup()`
-2. Firebase ID token exchanged for httpOnly session cookie via `POST /auth/session_login` (server also sets a JS-readable `csrf_token` cookie)
-3. Backend sync via `UserServices.syncUserWithDatabase()` - no token stored in localStorage
-4. All subsequent API calls authenticated via session cookie (`credentials: 'include'`); CSRF token sent as `X-CSRF-Token` header on POST/PUT/DELETE
+1. Google OAuth popup starts via Firebase `signInWithPopup()`
+2. `onAuthStateChanged` in `AuthContext` is the single owner of backend auth sync and auth-state updates. Do not call `syncUserWithDatabase()` from page/components or in parallel with that listener.
+3. On first auth bootstrap, the Firebase ID token is exchanged for an httpOnly session cookie via `POST /auth/session_login` (server also sets a JS-readable `csrf_token` cookie). On reload with an existing CSRF cookie, `checkUserWithSession()` may validate the current session before minting a new one.
+4. All subsequent API calls authenticate via the session cookie (`credentials: 'include'`); CSRF token is sent as `X-CSRF-Token` on POST/PUT/DELETE. Standard 401s dispatch `auth:session-expired`, but auth bootstrap/retry paths may suppress that event and retry once locally.
 5. `AuthContext` provides: `currentUser`, `isAuthenticated`, `isAdmin`, `isNewUser`, `userPlayers`, `activePlayer`, `switchActivePlayer()`, `clearIsNewUser()`, `signInWithGoogle()`, `logout()`
 6. `useAuth()` hook to access auth state in any component
-7. After auth sync, `fetchAndSetPlayerData()` calls `/user/leagues` to populate `userPlayers` and restore `activePlayer` from localStorage hint
+7. After auth sync, `fetchAndSetPlayerData()` calls `/user/leagues` to populate `userPlayers` and restore `activePlayer` from localStorage hint. It retries once on an immediate post-login 401 before treating the session as expired.
 8. New app users set `pendingFirstLoginWelcome` in sessionStorage when `/auth/session_login` returns `201 Created`; `App.js` uses that plus `isNewUser` to decide whether to show `FirstLoginDialog` or defer onboarding during the invite join flow
 9. Invite onboarding is intentionally split: `/invite/:token` and invite-driven `/create-player` suppress `FirstLoginDialog`, then `WelcomeDialog` completes onboarding only after `joinViaInvite()` succeeds
 10. Logout calls `POST /auth/logout` (revokes Firebase refresh tokens, clears cookies) then clears React state and session-scoped onboarding flags
