@@ -176,6 +176,7 @@ const MatchupDetailsDialog = ({
                 awayScore={actualAwayScore}
                 round={round}
                 resultColor="success"
+                showSeriesWinnerChip
               />
             ) : status === 'in-progress' ? (
               <MatchupScoreDisplay
@@ -217,6 +218,9 @@ const MatchupDetailsDialog = ({
               const isCurrentPlayer = prediction.userName === activePlayer?.player_name;
               const pickedHomeTeam = prediction.homeScore > prediction.awayScore;
               const pickedTeam = pickedHomeTeam ? homeTeam : awayTeam;
+              const scoreLabel = pickedHomeTeam
+                ? `${prediction.homeScore}-${prediction.awayScore}`
+                : `${prediction.awayScore}-${prediction.homeScore}`;
               
               // Check if this prediction is for a play-in game
               const isPredictionPlayIn = isPlayIn || 
@@ -302,16 +306,16 @@ const MatchupDetailsDialog = ({
                           }}>
                               <Avatar
                                 src={getLogoPath(pickedTeam.name)}
-                                alt={pickedTeam.name}
-                                variant="rounded"
-                                sx={{ width: 28, height: 28 }}
-                              />
-                              <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                                {pickedTeam.name} {prediction.homeScore}-{prediction.awayScore}
-                              </Typography>
-                          </Box>
-                        )}
-                    </Box>
+                               alt={pickedTeam.name}
+                               variant="rounded"
+                               sx={{ width: 28, height: 28 }}
+                               />
+                               <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                                 {pickedTeam.name} {scoreLabel}
+                               </Typography>
+                           </Box>
+                         )}
+                     </Box>
                   </Box>
                 </ListItem>
               );

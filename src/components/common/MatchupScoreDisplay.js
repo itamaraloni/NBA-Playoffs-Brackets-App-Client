@@ -61,7 +61,9 @@ const MatchupScoreDisplay = ({
 
   const renderSeriesResult = () => {
     const winner = homeScore > awayScore ? homeTeamName : awayTeamName;
-    const scoreLabel = `${homeScore}-${awayScore}`;
+    const winnerWins = Math.max(homeScore, awayScore);
+    const loserWins = Math.min(homeScore, awayScore);
+    const scoreLabel = `${winnerWins}-${loserWins}`;
 
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
