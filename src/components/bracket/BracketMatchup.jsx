@@ -129,7 +129,19 @@ function TeamLogo({ name }) {
   );
 }
 
-function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed, isMiss, isVoided, isEliminated, compact }) {
+function TeamRow({
+  team,
+  seed,
+  isPredWinner,
+  isActualWinner,
+  hasPick,
+  isPlayed,
+  isMiss,
+  isVoided,
+  isEliminated,
+  compact,
+  showWinnerIndicator = false,
+}) {
   const theme = useTheme();
 
   if (!team) {
@@ -201,28 +213,35 @@ function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed, 
         </Typography>
       )}
       <TeamLogo name={team.name} />
-      <Typography
-        sx={{
-          fontSize: '0.6875rem',
-          fontWeight: 600,
-          flex: 1,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          ...(isVoided && isPredWinner && {
-            textDecoration: 'line-through',
-            color: theme.palette.text.disabled,
-          }),
-          // Team was eliminated in an earlier round — show strikethrough on their name
-          // to signal that this prediction can no longer come true.
-          ...(isEliminated && !isVoided && {
-            textDecoration: 'line-through',
-            opacity: 0.55,
-          }),
-        }}
-      >
-        {compact ? getShortTeamName(team.name) : team.name}
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flex: 1, minWidth: 0 }}>
+        <Typography
+          sx={{
+            fontSize: '0.6875rem',
+            fontWeight: 600,
+            flex: 1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            ...(isVoided && isPredWinner && {
+              textDecoration: 'line-through',
+              color: theme.palette.text.disabled,
+            }),
+            // Team was eliminated in an earlier round — show strikethrough on their name
+            // to signal that this prediction can no longer come true.
+            ...(isEliminated && !isVoided && {
+              textDecoration: 'line-through',
+              opacity: 0.55,
+            }),
+          }}
+        >
+          {compact ? getShortTeamName(team.name) : team.name}
+        </Typography>
+        {showWinnerIndicator && (
+          <Typography component="span" aria-label="Winning team" sx={{ fontSize: '0.75rem', flexShrink: 0 }}>
+            ✅
+          </Typography>
+        )}
+      </Box>
     </Box>
   );
 }
@@ -401,6 +420,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
         isVoided={isVoided}
         isEliminated={isLocked && m.team_1?.is_active === false && !t1IsActualWinner}
         compact={compact}
+        showWinnerIndicator={isLocked && m.isPlayed && t1IsActualWinner}
       />
       <Box sx={{ borderTop: `1px solid ${theme.palette.divider}` }}>
         <TeamRow
@@ -414,6 +434,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
           isVoided={isVoided}
           isEliminated={isLocked && m.team_2?.is_active === false && !t2IsActualWinner}
           compact={compact}
+          showWinnerIndicator={isLocked && m.isPlayed && t2IsActualWinner}
         />
       </Box>
 
