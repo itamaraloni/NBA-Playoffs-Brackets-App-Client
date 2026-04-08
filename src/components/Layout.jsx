@@ -21,7 +21,7 @@ import {
   Menu as MenuIcon,
   Home as DashboardIcon,
   Group as MyLeagueIcon,
-  Whatshot as PredictionsIcon,
+  Whatshot as LivePicksIcon,
   AccountCircle as ProfileIcon,
   Close as CloseIcon,
   Logout as LogoutIcon,
@@ -64,7 +64,7 @@ const Layout = ({ children, onLogout }) => {
 
   const navigationItems = [
     { text: 'Dashboard',   icon: <DashboardIcon />,   path: '/dashboard'   },
-    { text: 'Predictions', icon: <PredictionsIcon />, path: '/predictions' },
+    { text: 'Live Picks',  icon: <LivePicksIcon />, path: '/predictions' },
     { text: 'Bracket',     icon: <BracketIcon />,     path: '/bracket'     },
     { text: 'My League',   icon: <MyLeagueIcon />,    path: '/league'      },
     ...(isAdmin ? [{ text: 'Admin', icon: <AdminIcon />, path: '/admin' }] : []),

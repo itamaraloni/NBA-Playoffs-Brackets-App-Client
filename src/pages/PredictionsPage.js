@@ -297,7 +297,17 @@ const PredictionsPage = () => {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 3 }}>
+      <Typography
+        variant="h4"
+        component="h1"
+        gutterBottom
+        noWrap
+        sx={{
+          mb: 3,
+          textAlign: 'center',
+          fontSize: { xs: '1.35rem', sm: '2.125rem' },
+        }}
+      >
         NBA Playoff Live Picks
       </Typography>
 
