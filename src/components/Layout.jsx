@@ -63,7 +63,7 @@ const Layout = ({ children, onLogout }) => {
   };
 
   const navigationItems = [
-    { text: 'Dashboard',   icon: <DashboardIcon />,  path: '/dashboard'   },
+    { text: 'Dashboard',   icon: <DashboardIcon />,   path: '/dashboard'   },
     { text: 'Predictions', icon: <PredictionsIcon />, path: '/predictions' },
     { text: 'Bracket',     icon: <BracketIcon />,     path: '/bracket'     },
     { text: 'My League',   icon: <MyLeagueIcon />,    path: '/league'      },
@@ -73,6 +73,13 @@ const Layout = ({ children, onLogout }) => {
 
   // Desktop collapsed state — on mobile the drawer is always full-width
   const isCollapsed = !isMobile && sidebarCollapsed;
+  const appBarToolbarSx = {
+    display: 'grid',
+    gridTemplateColumns: 'auto minmax(0, 1fr) auto auto',
+    alignItems: 'center',
+    columnGap: { xs: 0.5, md: 1 },
+    minHeight: 64,
+  };
 
   const drawer = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -196,13 +203,13 @@ const Layout = ({ children, onLogout }) => {
           zIndex: (theme) => theme.zIndex.drawer + 1,
         }}
       >
-        <Toolbar>
+        <Toolbar sx={appBarToolbarSx}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: 'none' } }}
+            sx={{ display: { md: 'none' }, gridColumn: { xs: 1, md: 1 } }}
           >
             <MenuIcon />
           </IconButton>
@@ -210,12 +217,31 @@ const Layout = ({ children, onLogout }) => {
             variant="h6" 
             noWrap 
             component="div"
-            sx={{ flexGrow: 1 }}
+            sx={{ minWidth: 0, fontSize: { xs: '1rem', sm: '1.25rem' }, gridColumn: { xs: 2, md: 2 } }}
           >
             Playoff Prophet
           </Typography>
-          <LeagueSwitcher />
-          <ThemeToggle />
+          <Box
+            sx={{
+              minWidth: 0,
+              gridColumn: { xs: 3, md: 3 },
+              display: 'flex',
+              alignItems: 'center',
+              justifySelf: 'end',
+            }}
+          >
+            <LeagueSwitcher />
+          </Box>
+          <Box
+            sx={{
+              gridColumn: { xs: 4, md: 4 },
+              display: 'flex',
+              alignItems: 'center',
+              justifySelf: 'end',
+            }}
+          >
+            <ThemeToggle />
+          </Box>
         </Toolbar>
       </AppBar>
       
@@ -280,7 +306,7 @@ const Layout = ({ children, onLogout }) => {
           backgroundColor: (theme) => theme.palette.background.default
         }}
       >
-        <Toolbar /> {/* Spacer for fixed AppBar */}
+        <Toolbar sx={{ minHeight: 64 }} /> {/* Spacer for fixed AppBar */}
         {location.pathname === '/bracket' ? (
           <Box sx={{ px: { xs: 0, md: 3 }, mb: { xs: 0, md: 4 } }}>
             {children}

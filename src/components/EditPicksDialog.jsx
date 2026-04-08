@@ -31,6 +31,9 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
   const theme = useTheme();
   const { teams, loading: teamsLoading } = useTeams();
   const { mvpCandidates, loading: mvpLoading } = useMvpCandidates();
+  const [isEditWindowClosed, setIsEditWindowClosed] = useState(
+    () => Date.now() >= PLAYIN_START_DATE.getTime()
+  );
   const [selection, setSelection] = useState(
     type === 'championship' 
       ? (player?.championshipPrediction || '') 
@@ -45,6 +48,30 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
         : (player?.mvpPrediction || '')
     );
   }, [type, player]);
+
+  useEffect(() => {
+    const deadlineTimestamp = PLAYIN_START_DATE.getTime();
+
+    if (Date.now() >= deadlineTimestamp) {
+      setIsEditWindowClosed(true);
+      return undefined;
+    }
+
+    setIsEditWindowClosed(false);
+    const timeoutId = window.setTimeout(() => {
+      setIsEditWindowClosed(true);
+    }, deadlineTimestamp - Date.now());
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (open && isEditWindowClosed) {
+      onClose();
+    }
+  }, [open, isEditWindowClosed, onClose]);
 
   const handleChange = (event) => {
     setSelection(event.target.value);
@@ -93,6 +120,10 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
   const getColor = () => {
     return type === 'championship' ? 'primary' : 'secondary';
   };
+
+  if (isEditWindowClosed) {
+    return null;
+  }
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
