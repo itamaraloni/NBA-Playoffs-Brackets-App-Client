@@ -42,12 +42,13 @@ function renderBracketView(props) {
 }
 
 describe('BracketView', () => {
-  it('keeps an explicit lock indicator in read mode when health stats are shown', () => {
+  it('shows a compact icon-only lock indicator in read mode when health stats are shown', () => {
     useMediaQuery.mockReturnValue(false);
 
     renderBracketView();
 
-    expect(screen.getByText(/bracket locked on/i)).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /bracket locked/i })).toBeInTheDocument();
+    expect(screen.queryByText(/bracket locked on/i)).not.toBeInTheDocument();
     expect(screen.getByText('10 / 42 pts')).toBeInTheDocument();
     expect(screen.getByText('Desktop bracket grid')).toBeInTheDocument();
   });

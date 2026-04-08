@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Typography, Tooltip, useTheme, useMediaQuery } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { Lock as LockIcon } from '@mui/icons-material';
 import { BsBullseye } from 'react-icons/bs';
@@ -40,6 +40,7 @@ function BracketHeader({
   isActualBracket
 }) {
   const theme = useTheme();
+  const isCompact = useMediaQuery(theme.breakpoints.down('md'), { noSsr: true });
   const [now, setNow] = useState(Date.now());
   const lockedDateLabel = deadline ? new Date(deadline).toLocaleDateString() : null;
 
@@ -133,69 +134,86 @@ function BracketHeader({
         border: flat ? 'none' : `1px solid ${theme.palette.divider}`,
         ...(flat && { borderBottom: `1px solid ${theme.palette.divider}` }),
       }}>
-        <Typography variant="body2" sx={{ fontWeight: 600, whiteSpace: 'nowrap', color: theme.palette.text.secondary }}>
-          {pts} / {totalPotential} pts
-        </Typography>
-
         <Box
           sx={{
-            display: 'inline-flex',
+            display: 'flex',
             alignItems: 'center',
-            gap: 0.5,
-            px: 1.25,
-            py: 0.5,
-            borderRadius: '999px',
-            color: theme.palette.error.main,
-            background: alpha(theme.palette.error.main, 0.08),
-            border: `1px solid ${alpha(theme.palette.error.main, 0.24)}`,
+            gap: 1,
+            flex: 1,
+            minWidth: isCompact ? '100%' : 220,
           }}
         >
-          <LockIcon sx={{ fontSize: '0.9rem' }} />
-          <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
-            {lockedDateLabel ? `Bracket locked on ${lockedDateLabel}` : 'Bracket locked'}
-          </Typography>
-        </Box>
+          <Tooltip
+            title="Bracket submission deadline passed"
+            enterTouchDelay={0}
+            leaveTouchDelay={1500}
+          >
+            <Box
+              component="span"
+              role="img"
+              aria-label="Bracket locked"
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 28,
+                height: 28,
+                borderRadius: '999px',
+                flexShrink: 0,
+                color: theme.palette.error.main,
+                background: alpha(theme.palette.error.main, 0.08),
+                border: `1px solid ${alpha(theme.palette.error.main, 0.24)}`,
+              }}
+            >
+              <LockIcon sx={{ fontSize: '0.9rem' }} />
+            </Box>
+          </Tooltip>
 
-        <Box sx={{ flex: 1, minWidth: 90 }}>
-          <Box sx={{
-            height: 6,
-            borderRadius: 3,
-            background: theme.palette.action.hover,
-            overflow: 'hidden',
-            display: 'flex',
-          }}>
-            {bullseyePct > 0 && (
-              <Box sx={{
-                height: '100%',
-                width: `${bullseyePct}%`,
-                background: theme.palette.success.main,
-                transition: 'width 0.4s ease',
-              }} />
-            )}
-            {hitPct > 0 && (
-              <Box sx={{
-                height: '100%',
-                width: `${hitPct}%`,
-                background: theme.palette.warning.main,
-                transition: 'width 0.4s ease',
-              }} />
-            )}
-            {missPct > 0 && (
-              <Box sx={{
-                height: '100%',
-                width: `${missPct}%`,
-                background: theme.palette.error.main,
-                transition: 'width 0.4s ease',
-              }} />
-            )}
-            {pendingPct > 0 && (
-              <Box sx={{
-                height: '100%',
-                width: `${pendingPct}%`,
-                background: alpha(theme.palette.text.primary, 0.2),
-                transition: 'width 0.4s ease',
-              }} />
-            )}
+          <Typography variant="body2" sx={{ fontWeight: 600, whiteSpace: 'nowrap', color: theme.palette.text.secondary }}>
+            {pts} / {totalPotential} pts
+          </Typography>
+
+          <Box sx={{ flex: 1, minWidth: isCompact ? 72 : 110 }}>
+            <Box sx={{
+              height: 6,
+              borderRadius: 3,
+              background: theme.palette.action.hover,
+              overflow: 'hidden',
+              display: 'flex',
+            }}>
+              {bullseyePct > 0 && (
+                <Box sx={{
+                  height: '100%',
+                  width: `${bullseyePct}%`,
+                  background: theme.palette.success.main,
+                  transition: 'width 0.4s ease',
+                }} />
+              )}
+              {hitPct > 0 && (
+                <Box sx={{
+                  height: '100%',
+                  width: `${hitPct}%`,
+                  background: theme.palette.warning.main,
+                  transition: 'width 0.4s ease',
+                }} />
+              )}
+              {missPct > 0 && (
+                <Box sx={{
+                  height: '100%',
+                  width: `${missPct}%`,
+                  background: theme.palette.error.main,
+                  transition: 'width 0.4s ease',
+                }} />
+              )}
+              {pendingPct > 0 && (
+                <Box sx={{
+                  height: '100%',
+                  width: `${pendingPct}%`,
+                  background: alpha(theme.palette.text.primary, 0.2),
+                  transition: 'width 0.4s ease',
+                }} />
+              )}
+            </Box>
           </Box>
         </Box>
 
@@ -207,7 +225,7 @@ function BracketHeader({
             whiteSpace: 'nowrap',
             flexWrap: 'wrap',
             flexBasis: { xs: '100%', md: 'auto' },
-            justifyContent: { xs: 'center', md: 'flex-start' },
+            justifyContent: 'flex-start',
             width: { xs: '100%', md: 'auto' },
           }}
         >
