@@ -19,10 +19,10 @@ import {
  * Colors are intentionally hard-coded (not theme-dependent) for consistent chart identity.
  */
 const SCORE_PILLARS = [
-  { key: 'matchup', label: 'Matchups', color: '#0088FE', icon: MatchupIcon },
+  { key: 'matchup', label: 'Live Picks', color: '#0088FE', icon: MatchupIcon },
   { key: 'bracket', label: 'Bracket', color: '#00C49F', icon: BracketIcon },
   { key: 'championship', label: 'Champion', color: '#FFD700', icon: TrophyIcon },
-  { key: 'mvp', label: 'MVP', color: '#E05297', icon: MvpIcon }
+  { key: 'mvp', label: 'Finals MVP', color: '#E05297', icon: MvpIcon }
 ];
 
 /** Custom tooltip shown on hover/tap of donut segments */
@@ -124,10 +124,10 @@ const ScoreBreakdownChart = ({
   // Build chart data, filtering out zero-value segments so the donut stays clean
   const { chartData, chartColors } = useMemo(() => {
     const raw = [
-      { key: 'matchup', name: 'Matchup Predictions', value: matchupPoints },
+      { key: 'matchup', name: 'Live Picks', value: matchupPoints },
       { key: 'bracket', name: 'Bracket Predictions', value: bracketPoints },
       { key: 'championship', name: 'Championship Pick', value: championshipPoints },
-      { key: 'mvp', name: 'MVP Pick', value: mvpPoints }
+      { key: 'mvp', name: 'Finals MVP Pick', value: mvpPoints }
     ];
     const filtered = raw.filter(d => d.value > 0);
     const colors = filtered.map(d =>

@@ -83,6 +83,7 @@ const LeagueSwitcher = () => {
   // Format: "player_name | league_name"
   const displayText = `${activePlayer.player_name} | ${activePlayer.league_name}`;
   const otherPlayers = userPlayers.filter((player) => player.player_id !== activePlayer.player_id);
+  const isSingleLeague = userPlayers.length === 1;
   const joinDialog = (
     <Dialog
       open={joinDialogOpen}
@@ -136,6 +137,18 @@ const LeagueSwitcher = () => {
       </MenuItem>
     </>
   );
+
+  // Single league — show static text, no dropdown needed
+  if (!isMobile && isSingleLeague) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: { md: 1 }, minWidth: 0 }}>
+        <TrophyIcon fontSize="small" />
+        <Typography variant="body2" noWrap sx={{ maxWidth: { xs: '100%', md: 200 }, minWidth: 0 }}>
+          {displayText}
+        </Typography>
+      </Box>
+    );
+  }
 
   if (isMobile) {
     return (
@@ -206,18 +219,6 @@ const LeagueSwitcher = () => {
 
         {joinDialog}
       </>
-    );
-  }
-
-  // Single league — show static text, no dropdown needed
-  if (userPlayers.length === 1) {
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: { md: 1 }, minWidth: 0 }}>
-        <TrophyIcon fontSize="small" />
-        <Typography variant="body2" noWrap sx={{ maxWidth: { xs: '100%', md: 200 }, minWidth: 0 }}>
-          {displayText}
-        </Typography>
-      </Box>
     );
   }
 

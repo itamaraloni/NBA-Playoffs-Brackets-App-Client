@@ -45,6 +45,35 @@ function a11yProps(index) {
   };
 }
 
+const ROUND_ORDER = {
+  playin_first: 0,
+  playin_second: 1,
+  first: 2,
+  second: 3,
+  conference_final: 4,
+  final: 5,
+};
+
+const compareByPredictionDeadline = (a, b) => {
+  const aTimestamp = a.predictionDeadlineAt ? getDeadlineTimestamp(a.predictionDeadlineAt) : null;
+  const bTimestamp = b.predictionDeadlineAt ? getDeadlineTimestamp(b.predictionDeadlineAt) : null;
+
+  if (aTimestamp == null && bTimestamp == null) return 0;
+  if (aTimestamp == null) return 1;
+  if (bTimestamp == null) return -1;
+  return aTimestamp - bTimestamp;
+};
+
+const compareCompletedMatchups = (a, b) => {
+  const roundDelta = (ROUND_ORDER[a.round] ?? Number.MAX_SAFE_INTEGER) - (ROUND_ORDER[b.round] ?? Number.MAX_SAFE_INTEGER);
+  if (roundDelta !== 0) return roundDelta;
+
+  const deadlineDelta = compareByPredictionDeadline(a, b);
+  if (deadlineDelta !== 0) return deadlineDelta;
+
+  return String(a.id).localeCompare(String(b.id));
+};
+
 const PredictionsPage = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const [matchups, setMatchups] = useState({
@@ -80,14 +109,9 @@ const PredictionsPage = () => {
         const organized = {
           upcoming: data
             .filter(m => m.status === 'upcoming')
-            .sort((a, b) => {
-              if (!a.predictionDeadlineAt && !b.predictionDeadlineAt) return 0;
-              if (!a.predictionDeadlineAt) return 1;
-              if (!b.predictionDeadlineAt) return -1;
-              return getDeadlineTimestamp(a.predictionDeadlineAt) - getDeadlineTimestamp(b.predictionDeadlineAt);
-            }),
+            .sort(compareByPredictionDeadline),
           inProgress: data.filter(m => m.status === 'in-progress'),
-          completed: data.filter(m => m.status === 'completed')
+          completed: data.filter(m => m.status === 'completed').sort(compareCompletedMatchups)
         };
         
         setMatchups(organized);
@@ -242,24 +266,17 @@ const PredictionsPage = () => {
       );
     }
 
-    // Group by round
-    const groupedByRound = {};
-    matchups.completed.forEach(matchup => {
-      const round = getRoundDisplay(matchup.round) || 'first';
+    const roundGroups = Object.keys(ROUND_ORDER)
+      .map((roundKey) => ({
+        roundKey,
+        roundLabel: getRoundDisplay(roundKey),
+        matchupsList: matchups.completed.filter((matchup) => matchup.round === roundKey)
+      }))
+      .filter((group) => group.matchupsList.length > 0);
 
-      if (!groupedByRound[round]) {
-        groupedByRound[round] = [];
-      }
-
-      groupedByRound[round].push(matchup);
-    });
-
-    // Render groups
-    return Object.entries(groupedByRound)
-      .sort(([roundA], [roundB]) => parseInt(roundA) - parseInt(roundB))
-      .map(([round, matchupsList]) => (
-        <Box key={`round-${round}`} sx={{ mb: 4, textAlign: 'center'}}>
-          <Typography variant="h6" sx={{ mb: 2 }}>{round}</Typography>
+    return roundGroups.map(({ roundKey, roundLabel, matchupsList }) => (
+        <Box key={`round-${roundKey}`} sx={{ mb: 4, textAlign: 'center'}}>
+          <Typography variant="h6" sx={{ mb: 2 }}>{roundLabel}</Typography>
           {matchupsList.map((matchup, index) => (
             <MatchupPredictionCard
               key={`${matchup.id}-${index}`}

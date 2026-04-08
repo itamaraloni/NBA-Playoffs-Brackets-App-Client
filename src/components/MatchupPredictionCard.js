@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTheme } from '@mui/material';
+import { useTheme, useMediaQuery } from '@mui/material';
 import TeamsDisplay from './common/MatchupTeamsDisplay';
 import ScoreCounter from './common/ScoreCounter';
 import MatchScoreDisplay from './common/MatchupScoreDisplay';
@@ -42,6 +42,7 @@ const MatchupPredictionCard = ({
   const [validationError, setValidationError] = useState('');
   const [selectedTeam, setSelectedTeam] = useState(null);
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { scoringConfig } = useScoringConfig();
 
   /**
@@ -348,6 +349,7 @@ const MatchupPredictionCard = ({
           awayScore={actualAwayScore}
           round={round}
           resultColor="success"
+          showSeriesWinnerChip
           sx={{ mb: 1, width: '100%' }}
         />
 
@@ -434,9 +436,19 @@ const MatchupPredictionCard = ({
     switch (status) {
       case 'upcoming': return 'info';
       case 'in-progress': return 'warning';
-      case 'completed': return 'success';
+      case 'completed': return 'default';
       default: return 'default';
     }
+  };
+
+  const getStatusChipSx = () => {
+    if (status !== 'completed') return {};
+
+    return {
+      bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : theme.palette.grey[200],
+      color: theme.palette.text.primary,
+      border: `1px solid ${theme.palette.divider}`,
+    };
   };
 
   /**
@@ -510,38 +522,79 @@ const MatchupPredictionCard = ({
         borderRadius: 2,
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         position: 'relative',
-        overflow: 'visible'
+        overflow: isMobile ? 'hidden' : 'visible'
       }}
     >
-      {/* Round Badge */}
-      <Chip
-        icon={<EmojiEvents fontSize="small" />}
-        label={getRoundDisplay()}
-        color="primary"
-        sx={{
-          position: 'absolute',
-          top: -12,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          fontWeight: 'bold',
-          zIndex: 1
-        }}
-      />
-      
-      {/* Status Chip */}
-      <Chip
-        label={getStatusText()}
-        color={getStatusColor()}
-        size="small"
-        sx={{
-          position: 'absolute',
-          top: 10,
-          right: 10,
-          fontWeight: 'medium'
-        }}
-      />
-      
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pt: 4 }}>
+      {!isMobile && (
+        <>
+          <Chip
+            icon={<EmojiEvents fontSize="small" />}
+            label={getRoundDisplay()}
+            color="primary"
+            sx={{
+              position: 'absolute',
+              top: -12,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              fontWeight: 'bold',
+              zIndex: 1
+            }}
+          />
+
+          <Chip
+            label={getStatusText()}
+            color={getStatusColor()}
+            size="small"
+            sx={{
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              fontWeight: 'medium',
+              ...getStatusChipSx()
+            }}
+          />
+        </>
+      )}
+
+      <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pt: isMobile ? 2.5 : 4 }}>
+        {isMobile && (
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 1,
+              mb: 2,
+            }}
+          >
+            <Chip
+              icon={<EmojiEvents fontSize="small" />}
+              label={getRoundDisplay()}
+              color="primary"
+              sx={{
+                fontWeight: 'bold',
+                maxWidth: '100%',
+                '& .MuiChip-label': {
+                  display: 'block',
+                  whiteSpace: 'normal',
+                  textAlign: 'center'
+                }
+              }}
+            />
+            <Chip
+              label={getStatusText()}
+              color={getStatusColor()}
+              size="small"
+              sx={{
+                fontWeight: 'medium',
+                ...getStatusChipSx()
+              }}
+            />
+          </Box>
+        )}
+
         {/* Teams Display */}
         <TeamsDisplay 
           homeTeam={homeTeam} 

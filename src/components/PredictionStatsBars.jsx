@@ -215,7 +215,7 @@ const RoundBar = ({ row, isBestRound, isMobile }) => {
 };
 
 /**
- * Prediction statistics with horizontal stacked bars and a matchup/bracket toggle.
+ * Prediction statistics with horizontal stacked bars and a live-picks/bracket toggle.
  * Replaces the old PredictionStatsTable with a more visual, compact layout.
  */
 const PredictionStatsBars = ({ matchupStats, bracketStats = null }) => {
@@ -265,7 +265,7 @@ const PredictionStatsBars = ({ matchupStats, bracketStats = null }) => {
         gap: 1
       }}>
         <Typography variant="subtitle1" fontWeight={700}>
-          Prediction Stats
+          Predictions Breakdown
         </Typography>
         <ToggleButtonGroup
           value={activeTab}
@@ -282,7 +282,7 @@ const PredictionStatsBars = ({ matchupStats, bracketStats = null }) => {
             }
           }}
         >
-          <ToggleButton value="matchup">Matchups</ToggleButton>
+          <ToggleButton value="matchup">Live Picks</ToggleButton>
           <ToggleButton value="bracket">Bracket</ToggleButton>
         </ToggleButtonGroup>
       </Box>

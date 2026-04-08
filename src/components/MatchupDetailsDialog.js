@@ -40,7 +40,6 @@ const MatchupDetailsDialog = ({
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const { activePlayer } = useAuth();
-  const loading = false;
 
   // If no matchup data, don't render
   if (!matchup) return null;
@@ -198,7 +197,6 @@ const MatchupDetailsDialog = ({
         {/* Prediction Statistics */}
         <MatchupPredictionsStats 
           stats={matchup?.predictionStats} 
-          loading={loading} 
           homeTeam={homeTeam} 
           awayTeam={awayTeam}
           leaguePredictions={leaguePredictions}

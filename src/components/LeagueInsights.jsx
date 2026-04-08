@@ -166,7 +166,7 @@ const LeagueInsights = ({ pickDistribution, currentPlayer, loading, error }) => 
           progressColor="primary"
         />
         <DistributionCard
-          title="MVP Picks"
+          title="Finals MVP Picks"
           entries={mvpEntries}
           currentPickName={currentMvpPick}
           progressColor="secondary"

@@ -13,6 +13,7 @@ const MatchupScoreDisplay = ({
   awayScore,
   round,
   resultColor = 'primary',
+  showSeriesWinnerChip = false,
   sx = {}
 }) => {
   const theme = useTheme();
@@ -51,6 +52,22 @@ const MatchupScoreDisplay = ({
         <Chip
           icon={<EmojiEventsIcon />}
           label={`${winner} advances`}
+          color={resultColor}
+          sx={{ fontWeight: 'medium' }}
+        />
+      </Box>
+    );
+  };
+
+  const renderSeriesResult = () => {
+    const winner = homeScore > awayScore ? homeTeamName : awayTeamName;
+    const scoreLabel = `${homeScore}-${awayScore}`;
+
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
+        <Chip
+          icon={<EmojiEventsIcon />}
+          label={`${winner} wins ${scoreLabel}`}
           color={resultColor}
           sx={{ fontWeight: 'medium' }}
         />
@@ -101,7 +118,11 @@ const MatchupScoreDisplay = ({
         {label}
       </Typography>
       
-      {isPlayIn ? renderPlayInResult() : renderSeriesScore()}
+      {isPlayIn
+        ? renderPlayInResult()
+        : showSeriesWinnerChip
+          ? renderSeriesResult()
+          : renderSeriesScore()}
     </Box>
   );
 };
