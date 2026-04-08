@@ -95,7 +95,7 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
     : [];
 
   // Render the scoring table content (reused in both hit and bullsEye sections).
-  // Shows Matchup and Bracket columns side by side so users can see both scoring types.
+  // Shows Live Picks and Bracket columns side by side so users can see both scoring types.
   const renderScoringTable = (type) => {
     const matchupKey = type === 'hit' ? 'matchupHit' : 'matchupBullsEye';
     const bracketKey = type === 'hit' ? 'bracketHit' : 'bracketBullsEye';
@@ -113,26 +113,32 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
       return <Alert severity="error" sx={{ mt: 1 }}>Failed to load scoring data</Alert>;
     }
     return (
-      <TableContainer component={Paper} variant="outlined" sx={{ mt: 1 }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Playoff Round</TableCell>
-              <TableCell align="center">Matchup</TableCell>
-              <TableCell align="center">Bracket</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {roundScoring.map((row) => (
-              <TableRow key={row.round}>
-                <TableCell component="th" scope="row">
-                  {row.round}
+        <TableContainer component={Paper} variant="outlined" sx={{ mt: 1 }}>
+          <Table size="small">
+            <TableHead sx={{ bgcolor: theme.palette.action.hover }}>
+              <TableRow>
+                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Round
                 </TableCell>
-                <TableCell align="center">{row[matchupKey]}</TableCell>
-                <TableCell align="center">{row[bracketKey]}</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Live Picks Points
+                </TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Bracket Points
+                </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
+            </TableHead>
+            <TableBody>
+              {roundScoring.map((row) => (
+                <TableRow key={row.round}>
+                  <TableCell component="th" scope="row" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                    {row.round}
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>{row[matchupKey]}</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>{row[bracketKey]}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
         </Table>
       </TableContainer>
     );
@@ -168,6 +174,7 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
           </ListItem>
           <Collapse in={expanded.championship} timeout="auto" unmountOnExit>
             <Box sx={{ pl: 9, pr: 2, pb: 2 }}>
+              <Divider sx={{ mb: 1.5 }} />
               <Typography variant="body2" color="text.secondary">
               The points you earn for predicting the championship team are adjusted based on that team's odds to win;
               selecting a heavy favorite yields fewer points, while correctly predicting an underdog rewards you with more points.
@@ -192,12 +199,13 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
             <ListItemIcon>
               <MvpIcon color="secondary" />
             </ListItemIcon>
-            <ListItemText primary="Correct MVP prediction" />
+            <ListItemText primary="Correct Finals MVP prediction" />
           </ListItem>
           <Collapse in={expanded.mvp} timeout="auto" unmountOnExit>
             <Box sx={{ pl: 9, pr: 2, pb: 2 }}>
+              <Divider sx={{ mb: 1.5 }} />
               <Typography variant="body2" color="text.secondary">
-              The points you earn for predicting the MVP are adjusted based on that player's odds to win;
+              The points you earn for predicting the Finals MVP are adjusted based on that player's odds to win;
               selecting a heavy favorite yields fewer points, while correctly predicting an underdog rewards you with more points.
               </Typography>
             </Box>
@@ -229,8 +237,9 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
           </ListItem>
           <Collapse in={expanded.hit} timeout="auto" unmountOnExit>
             <Box sx={{ pl: 9, pr: 2, pb: 2 }}>
+              <Divider sx={{ mb: 1.5 }} />
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                Hit predictions award points for correctly predicting just the winner of a series,
+                Live pick hit predictions award points for correctly predicting just the winner of a series,
                 regardless of the number of games.
               </Typography>
 
@@ -265,8 +274,9 @@ const ScoringRules = ({ showTitle = true, elevation = 2 }) => {
           </ListItem>
           <Collapse in={expanded.bullsEye} timeout="auto" unmountOnExit>
             <Box sx={{ pl: 9, pr: 2, pb: 1 }}>
+              <Divider sx={{ mb: 1.5 }} />
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                Bulls-Eye predictions award points for correctly predicting both the winner and
+                Live pick Bulls-Eye predictions award points for correctly predicting both the winner and
                 the exact number of games in a series.
               </Typography>
 

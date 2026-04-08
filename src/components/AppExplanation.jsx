@@ -25,12 +25,12 @@ const AppExplanation = ({ elevation = 2 }) => {
     {
       number: 2,
       title: "Turn on your Crystal Ball",
-      description: "Bet on the team to lift the trophy and the MVP that will be crowned in the end of the playoffs"
+      description: "Bet on the team to lift the trophy and the Finals MVP who will be crowned at the end of the playoffs"
     },
     {
       number: 3,
-      title: "Make Your Predictions",
-      description: "Predict outcomes for every matchup series of the NBA playoffs"
+      title: "Make Live Picks",
+      description: "Predict outcomes for every playoff series right before tip-off"
     },
     {
       number: 4,

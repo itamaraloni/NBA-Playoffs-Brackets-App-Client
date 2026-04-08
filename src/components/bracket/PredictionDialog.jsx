@@ -69,7 +69,7 @@ const PredictionDialog = ({ open, onClose, matchup, onSubmit }) => {
       <DialogTitle sx={{ pb: 0.5 }}>
         Predict Winner
         <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.25 }}>
-          {roundLabel} · {(matchup.conference || '').toUpperCase()}
+          {isPlayin ? 'Play-In' : roundLabel} · {(matchup.conference || '').toUpperCase()}
         </Typography>
       </DialogTitle>
 

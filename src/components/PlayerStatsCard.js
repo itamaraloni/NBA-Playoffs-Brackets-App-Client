@@ -20,21 +20,9 @@ import { useMvpCandidates } from '../hooks/useMvpCandidates';
 import { PLAYIN_START_DATE } from '../shared/SeasonConfig';
 import { getPlayerAvatar } from '../shared/playerUtils';
 
-/** Derive team logo path from team name (same pattern used across the app) */
 const getTeamLogo = (name) =>
   name ? `/resources/team-logos/${name.toLowerCase().replace(/\s+/g, '-')}.png` : null;
 
-/**
- * PlayerStatsCard — sports-analytics dashboard card showing a player's
- * prediction performance, championship/MVP picks, and score breakdown.
- *
- * Used in two contexts:
- *   1. Dashboard page (allowEditing=true) — full width, editable picks
- *   2. PlayerDetailDialog (allowEditing=false) — inside a Dialog, read-only
- *
- * The component is backwards-compatible: new fields like `bracketScore`
- * are optional and gracefully degrade when missing.
- */
 const PlayerStatsCard = ({
   playerData,
   leagueData,
@@ -49,21 +37,16 @@ const PlayerStatsCard = ({
 
   if (!playerData) return null;
 
-  // --- Data derivation ---
-  // Score breakdown pillars for the donut chart
   const matchupPoints = playerData.totalPredictionPoints || 0;
   const bracketPoints = playerData.bracketScore || 0;
   const championshipPoints = playerData.championshipTeamPoints || 0;
   const mvpPoints = playerData.mvpPoints || 0;
   const totalScore = playerData.totalScore || 0;
 
-  // Pick card lookups
-  const teamLookup = (teams || []).find(t => t.name === playerData.winningTeam);
-  const mvpLookup = (mvpCandidates || []).find(p => p.name === playerData.mvp);
+  const teamLookup = (teams || []).find((team) => team.name === playerData.winningTeam);
+  const mvpLookup = (mvpCandidates || []).find((player) => player.name === playerData.mvp);
   const canEdit = new Date() < PLAYIN_START_DATE && allowEditing;
-
-  // Avatar resolution
-  const playerAvatarSrc = PLAYER_AVATARS.find(a => a.id === playerData.playerAvatar)?.src;
+  const playerAvatarSrc = PLAYER_AVATARS.find((avatar) => avatar.id === playerData.playerAvatar)?.src;
 
   return (
     <Paper
@@ -74,42 +57,58 @@ const PlayerStatsCard = ({
         bgcolor: theme.palette.background.paper
       }}
     >
-      {/* ─── Header: Player Identity + Ranking Pills ─── */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-        <Avatar
-          src={playerAvatarSrc}
-          alt={playerData.name}
-          sx={{
-            bgcolor: theme.palette.primary.main,
-            width: 48,
-            height: 48
-          }}
-        >
-          {playerData.name?.charAt(0)}
-        </Avatar>
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
-            {playerData.name}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {leagueData?.name ? `${leagueData.name}` : 'No League'}
-          </Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          gap: 1.5,
+          mb: 2,
+          flexWrap: isMobile ? 'wrap' : 'nowrap'
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: '1 1 0', minWidth: 0 }}>
+          <Avatar
+            src={playerAvatarSrc}
+            alt={playerData.name}
+            sx={{
+              bgcolor: theme.palette.primary.main,
+              width: 48,
+              height: 48,
+              flexShrink: 0
+            }}
+          >
+            {playerData.name?.charAt(0)}
+          </Avatar>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="h6" fontWeight={700} lineHeight={1.2} noWrap>
+              {playerData.name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" noWrap>
+              {leagueData?.name ? leagueData.name : 'No League'}
+            </Typography>
+          </Box>
         </Box>
+
         {(playerData.leagueRank != null || playerData.globalRank != null) && (
-          <Box sx={{
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: 0.75,
-            alignItems: isMobile ? 'flex-end' : 'center',
-            flexShrink: 0
-          }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: 0.75,
+              alignItems: 'center',
+              justifyContent: isMobile ? 'flex-start' : 'flex-end',
+              width: isMobile ? '100%' : 'auto',
+              flexShrink: 0
+            }}
+          >
             {playerData.leagueRank != null && (
-              <Tooltip title={`League ranking — including bot players`} enterTouchDelay={0} leaveTouchDelay={1500}>
+              <Tooltip title="League ranking including bot players" enterTouchDelay={0} leaveTouchDelay={1500}>
                 <Chip
                   label={`#${playerData.leagueRank} of ${playerData.leagueTotalPlayers} in ${leagueData?.name || 'league'}`}
                   sx={{
-                    height: isMobile ? 26 : 30,
-                    maxWidth: isMobile ? 180 : 'none',
+                    height: isMobile ? 'auto' : 30,
+                    maxWidth: isMobile ? '100%' : 'none',
                     fontSize: isMobile ? '0.75rem' : '0.8125rem',
                     fontWeight: 600,
                     letterSpacing: '0.01em',
@@ -125,26 +124,35 @@ const PlayerStatsCard = ({
                     '& .MuiChip-label': {
                       px: isMobile ? 1.25 : 1.75,
                       overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    },
+                      textOverflow: isMobile ? 'clip' : 'ellipsis',
+                      whiteSpace: isMobile ? 'normal' : 'nowrap',
+                      display: 'block',
+                      py: isMobile ? 0.5 : 0
+                    }
                   }}
                 />
               </Tooltip>
             )}
+
             {playerData.globalRank != null && (
               <Tooltip title="Excluding bot players" enterTouchDelay={0} leaveTouchDelay={1500}>
                 <Chip
                   label={`#${playerData.globalRank} of ${playerData.totalPlayers} globally`}
                   sx={{
-                    height: isMobile ? 26 : 30,
+                    height: isMobile ? 'auto' : 30,
+                    maxWidth: isMobile ? '100%' : 'none',
                     fontSize: isMobile ? '0.75rem' : '0.8125rem',
                     fontWeight: 600,
                     letterSpacing: '0.01em',
                     bgcolor: `${theme.palette.primary.main}18`,
                     color: theme.palette.primary[theme.palette.mode === 'dark' ? 'light' : 'main'],
                     border: `1px solid ${theme.palette.primary.main}30`,
-                    '& .MuiChip-label': { px: isMobile ? 1.25 : 1.75 },
+                    '& .MuiChip-label': {
+                      px: isMobile ? 1.25 : 1.75,
+                      whiteSpace: isMobile ? 'normal' : 'nowrap',
+                      display: 'block',
+                      py: isMobile ? 0.5 : 0
+                    }
                   }}
                 />
               </Tooltip>
@@ -153,7 +161,6 @@ const PlayerStatsCard = ({
         )}
       </Box>
 
-      {/* ─── Score Breakdown Donut ─── */}
       <Box sx={{ mb: 2.5 }}>
         <ScoreBreakdownChart
           totalScore={totalScore}
@@ -168,7 +175,6 @@ const PlayerStatsCard = ({
 
       <Divider sx={{ mb: 2.5 }} />
 
-      {/* ─── Pick Cards: Championship + MVP ─── */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={6}>
           <PickCard
@@ -196,7 +202,6 @@ const PlayerStatsCard = ({
         </Grid>
       </Grid>
 
-      {/* ─── Prediction Stats: Matchup/Bracket Toggle + Bars ─── */}
       <PredictionStatsBars
         matchupStats={{
           hits: playerData.hits,

@@ -80,7 +80,7 @@ const PredictionDistributionChart = ({ data, homeTeam, awayTeam, isPlayIn }) => 
 /**
  * Component to display prediction statistics for a matchup
  */
-const MatchupPredictionsStats = ({ stats, loading, homeTeam, awayTeam, leaguePredictions = [], round }) => {
+const MatchupPredictionsStats = ({ stats, loading = false, homeTeam, awayTeam, leaguePredictions = [], round }) => {
   // Get team names safely, whether objects or strings
   const homeTeamName = typeof homeTeam === 'object' ? homeTeam.name : homeTeam;
   const awayTeamName = typeof awayTeam === 'object' ? awayTeam.name : awayTeam;

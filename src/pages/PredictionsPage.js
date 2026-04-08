@@ -7,9 +7,13 @@ import {
   Tab,
   CircularProgress,
   Alert,
-  useMediaQuery
+  useMediaQuery,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import MatchupPredictionCard from '../components/MatchupPredictionCard';
 import MatchupDetailsDialog from '../components/MatchupDetailsDialog';
 import MatchupServices from '../services/MatchupServices';
@@ -45,6 +49,50 @@ function a11yProps(index) {
   };
 }
 
+const ROUND_ORDER = {
+  playin_first: 0,
+  playin_second: 1,
+  first: 2,
+  second: 3,
+  conference_final: 4,
+  final: 5,
+};
+
+const COMPLETED_ROUND_ORDER = Object.keys(ROUND_ORDER)
+  .sort((a, b) => ROUND_ORDER[b] - ROUND_ORDER[a]);
+
+const getRoundDisplay = (round) => {
+  switch (round) {
+    case 'playin_first': return 'Play-In First Round';
+    case 'playin_second': return 'Play-In Second Round';
+    case 'first': return 'First Round';
+    case 'second': return 'Conference Semifinals';
+    case 'conference_final': return 'Conference Finals';
+    case 'final': return 'NBA Finals';
+    default: return `Round ${round}`;
+  }
+};
+
+const compareByPredictionDeadline = (a, b) => {
+  const aTimestamp = a.predictionDeadlineAt ? getDeadlineTimestamp(a.predictionDeadlineAt) : null;
+  const bTimestamp = b.predictionDeadlineAt ? getDeadlineTimestamp(b.predictionDeadlineAt) : null;
+
+  if (aTimestamp == null && bTimestamp == null) return 0;
+  if (aTimestamp == null) return 1;
+  if (bTimestamp == null) return -1;
+  return aTimestamp - bTimestamp;
+};
+
+const compareCompletedMatchups = (a, b) => {
+  const roundDelta = (ROUND_ORDER[b.round] ?? Number.MIN_SAFE_INTEGER) - (ROUND_ORDER[a.round] ?? Number.MIN_SAFE_INTEGER);
+  if (roundDelta !== 0) return roundDelta;
+
+  const deadlineDelta = compareByPredictionDeadline(a, b);
+  if (deadlineDelta !== 0) return deadlineDelta;
+
+  return String(a.id).localeCompare(String(b.id));
+};
+
 const PredictionsPage = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const [matchups, setMatchups] = useState({
@@ -59,10 +107,19 @@ const PredictionsPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedMatchup, setSelectedMatchup] = useState(null);
   const [leaguePredictions, setLeaguePredictions] = useState([]);
+  const [expandedCompletedRound, setExpandedCompletedRound] = useState(undefined);
   
   const { activePlayer } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const completedRoundGroups = COMPLETED_ROUND_ORDER
+    .map((roundKey) => ({
+      roundKey,
+      roundLabel: getRoundDisplay(roundKey),
+      matchupsList: matchups.completed.filter((matchup) => matchup.round === roundKey)
+    }))
+    .filter((group) => group.matchupsList.length > 0);
 
   // Load matchups on component mount or when active player changes
   useEffect(() => {
@@ -80,14 +137,9 @@ const PredictionsPage = () => {
         const organized = {
           upcoming: data
             .filter(m => m.status === 'upcoming')
-            .sort((a, b) => {
-              if (!a.predictionDeadlineAt && !b.predictionDeadlineAt) return 0;
-              if (!a.predictionDeadlineAt) return 1;
-              if (!b.predictionDeadlineAt) return -1;
-              return getDeadlineTimestamp(a.predictionDeadlineAt) - getDeadlineTimestamp(b.predictionDeadlineAt);
-            }),
+            .sort(compareByPredictionDeadline),
           inProgress: data.filter(m => m.status === 'in-progress'),
-          completed: data.filter(m => m.status === 'completed')
+          completed: data.filter(m => m.status === 'completed').sort(compareCompletedMatchups)
         };
         
         setMatchups(organized);
@@ -102,6 +154,21 @@ const PredictionsPage = () => {
 
     loadMatchups();
   }, [activePlayer]);
+
+  useEffect(() => {
+    if (!isMobile || completedRoundGroups.length === 0) {
+      return;
+    }
+
+    if (expandedCompletedRound === undefined) {
+      setExpandedCompletedRound(completedRoundGroups[0].roundKey);
+      return;
+    }
+
+    if (expandedCompletedRound && !completedRoundGroups.some((group) => group.roundKey === expandedCompletedRound)) {
+      setExpandedCompletedRound(completedRoundGroups[0].roundKey);
+    }
+  }, [isMobile, expandedCompletedRound, completedRoundGroups]);
 
   const handleTabChange = (event, newValue) => {
     setTabIndex(newValue);
@@ -230,7 +297,6 @@ const PredictionsPage = () => {
     ));
   };
 
-  // In PredictionsPage.js - modify renderCompletedMatchups
   const renderCompletedMatchups = () => {
     if (matchups.completed.length === 0) {
       return (
@@ -242,24 +308,66 @@ const PredictionsPage = () => {
       );
     }
 
-    // Group by round
-    const groupedByRound = {};
-    matchups.completed.forEach(matchup => {
-      const round = getRoundDisplay(matchup.round) || 'first';
+    if (isMobile) {
+      return completedRoundGroups.map(({ roundKey, roundLabel, matchupsList }) => (
+        <Accordion
+          key={`round-${roundKey}`}
+          disableGutters
+          expanded={expandedCompletedRound === roundKey}
+          onChange={(_, isExpanded) => setExpandedCompletedRound(isExpanded ? roundKey : null)}
+          sx={{
+            mb: 1.5,
+            borderRadius: 2,
+            border: `1px solid ${theme.palette.divider}`,
+            overflow: 'hidden',
+            '&:before': { display: 'none' }
+          }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            sx={{
+              px: 2,
+              py: 0.5,
+              bgcolor: theme.palette.action.hover,
+              '& .MuiAccordionSummary-content': {
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 1.5,
+              }
+            }}
+          >
+            <Typography variant="subtitle1" fontWeight={700}>
+              {roundLabel}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {matchupsList.length} matchup{matchupsList.length !== 1 ? 's' : ''}
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ px: 0, py: 1.5 }}>
+            {matchupsList.map((matchup, index) => (
+              <MatchupPredictionCard
+                key={`${matchup.id}-${index}`}
+                matchupId={matchup.id}
+                homeTeam={matchup.homeTeam}
+                awayTeam={matchup.awayTeam}
+                status={matchup.status}
+                actualHomeScore={matchup.actualHomeScore}
+                actualAwayScore={matchup.actualAwayScore}
+                predictedHomeScore={matchup.predictedHomeScore}
+                predictedAwayScore={matchup.predictedAwayScore}
+                round={matchup.round}
+                onSubmitPrediction={handleSubmitPrediction}
+                onViewDetails={handleViewDetails}
+              />
+            ))}
+          </AccordionDetails>
+        </Accordion>
+      ));
+    }
 
-      if (!groupedByRound[round]) {
-        groupedByRound[round] = [];
-      }
-
-      groupedByRound[round].push(matchup);
-    });
-
-    // Render groups
-    return Object.entries(groupedByRound)
-      .sort(([roundA], [roundB]) => parseInt(roundA) - parseInt(roundB))
-      .map(([round, matchupsList]) => (
-        <Box key={`round-${round}`} sx={{ mb: 4, textAlign: 'center'}}>
-          <Typography variant="h6" sx={{ mb: 2 }}>{round}</Typography>
+    return completedRoundGroups.map(({ roundKey, roundLabel, matchupsList }) => (
+        <Box key={`round-${roundKey}`} sx={{ mb: 4, textAlign: 'center'}}>
+          <Typography variant="h6" sx={{ mb: 2 }}>{roundLabel}</Typography>
           {matchupsList.map((matchup, index) => (
             <MatchupPredictionCard
               key={`${matchup.id}-${index}`}
@@ -280,25 +388,20 @@ const PredictionsPage = () => {
       ));
   };
 
-    /**
-   * Get round display text
-   */
-    const getRoundDisplay = (round) => {
-      switch (round) {
-        case "playin_first": return "Play-In First Round"
-        case "playin_second": return "Play-In Second Round"
-        case "first": return "First Round";
-        case "second": return "Conference Semifinals";
-        case "conference_final": return "Conference Finals";
-        case "final": return "NBA Finals";
-        default: return `Round ${round}`;
-      }
-    };
-
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 3 }}>
-        NBA Playoff Predictions
+      <Typography
+        variant="h4"
+        component="h1"
+        gutterBottom
+        noWrap
+        sx={{
+          mb: 3,
+          textAlign: 'center',
+          fontSize: { xs: '1.35rem', sm: '2.125rem' },
+        }}
+      >
+        NBA Playoff Live Picks
       </Typography>
 
       {error && (
