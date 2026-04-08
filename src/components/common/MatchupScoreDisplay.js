@@ -12,6 +12,7 @@ const MatchupScoreDisplay = ({
   homeScore,
   awayScore,
   round,
+  resultColor = 'primary',
   sx = {}
 }) => {
   const theme = useTheme();
@@ -47,13 +48,10 @@ const MatchupScoreDisplay = ({
     
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
-        <Typography variant="body1" sx={{ mb: 1 }}>
-          {homeTeamName} vs {awayTeamName}
-        </Typography>
         <Chip
           icon={<EmojiEventsIcon />}
           label={`${winner} advances`}
-          color="primary"
+          color={resultColor}
           sx={{ fontWeight: 'medium' }}
         />
       </Box>
@@ -62,61 +60,26 @@ const MatchupScoreDisplay = ({
 
   // Standard series display (best of 7)
   const renderSeriesScore = () => {
-    if (isMobile) {
-      // Mobile layout (stacked)
-      return (
-        <Box sx={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 1
-        }}>
-          <Typography sx={{ fontWeight: 'medium' }}>
-            {homeTeamName} <Typography component="span" sx={{ fontWeight: 'bold', fontSize: '1.1rem', ml: 1 }}>{homeScore}</Typography>
-          </Typography>
-          <Typography variant="body2" sx={{ opacity: 0.8 }}>
-            vs
-          </Typography>
-          <Typography sx={{ fontWeight: 'medium' }}>
-            {awayTeamName} <Typography component="span" sx={{ fontWeight: 'bold', fontSize: '1.1rem', ml: 1 }}>{awayScore}</Typography>
-          </Typography>
-        </Box>
-      );
-    } else {
-      // Desktop layout (horizontal)
-      return (
-        <Box sx={{ 
+    return (
+      <Box
+        sx={{
           display: 'flex',
           justifyContent: 'center',
-          alignItems: 'center'
-        }}>
-          <Box sx={{ 
-            flex: 1, 
-            textAlign: 'right',
-            pr: 1
-          }}>
-            <Typography sx={{ fontWeight: 'medium' }}>
-              {homeTeamName} <Typography component="span" sx={{ fontWeight: 'bold', fontSize: '1.1rem', ml: 1 }}>{homeScore}</Typography>
-            </Typography>
-          </Box>
-          <Typography variant="body2" sx={{ 
-            px: 2,
-            opacity: 0.8
-          }}>
-            vs
-          </Typography>
-          <Box sx={{ 
-            flex: 1, 
-            textAlign: 'left',
-            pl: 1
-          }}>
-            <Typography sx={{ fontWeight: 'medium' }}>
-              <Typography component="span" sx={{ fontWeight: 'bold', fontSize: '1.1rem', mr: 1 }}>{awayScore}</Typography> {awayTeamName}
-            </Typography>
-          </Box>
-        </Box>
-      );
-    }
+          alignItems: 'center',
+          gap: isMobile ? 1.5 : 2,
+        }}
+      >
+        <Typography sx={{ fontWeight: 'bold', fontSize: '1.35rem' }}>
+          {homeScore}
+        </Typography>
+        <Typography variant="body2" sx={{ opacity: 0.8 }}>
+          vs
+        </Typography>
+        <Typography sx={{ fontWeight: 'bold', fontSize: '1.35rem' }}>
+          {awayScore}
+        </Typography>
+      </Box>
+    );
   };
 
   return (

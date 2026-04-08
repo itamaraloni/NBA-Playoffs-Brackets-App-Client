@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, useTheme, useMediaQuery } from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import { BsBullseye } from 'react-icons/bs';
+import { TbCrystalBall } from 'react-icons/tb';
+import { AiOutlineCloseCircle } from 'react-icons/ai';
 import DesktopBracketGrid from './DesktopBracketGrid';
 import MobileBracketScroll from './MobileBracketScroll';
 
@@ -78,8 +81,12 @@ function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline, b
 
   // Read mode: show health stats + accuracy bar
   if (isLocked && bracketHealth) {
-    const { correct, wrong, pending, pts, totalPotential, decided } = bracketHealth;
-    const accuracyPct = decided > 0 ? Math.round((correct / decided) * 100) : 0;
+    const { bullseyes = 0, hits = 0, misses = 0, pending = 0, pts, totalPotential } = bracketHealth;
+    const trackedMatchups = bullseyes + hits + misses + pending;
+    const bullseyePct = trackedMatchups > 0 ? (bullseyes / trackedMatchups) * 100 : 0;
+    const hitPct = trackedMatchups > 0 ? (hits / trackedMatchups) * 100 : 0;
+    const missPct = trackedMatchups > 0 ? (misses / trackedMatchups) * 100 : 0;
+    const pendingPct = trackedMatchups > 0 ? (pending / trackedMatchups) * 100 : 0;
 
     return (
       <Box sx={{
@@ -96,43 +103,84 @@ function BracketHeader({ predictedMatchups, totalMatchups, isLocked, deadline, b
         </Typography>
 
         {/* Accuracy bar */}
-        <Box sx={{ flex: 1, minWidth: 60 }}>
+        <Box sx={{ flex: 1, minWidth: 90 }}>
           <Box sx={{
-            height: 4, borderRadius: 2,
+            height: 6,
+            borderRadius: 3,
             background: theme.palette.action.hover,
             overflow: 'hidden',
+            display: 'flex',
           }}>
-            <Box sx={{
-              height: '100%', borderRadius: 2,
-              width: `${accuracyPct}%`,
-              background: `linear-gradient(90deg, ${theme.palette.success.main}, ${theme.palette.success.light || theme.palette.success.main})`,
-              transition: 'width 0.4s ease',
-            }} />
+            {bullseyePct > 0 && (
+              <Box sx={{
+                height: '100%',
+                width: `${bullseyePct}%`,
+                background: theme.palette.success.main,
+                transition: 'width 0.4s ease',
+              }} />
+            )}
+            {hitPct > 0 && (
+              <Box sx={{
+                height: '100%',
+                width: `${hitPct}%`,
+                background: theme.palette.warning.main,
+                transition: 'width 0.4s ease',
+              }} />
+            )}
+            {missPct > 0 && (
+              <Box sx={{
+                height: '100%',
+                width: `${missPct}%`,
+                background: theme.palette.error.main,
+                transition: 'width 0.4s ease',
+              }} />
+            )}
+            {pendingPct > 0 && (
+              <Box sx={{
+                height: '100%',
+                width: `${pendingPct}%`,
+                background: alpha(theme.palette.text.primary, 0.2),
+                transition: 'width 0.4s ease',
+              }} />
+            )}
           </Box>
         </Box>
 
         {/* Health stats */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-          <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 600, color: theme.palette.success.main }}>
-            {correct} {'\u2713'}
-          </Typography>
-          <Typography component="span" sx={{ fontSize: '0.75rem', color: theme.palette.text.disabled }}>{'\u00B7'}</Typography>
-          <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 600, color: theme.palette.error.main }}>
-            {wrong} {'\u2717'}
-          </Typography>
-          <Typography component="span" sx={{ fontSize: '0.75rem', color: theme.palette.text.disabled }}>{'\u00B7'}</Typography>
-          <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 600, color: theme.palette.warning.main }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            whiteSpace: 'nowrap',
+            flexWrap: 'wrap',
+            flexBasis: { xs: '100%', md: 'auto' },
+            justifyContent: { xs: 'center', md: 'flex-start' },
+            width: { xs: '100%', md: 'auto' },
+          }}
+        >
+          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, color: theme.palette.success.main }}>
+            <TbCrystalBall size={14} />
+            <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 600 }}>
+              {bullseyes}
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, color: theme.palette.warning.main }}>
+            <BsBullseye size={13} />
+            <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 600 }}>
+              {hits}
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, color: theme.palette.error.main }}>
+            <AiOutlineCloseCircle size={14} />
+            <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 600 }}>
+              {misses}
+            </Typography>
+          </Box>
+          <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 600, color: theme.palette.text.secondary }}>
             {pending} in play
           </Typography>
         </Box>
-
-        {/* Deadline locked */}
-        <Typography variant="body2" sx={{
-          fontSize: '0.8rem', whiteSpace: 'nowrap', fontWeight: 600,
-          color: 'error.main',
-        }}>
-          {'\uD83D\uDD12'} Locked — {deadline ? new Date(deadline).toLocaleDateString() : 'deadline passed'}
-        </Typography>
 
         {/* Viewing badge */}
         {viewingPlayerName && (

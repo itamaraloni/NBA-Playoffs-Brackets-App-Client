@@ -252,16 +252,18 @@ const MatchupPredictionCard = ({
           px: 2
         }}>
           <ScoreCounter
-            label={homeTeam.name}
+            label={null}
             value={homeScore}
             onChange={setHomeScore}
+            disabled={!!isDeadlinePassed}
             sx={{ width: '100%', maxWidth: 200 }}
           />
           
           <ScoreCounter
-            label={awayTeam.name}
+            label={null}
             value={awayScore}
             onChange={setAwayScore}
+            disabled={!!isDeadlinePassed}
             sx={{ width: '100%', maxWidth: 200 }}
           />
         </Box>
@@ -345,6 +347,7 @@ const MatchupPredictionCard = ({
           homeScore={actualHomeScore}
           awayScore={actualAwayScore}
           round={round}
+          resultColor="success"
           sx={{ mb: 1, width: '100%' }}
         />
 
