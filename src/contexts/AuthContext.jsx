@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import {
   GoogleAuthProvider,
   signInWithPopup,
@@ -31,16 +31,28 @@ export function AuthProvider({ children }) {
   const [userPlayers, setUserPlayers] = useState([]);
   const [activePlayer, setActivePlayer] = useState(null);
 
+  // Tracks the last Firebase UID we fully processed in onAuthStateChanged.
+  // In React StrictMode (dev), effects run twice — this prevents the second
+  // invocation from launching a concurrent duplicate auth flow that races
+  // the first and can produce spurious 401s on /user/leagues.
+  const UNINITIALIZED = useRef(Symbol('uninitialized'));
+  const lastProcessedUid = useRef(UNINITIALIZED.current);
+
   /**
    * Fetch player/league data from /user/leagues and set active player.
    * Called after successful auth sync (both sign-in and auth state change).
    *
    * Uses localStorage 'active_player_id' as a hint to restore the user's
    * last selected league across page reloads. Falls back to first player.
+   *
+   * Retries once on 401: Chrome's multi-process architecture commits Set-Cookie
+   * from session_login asynchronously across the network/renderer process boundary,
+   * so the session cookie may not yet be in the network stack when this fires
+   * immediately after syncUserWithDatabase returns. A 200ms retry window covers
+   * this without adding perceptible delay to the login flow.
    */
   const fetchAndSetPlayerData = useCallback(async () => {
-    try {
-      const leaguesData = await UserServices.getUserLeagues();
+    const applyLeagueData = (leaguesData) => {
       const players = leaguesData?.players || [];
       setUserPlayers(players);
 
@@ -59,11 +71,34 @@ export function AuthProvider({ children }) {
         setActivePlayer(null);
         localStorage.removeItem('active_player_id');
       }
+    };
+
+    try {
+      const leaguesData = await UserServices.getUserLeagues();
+      applyLeagueData(leaguesData);
     } catch (err) {
-      console.error("Error fetching user leagues:", err);
-      // Non-fatal: user can still use the app, just won't have league data
-      setUserPlayers([]);
-      setActivePlayer(null);
+      if (err.status === 401) {
+        // Cookie not committed yet — wait and retry once before giving up.
+        await new Promise(resolve => setTimeout(resolve, 200));
+        try {
+          const leaguesData = await UserServices.getUserLeagues();
+          applyLeagueData(leaguesData);
+        } catch (retryErr) {
+          if (retryErr.status === 401) {
+            // Genuine session expiry after retry — trigger full sign-out.
+            window.dispatchEvent(new CustomEvent('auth:session-expired'));
+          } else {
+            console.error("Error fetching user leagues (retry):", retryErr);
+            setUserPlayers([]);
+            setActivePlayer(null);
+          }
+        }
+      } else {
+        console.error("Error fetching user leagues:", err);
+        // Non-fatal: user can still use the app, just won't have league data
+        setUserPlayers([]);
+        setActivePlayer(null);
+      }
     }
   }, []);
 
@@ -87,71 +122,21 @@ export function AuthProvider({ children }) {
     setIsNewUser(false);
   }, []);
 
-  // Sign in with Google with retry logic
+  // Sign in with Google.
+  // Session sync (syncUserWithDatabase), state updates (setCurrentUser, setIsAdmin,
+  // setIsNewUser), and league data fetching (fetchAndSetPlayerData) are all handled
+  // exclusively by the onAuthStateChanged listener below. Doing that work here too
+  // would create two concurrent /auth/session_login calls, producing duplicate
+  // session + CSRF cookies in the browser. That race causes the very next
+  // /user/leagues request to 401 (wrong cookie sent) and logout to 403 (CSRF mismatch).
   const signInWithGoogle = async () => {
-    const MAX_RETRIES = 3;
-    const RETRY_DELAY = 1000;
-    let retryCount = 0;
-
     try {
       setError(null);
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      // Add a small delay to ensure Firebase has completed its processes
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Try syncing with retries
-      while (retryCount <= MAX_RETRIES) {
-        try {
-          // Exchange Firebase token for session cookie via /auth/session-login.
-          // The server sets an httpOnly session cookie + CSRF token cookie automatically.
-          const userData = await UserServices.syncUserWithDatabase(user, retryCount);
-
-          if (userData?.isNewUser) {
-            sessionStorage.setItem(PENDING_FIRST_LOGIN_WELCOME_KEY, 'true');
-          }
-          // Never clear the flag from an API response — only clear on dialog
-          // dismiss or sign-out. The parallel onAuthStateChanged call will get
-          // a 200 (user already exists) and must not race away a 201-set flag.
-
-          // Set admin status from server response
-          setIsAdmin(userData?.is_admin || false);
-          setIsNewUser(Boolean(userData?.isNewUser));
-
-          // Update currentUser
-          setCurrentUser({
-            ...user,
-            userData: userData
-          });
-
-          // Fetch player/league data after successful auth
-          await fetchAndSetPlayerData();
-
-          return result;
-        } catch (err) {
-          // Only retry on network errors
-          if ((err.name === 'TypeError' ||
-               err.message.includes('ERR_CONNECTION_RESET') ||
-               err.message.includes('Failed to fetch')) &&
-              retryCount < MAX_RETRIES) {
-
-            console.log(`Sync failed, retrying (${retryCount + 1}/${MAX_RETRIES})...`);
-
-            // Exponential backoff
-            const delay = RETRY_DELAY * Math.pow(2, retryCount);
-            await new Promise(resolve => setTimeout(resolve, delay));
-
-            retryCount++;
-            continue;
-          }
-
-          // If we've exhausted retries or it's not a network error
-          throw err;
-        }
-      }
+      // onAuthStateChanged fires automatically and owns all server-side sync.
+      return result;
     } catch (err) {
       setError(err.message || "Error signing in with Google");
 
@@ -195,9 +180,51 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Handle session expiry signalled by ApiClient's 401 handler.
+  // ApiClient dispatches this event instead of redirecting directly, so that
+  // we can call signOut(auth) here first — otherwise Firebase keeps the user
+  // cached, onAuthStateChanged re-fires with the same user on the next page
+  // load, and the app silently re-authenticates in an infinite 401 loop.
+  useEffect(() => {
+    const handleSessionExpired = async () => {
+      try {
+        await signOut(auth);
+        await UserServices.logout();
+      } catch (e) {
+        // Silent — still need to redirect even if cleanup fails
+      }
+      setCurrentUser(null);
+      setIsAdmin(false);
+      setIsNewUser(false);
+      sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
+      setUserPlayers([]);
+      setActivePlayer(null);
+      if (window.notify) {
+        window.notify.warning('Your session has expired. Please log in again.');
+      }
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+    };
+
+    window.addEventListener('auth:session-expired', handleSessionExpired);
+    return () => window.removeEventListener('auth:session-expired', handleSessionExpired);
+  }, []);
+
   // Subscribe to user on auth state change
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      // Guard against React StrictMode's double-invoke of effects (dev only).
+      // StrictMode mounts → unmounts → remounts, causing onAuthStateChanged to
+      // fire twice with the same user. Without this guard, two concurrent auth
+      // flows race each other, and the one that calls /user/leagues before the
+      // other's session is established gets a 401.
+      const uid = user?.uid ?? null;
+      if (lastProcessedUid.current !== UNINITIALIZED.current && uid === lastProcessedUid.current) {
+        return;
+      }
+      lastProcessedUid.current = uid;
+
       if (user) {
         // User is signed in - fetch their data from backend with retry logic
         const MAX_RETRIES = 3;
@@ -253,29 +280,31 @@ export function AuthProvider({ children }) {
 
             syncSucceeded = true;
           } catch (error) {
-            // Only retry on network errors
-            if ((error.name === 'TypeError' ||
+            if (error.status) {
+              // Server explicitly rejected auth with an HTTP error (e.g. 401 invalid token).
+              // Do NOT set currentUser — the user has no valid server session.
+              console.error(`Auth sync rejected by server (HTTP ${error.status}):`, error.code, error.message);
+              setError('Sign in failed. Please try again.');
+              break;
+            }
+
+            // Network error — server unreachable. Retry with backoff.
+            const isNetworkError = error.name === 'TypeError' ||
                  error.message.includes('ERR_CONNECTION_RESET') ||
-                 error.message.includes('Failed to fetch')) &&
-                retryCount < MAX_RETRIES) {
+                 error.message.includes('Failed to fetch');
 
+            if (isNetworkError && retryCount < MAX_RETRIES) {
               console.log(`Failed to sync user data, retrying (${retryCount + 1}/${MAX_RETRIES})...`);
-
-              // Exponential backoff
               const delay = RETRY_DELAY * Math.pow(2, retryCount);
               await new Promise(resolve => setTimeout(resolve, delay));
-
               retryCount++;
             } else {
-              // Non-network error or exhausted retries
+              // Network unreachable after retries — allow degraded access so the
+              // user can still view cached content even if the server is down.
               console.error("Error syncing user data on auth state change:", error);
-
-              // Show notification on final failure
               if (window.notify && retryCount >= MAX_RETRIES) {
                 window.notify.warning("Could not load user data. Some features may be unavailable.");
               }
-
-              // Set user with safe defaults - allow them to continue using the app
               setCurrentUser(user);
               setIsAdmin(false);
               break;

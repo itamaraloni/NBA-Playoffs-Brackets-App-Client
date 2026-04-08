@@ -47,8 +47,14 @@ const apiClient = {
   
   /**
    * Handle fetch response with improved error handling
+   * @param {Response} response
+   * @param {Object} options
+   * @param {boolean} options.suppressAuthEvent - When true, a 401 throws an error
+   *   instead of dispatching auth:session-expired. Use for callers that implement
+   *   their own retry logic (e.g. fetchAndSetPlayerData) so the sign-out flow
+   *   isn't triggered prematurely on a transient cookie-timing 401.
    */
-  async handleResponse(response) {
+  async handleResponse(response, { suppressAuthEvent = false } = {}) {
     // Check if the request was successful
     if (!response.ok) {
       let errorData = null;
@@ -67,25 +73,22 @@ const apiClient = {
       
       // Handle auth errors (401 Unauthorized)
       if (response.status === 401) {
-        try {
-          console.log(`Auth error: ${errorMessage}`);
+        console.log(`Auth error: ${errorMessage}`);
+        clearLocalStoragePreserveTheme();
 
-          clearLocalStoragePreserveTheme();
-
-          // Show notification first, before potential redirect
-          if (window.notify) {
-            window.notify.warning('Your session has expired. Please log in again.');
-          }
-
-          // Small delay to allow notification to appear before redirect
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 1000);
-
-          return; // Stop execution
-        } catch (e) {
-          console.error("Error in auth handling:", e);
+        if (suppressAuthEvent) {
+          // Caller handles this 401 (e.g. with retry logic) — throw so they
+          // can catch it without triggering the global sign-out event yet.
+          const error = new Error(errorMessage || 'Unauthorized');
+          error.status = 401;
+          throw error;
         }
+
+        // Standard path: session genuinely expired mid-session.
+        // Dispatch so AuthContext can signOut(Firebase) before redirecting,
+        // preventing the silent re-auth loop on next page load.
+        window.dispatchEvent(new CustomEvent('auth:session-expired'));
+        return;
       }
       
       // Handle other errors
@@ -137,14 +140,16 @@ const apiClient = {
   
   /**
    * GET request with retry logic
+   * @param {string} endpoint
+   * @param {Object} options - Passed through to handleResponse (e.g. suppressAuthEvent)
    */
-  async get(endpoint) {
+  async get(endpoint, options = {}) {
     const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
       method: 'GET',
       headers: this.getHeaders('GET'),
     });
 
-    return this.handleResponse(response);
+    return this.handleResponse(response, options);
   },
 
   /**
