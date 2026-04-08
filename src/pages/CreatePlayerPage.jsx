@@ -29,6 +29,8 @@ import { PLAYER_AVATARS } from '../shared/GeneralConsts';
 import { useTeams } from '../hooks/useTeams';
 import { useMvpCandidates } from '../hooks/useMvpCandidates';
 import WelcomeDialog from '../components/common/WelcomeDialog';
+import { getLogoPath } from '../shared/teamUtils';
+import { getPlayerAvatar } from '../shared/playerUtils';
 
 const PENDING_FIRST_LOGIN_WELCOME_KEY = 'pendingFirstLoginWelcome';
 const HAS_COMPLETED_ONBOARDING_KEY = 'hasCompletedOnboarding';
@@ -42,10 +44,15 @@ const CreatePlayerPage = () => {
   const { mvpCandidates, loading: mvpLoading } = useMvpCandidates();
 
   const teamOptions = (teams || [])
-    .map(t => ({ name: t.name, points: t.championshipPoints }))
+    .map(t => ({ name: t.name, points: t.championshipPoints, avatarSrc: getLogoPath(t.name) }))
     .sort((a, b) => a.points - b.points);
   const mvpOptions = (mvpCandidates || [])
-    .map(c => ({ name: c.name, points: c.mvpPoints }))
+    .map(c => ({
+      name: c.name,
+      points: c.mvpPoints,
+      teamName: c.teamName,
+      avatarSrc: getPlayerAvatar(c.name),
+    }))
     .sort((a, b) => a.points - b.points);
 
   // Invite token: try navigation state first, fall back to sessionStorage (survives page refresh)
@@ -316,7 +323,7 @@ const CreatePlayerPage = () => {
               gap: 1
             }}
           >
-            <EmojiEventsIcon color="primary" /> NBA Championship and MVP Picks
+            <EmojiEventsIcon color="primary" /> NBA Championship and Finals MVP Picks
           </Typography>
           
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -336,14 +343,17 @@ const CreatePlayerPage = () => {
               }}
               getOptionLabel={(option) => option.name}
               renderOption={(props, option) => (
-                <li {...props}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                    <span>{option.name}</span>
-                    <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
-                      {option.points} pts
+                <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, width: '100%' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
+                    <Avatar src={option.avatarSrc} alt={option.name} variant="rounded" sx={{ width: 32, height: 32 }} />
+                    <Typography variant="body2" fontWeight={600} noWrap>
+                      {option.name}
                     </Typography>
                   </Box>
-                </li>
+                  <Typography variant="body2" color="text.secondary" sx={{ ml: 2, flexShrink: 0 }}>
+                    {option.points} pts
+                  </Typography>
+                </Box>
               )}
               renderInput={(params) => (
                 <TextField
@@ -368,14 +378,22 @@ const CreatePlayerPage = () => {
               }}
               getOptionLabel={(option) => option.name}
               renderOption={(props, option) => (
-                <li {...props}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                    <span>{option.name}</span>
-                    <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
-                      {option.points} pts
-                    </Typography>
+                <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, width: '100%' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
+                    <Avatar src={option.avatarSrc} alt={option.name} variant="rounded" sx={{ width: 32, height: 32 }} />
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography variant="body2" fontWeight={600} noWrap>
+                        {option.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" noWrap>
+                        {option.teamName}
+                      </Typography>
+                    </Box>
                   </Box>
-                </li>
+                  <Typography variant="body2" color="text.secondary" sx={{ ml: 2, flexShrink: 0 }}>
+                    {option.points} pts
+                  </Typography>
+                </Box>
               )}
               renderInput={(params) => (
                 <TextField

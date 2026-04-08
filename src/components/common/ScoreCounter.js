@@ -18,13 +18,20 @@ const ScoreCounter = ({
   onChange,
   min = 0,
   max = 4,
+  disabled = false,
   sx = {}
 }) => {
   const handleDecrement = () => {
+    if (disabled) {
+      return;
+    }
     onChange(Math.max(min, value - 1));
   };
 
   const handleIncrement = () => {
+    if (disabled) {
+      return;
+    }
     onChange(Math.min(max, value + 1));
   };
 
@@ -35,14 +42,17 @@ const ScoreCounter = ({
       alignItems: 'center',
       ...sx
     }}>
-      <Typography gutterBottom textAlign="center">
-        {label}
-      </Typography>
+      {label ? (
+        <Typography gutterBottom textAlign="center">
+          {label}
+        </Typography>
+      ) : null}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Button 
           variant="outlined" 
           size="small"
           onClick={handleDecrement}
+          disabled={disabled}
           sx={{ minWidth: '40px' }}
         >
           -
@@ -54,6 +64,7 @@ const ScoreCounter = ({
           variant="outlined" 
           size="small"
           onClick={handleIncrement}
+          disabled={disabled}
           sx={{ minWidth: '40px' }}
         >
           +

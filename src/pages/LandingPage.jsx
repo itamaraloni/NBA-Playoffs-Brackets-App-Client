@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import StandaloneHeader from '../components/common/StandaloneHeader';
@@ -33,23 +33,34 @@ const LandingPage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, isAuthenticated, error: authError } = useAuth();
   const navigate = useNavigate();
-  
-  // Check if user is already logged in and redirect accordingly
+
+  // Navigate to dashboard once auth state confirms the user is signed in.
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
+  // If the server rejects the auth attempt (e.g. token invalid), AuthContext sets
+  // its error state. We watch it here to unblock the loading button so the user
+  // can retry — otherwise handleSignIn never sees the failure and loading sticks.
+  useEffect(() => {
+    if (authError) {
+      setLoading(false);
+    }
+  }, [authError]);
+
   const handleSignIn = async () => {
     try {
       setLoading(true);
       setError(null);
       await signInWithGoogle();
-      
-      // Add a small delay to ensure state updates propagate
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 100);
-      
+      // Navigation is handled by the useEffect above once isAuthenticated flips true.
     } catch (err) {
       setError(err.message);
+      setLoading(false);
       console.error("Error signing in with Google. Please try again.", err);
     }
   };
@@ -158,8 +169,8 @@ const LandingPage = () => {
                       <BsBullseye style={{ color: theme.palette.secondary.main }} />
                     </ListItemIcon>
                     <ListItemText 
-                      primary="Place Your Predictions"
-                      secondary="Predict the winner of each play-in and playoff series" 
+                      primary="Place Live Picks on Every Playoff Series right before tip-off"
+                      secondary="Predict the winner of each play-in and playoff series right before tip-off" 
                     />
                   </ListItem>
                   
@@ -169,7 +180,7 @@ const LandingPage = () => {
                     </ListItemIcon>
                     <ListItemText 
                       primary="Compete and Put yourself to the Test" 
-                      secondary="Is predictings NBA series outcome requires basketball knowledge or is it sheer luck? You can put it to the test"
+                      secondary="Do predicting NBA series outcomes require basketball knowledge, or is it sheer luck? Put it to the test."
                     />
                   </ListItem>
 

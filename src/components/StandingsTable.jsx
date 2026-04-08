@@ -165,8 +165,8 @@ const RankCell = ({ rank }) => {
  * Responsive standings table.
  *
  * Desktop (≥ sm): 7 columns — Rank, Player, Champion, MVP, Predictions, Bracket, Total.
- *   Champion and MVP show a resource avatar + status chip; hover reveals the pick name.
- *   Predictions, Bracket, and Total headers are sortable (TableSortLabel).
+ *   Champion and Finals MVP show a resource avatar + status chip; hover reveals the pick name.
+ *   Live Picks, Bracket, and Total headers are sortable (TableSortLabel).
  *   Rank always reflects the server-determined total-score rank, regardless of sort.
  *
  * Mobile (< sm): 3 columns — Rank, Player, Total.
@@ -281,10 +281,10 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
                 <TableCell>Rank</TableCell>
                 <TableCell>Player</TableCell>
                 <TableCell>Champion</TableCell>
-                <TableCell>MVP</TableCell>
+                <TableCell>Finals MVP</TableCell>
                 <TableCell align="right">
                   <TableSortLabel {...sortLabelProps('predictions')}>
-                    Predictions
+                    Live Picks
                   </TableSortLabel>
                 </TableCell>
                 <TableCell align="right">

@@ -58,7 +58,8 @@ const MatchupServices = {
           actualAwayScore: item.matchup.away_team.away_team_score,
           predictedHomeScore: item.prediction.home_team_score,
           predictedAwayScore: item.prediction.away_team_score,
-          round: item.matchup.round || 1
+          round: item.matchup.round || 1,
+          predictionDeadlineAt: item.matchup.prediction_deadline_at || null
         });
       });
       
@@ -83,7 +84,8 @@ const MatchupServices = {
           actualAwayScore: item.matchup.away_team.away_team_score,
           predictedHomeScore: item.prediction.home_team_score,
           predictedAwayScore: item.prediction.away_team_score,
-          round: item.matchup.round || 1
+          round: item.matchup.round || 1,
+          predictionDeadlineAt: item.matchup.prediction_deadline_at || null
         });
       });
       
