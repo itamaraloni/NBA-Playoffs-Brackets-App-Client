@@ -1,4 +1,5 @@
 import { clearLocalStoragePreserveTheme } from '../utils/authStorage';
+import { getCorrelationHeaders } from '../utils/requestCorrelation';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 if (!API_BASE_URL) {
@@ -32,6 +33,7 @@ const apiClient = {
   getHeaders(method) {
     const headers = {
       'Content-Type': 'application/json',
+      ...getCorrelationHeaders(),
     };
 
     // Include CSRF token for state-changing requests
