@@ -11,7 +11,8 @@ import {
   Box,
   Button,
   Alert,
-  Chip
+  Chip,
+  CircularProgress
 } from '@mui/material';
 import { RocketLaunch, EmojiEvents, AccessTime, Lock } from '@mui/icons-material';
 import { Close } from '@mui/icons-material';
@@ -41,9 +42,22 @@ const MatchupPredictionCard = ({
   const [awayScore, setAwayScore] = useState(predictedAwayScore || 0);
   const [validationError, setValidationError] = useState('');
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const [isSubmittingPrediction, setIsSubmittingPrediction] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { scoringConfig } = useScoringConfig();
+  const isPlayInRound = round === "playin_first" || round === "playin_second";
+  const hasSavedPrediction = predictedHomeScore !== null && predictedAwayScore !== null;
+
+  const handleHomeScoreChange = (nextScore) => {
+    setHomeScore(nextScore);
+    setValidationError('');
+  };
+
+  const handleAwayScoreChange = (nextScore) => {
+    setAwayScore(nextScore);
+    setValidationError('');
+  };
 
   /**
    * Get round display text
@@ -77,7 +91,7 @@ const MatchupPredictionCard = ({
   /**
    * Handle user prediction submission
    */
-  const handleSubmitPrediction = () => {
+  const handleSubmitPrediction = async () => {
     const error = validateScore(homeScore, awayScore);
     if (error) {
       setValidationError(error);
@@ -87,11 +101,16 @@ const MatchupPredictionCard = ({
     setValidationError('');
 
     if (onSubmitPrediction) {
-      onSubmitPrediction({
-        matchupId: matchupId,
-        homeScore,
-        awayScore
-      });
+      setIsSubmittingPrediction(true);
+      try {
+        await onSubmitPrediction({
+          matchupId: matchupId,
+          homeScore,
+          awayScore
+        });
+      } finally {
+        setIsSubmittingPrediction(false);
+      }
     }
   };
 
@@ -119,7 +138,7 @@ const MatchupPredictionCard = ({
    */
   useEffect(() => {
     // If we have a previous prediction, set the selected team
-    if (round === "playin_first" || round === "playin_second") {
+    if (isPlayInRound) {
       if (predictedHomeScore === 1) {
         setSelectedTeam('home');
       } else if (predictedAwayScore === 1) {
@@ -127,8 +146,19 @@ const MatchupPredictionCard = ({
       } else {
         setSelectedTeam(null);
       }
+      setValidationError('');
     }
-  }, [round, predictedHomeScore, predictedAwayScore]);
+  }, [isPlayInRound, predictedHomeScore, predictedAwayScore]);
+
+  useEffect(() => {
+    if (isPlayInRound) {
+      return;
+    }
+
+    setHomeScore(predictedHomeScore ?? 0);
+    setAwayScore(predictedAwayScore ?? 0);
+    setValidationError('');
+  }, [isPlayInRound, predictedHomeScore, predictedAwayScore, matchupId]);
 
   /**
    * Render prediction input for upcoming games
@@ -140,6 +170,31 @@ const MatchupPredictionCard = ({
     const deadlineColor = isDeadlinePassed ? 'error.main' : 'warning.main';
     const DeadlineIcon = isDeadlinePassed ? Lock : AccessTime;
     const deadlineTitle = isDeadlinePassed ? 'Predictions closed at' : 'Predictions close at';
+    const selectedPlayInPrediction = selectedTeam === 'home'
+      ? { homeScore: 1, awayScore: 0 }
+      : selectedTeam === 'away'
+        ? { homeScore: 0, awayScore: 1 }
+        : null;
+    const isPlayInPredictionUnchanged = Boolean(selectedPlayInPrediction)
+      && predictedHomeScore === selectedPlayInPrediction.homeScore
+      && predictedAwayScore === selectedPlayInPrediction.awayScore;
+    const isSeriesPredictionUnchanged = hasSavedPrediction
+      && homeScore === predictedHomeScore
+      && awayScore === predictedAwayScore;
+    const isSubmitDisabled = Boolean(isDeadlinePassed)
+      || isSubmittingPrediction
+      || (isPlayInRound && !selectedPlayInPrediction)
+      || (isPlayInRound ? isPlayInPredictionUnchanged : isSeriesPredictionUnchanged);
+    const submitButtonLabel = isDeadlinePassed
+      ? 'Predictions Closed'
+      : isSubmittingPrediction
+        ? 'Submitting...'
+        : 'Submit Prediction';
+    const submitButtonIcon = isDeadlinePassed
+      ? <Lock />
+      : isSubmittingPrediction
+        ? <CircularProgress size={18} color="inherit" />
+        : <RocketLaunch />;
 
     const deadlineDisplay = deadlineLabel ? (
       <Box
@@ -177,7 +232,7 @@ const MatchupPredictionCard = ({
     ) : null;
 
     // For Play-In games (single elimination)
-    if (round === "playin_first" || round === "playin_second") {
+    if (isPlayInRound) {
       const handleTeamSelect = (team) => {
         // Toggle selection if clicking the same team
         if (selectedTeam === team) {
@@ -188,7 +243,7 @@ const MatchupPredictionCard = ({
         setValidationError('');
       };
 
-      const handlePlayInPrediction = () => {
+      const handlePlayInPrediction = async () => {
         if (!selectedTeam) {
           setValidationError('Please select a team to win');
           return;
@@ -196,11 +251,16 @@ const MatchupPredictionCard = ({
 
         if (onSubmitPrediction) {
           const homeWin = selectedTeam === 'home';
-          onSubmitPrediction({
-            matchupId: matchupId,
-            homeScore: homeWin ? 1 : 0,
-            awayScore: homeWin ? 0 : 1
-          });
+          setIsSubmittingPrediction(true);
+          try {
+            await onSubmitPrediction({
+              matchupId: matchupId,
+              homeScore: homeWin ? 1 : 0,
+              awayScore: homeWin ? 0 : 1
+            });
+          } finally {
+            setIsSubmittingPrediction(false);
+          }
         }
       };
 
@@ -222,12 +282,12 @@ const MatchupPredictionCard = ({
             <Button
               variant="contained"
               color="primary"
-              startIcon={isDeadlinePassed ? <Lock /> : <RocketLaunch />}
+              startIcon={submitButtonIcon}
               onClick={handlePlayInPrediction}
-              disabled={!!isDeadlinePassed}
+              disabled={isSubmitDisabled}
               sx={{ minWidth: '180px' }}
             >
-              {isDeadlinePassed ? 'Predictions Closed' : 'Submit Prediction'}
+              {submitButtonLabel}
             </Button>
           </Box>
         </Box>
@@ -255,7 +315,7 @@ const MatchupPredictionCard = ({
           <ScoreCounter
             label={null}
             value={homeScore}
-            onChange={setHomeScore}
+            onChange={handleHomeScoreChange}
             disabled={!!isDeadlinePassed}
             sx={{ width: '100%', maxWidth: 200 }}
           />
@@ -263,7 +323,7 @@ const MatchupPredictionCard = ({
           <ScoreCounter
             label={null}
             value={awayScore}
-            onChange={setAwayScore}
+            onChange={handleAwayScoreChange}
             disabled={!!isDeadlinePassed}
             sx={{ width: '100%', maxWidth: 200 }}
           />
@@ -281,12 +341,12 @@ const MatchupPredictionCard = ({
           <Button
             variant="contained"
             color="primary"
-            startIcon={isDeadlinePassed ? <Lock /> : <RocketLaunch />}
+            startIcon={submitButtonIcon}
             onClick={handleSubmitPrediction}
-            disabled={!!isDeadlinePassed}
+            disabled={isSubmitDisabled}
             sx={{ minWidth: '180px' }}
           >
-            {isDeadlinePassed ? 'Predictions Closed' : 'Submit Prediction'}
+            {submitButtonLabel}
           </Button>
         </Box>
       </Box>
