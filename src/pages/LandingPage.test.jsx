@@ -103,4 +103,16 @@ describe('LandingPage', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
   });
+
+  it('does not render the app explanation on landing anymore', () => {
+    useAuth.mockImplementation(() => ({
+      signInWithGoogle: jest.fn(),
+      isAuthenticated: false,
+      error: null,
+    }));
+
+    renderLandingPage();
+
+    expect(screen.queryByText('App explanation')).not.toBeInTheDocument();
+  });
 });

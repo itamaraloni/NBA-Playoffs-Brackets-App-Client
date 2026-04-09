@@ -12,11 +12,12 @@ import {
 } from '@mui/material';
 import PlayerStatsCard from '../components/PlayerStatsCard';
 import EditPicksDialog from '../components/EditPicksDialog';
+import AppExplanation from '../components/AppExplanation';
 import UserServices from '../services/UserServices';
 import { useAuth } from '../contexts/AuthContext';
 
 const Dashboard = () => {
-  const { activePlayer } = useAuth();
+  const { activePlayer, userPlayers } = useAuth();
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
   const [isLoading, setIsLoading] = useState(false);
   const [playerProfile, setPlayerProfile] = useState(null);
@@ -26,6 +27,7 @@ const Dashboard = () => {
   const [editType, setEditType] = useState('championship'); // 'championship' or 'mvp'
 
   const playerId = activePlayer?.player_id;
+  const isPlayerless = userPlayers.length === 0;
   const navigate = useNavigate();
 
   // Fetch player profile if player ID exists
@@ -152,6 +154,12 @@ const Dashboard = () => {
           <Button variant="contained" onClick={() => navigate('/profile')}>
             Go to Profile
           </Button>
+
+          {isPlayerless && (
+            <Box sx={{ mt: 5, textAlign: 'left' }}>
+              <AppExplanation elevation={1} />
+            </Box>
+          )}
         </Box>
       )}
 

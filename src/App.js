@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ThemeProvider from './theme/ThemeProvider';
 import Layout from './components/Layout';
 import StandaloneHeader from './components/common/StandaloneHeader';
-import FirstLoginDialog from './components/common/FirstLoginDialog';
+import FirstLoginGuard from './components/common/FirstLoginGuard';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
@@ -19,42 +19,6 @@ import BracketPage from './pages/BracketPage';
 import InviteLandingPage from './pages/InviteLandingPage';
 import AdminPage from './pages/AdminPage';
 import AdminRoute from './components/admin/AdminRoute';
-
-const PENDING_FIRST_LOGIN_WELCOME_KEY = 'pendingFirstLoginWelcome';
-const HAS_COMPLETED_ONBOARDING_KEY = 'hasCompletedOnboarding';
-const PENDING_INVITE_TOKEN_KEY = 'pendingInviteToken';
-
-function FirstLoginGuard() {
-  const { isNewUser, clearIsNewUser } = useAuth();
-  const location = useLocation();
-  const isInvitePage = location.pathname.startsWith('/invite');
-  const isPublicLandingPage = location.pathname === '/';
-  const isInviteJoinPage = location.pathname === '/create-player'
-    && Boolean(sessionStorage.getItem(PENDING_INVITE_TOKEN_KEY));
-  const [dismissed, setDismissed] = useState(false);
-  const hasCompletedOnboarding = localStorage.getItem(HAS_COMPLETED_ONBOARDING_KEY) === 'true';
-  const hasPendingFirstLoginWelcome = sessionStorage.getItem(PENDING_FIRST_LOGIN_WELCOME_KEY) === 'true';
-  const suppressForInviteFlow = isInvitePage || isInviteJoinPage;
-
-  useEffect(() => {
-    setDismissed(false);
-  }, [isNewUser, location.pathname]);
-
-  const show = !dismissed
-    && (isNewUser || hasPendingFirstLoginWelcome)
-    && !suppressForInviteFlow
-    && !isPublicLandingPage
-    && !hasCompletedOnboarding;
-
-  const handleClose = () => {
-    sessionStorage.removeItem(PENDING_FIRST_LOGIN_WELCOME_KEY);
-    localStorage.setItem(HAS_COMPLETED_ONBOARDING_KEY, 'true');
-    setDismissed(true);
-    clearIsNewUser();
-  };
-
-  return <FirstLoginDialog open={show} onClose={handleClose} />;
-}
 
 function AppContent() {
   const { logout } = useAuth();
