@@ -1,5 +1,6 @@
 import apiClient from './ApiClient';
 import { clearLocalStoragePreserveTheme } from '../utils/authStorage';
+import { getCorrelationHeaders } from '../utils/requestCorrelation';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
@@ -30,7 +31,10 @@ const UserServices = {
       // so the browser stores the Set-Cookie response.
       const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getCorrelationHeaders(),
+        },
         credentials: 'include',
         body: JSON.stringify({ id_token: idToken })
       });
@@ -119,7 +123,10 @@ const UserServices = {
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
-        headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
+        headers: {
+          ...getCorrelationHeaders(),
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
       });
     } catch (error) {
       // Log but don't throw — we still want to clear local state even if
