@@ -183,26 +183,30 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
           disableClearable
           disabled={optionsLoading}
           {...mobileAutocompleteProps}
-          renderOption={(props, option) => (
-            <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0, flex: 1 }}>
-                <Avatar src={option.avatarSrc} alt={option.name} variant="rounded" sx={{ width: 32, height: 32 }} />
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="body2" fontWeight={600} noWrap>
-                    {option.name}
-                  </Typography>
-                  {option.teamName && (
-                    <Typography variant="caption" color="text.secondary" noWrap>
-                      {option.teamName}
+          renderOption={(props, option) => {
+            const { key, ...optionProps } = props;
+
+            return (
+              <Box key={key} component="li" {...optionProps} sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0, flex: 1 }}>
+                  <Avatar src={option.avatarSrc} alt={option.name} variant="rounded" sx={{ width: 32, height: 32 }} />
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="body2" fontWeight={600} noWrap>
+                      {option.name}
                     </Typography>
-                  )}
+                    {option.teamName && (
+                      <Typography variant="caption" color="text.secondary" noWrap>
+                        {option.teamName}
+                      </Typography>
+                    )}
+                  </Box>
                 </Box>
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto', minWidth: 56, textAlign: 'right', flexShrink: 0 }}>
+                  {option.points} pts
+                </Typography>
               </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto', minWidth: 56, textAlign: 'right', flexShrink: 0 }}>
-                {option.points} pts
-              </Typography>
-            </Box>
-          )}
+            );
+          }}
           renderInput={(params) => (
             <TextField
               {...params}
