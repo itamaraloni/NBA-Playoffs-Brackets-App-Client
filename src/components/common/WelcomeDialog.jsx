@@ -64,7 +64,7 @@ const WelcomeDialog = ({
     : `${playerName}, you are in ${resolvedLeagueName}.`;
   const introText = isCommissioner
     ? `Your league is ready. Share the invite link, keep an eye on membership from League page, and make sure your own bracket is submitted before ${deadlineText}.`
-    : `Your player profile is ready. Next, submit your bracket before ${deadlineText} and fill in matchup predictions before each series becomes active.`;
+    : `Your player profile is ready. Next, submit your bracket before ${deadlineText} and fill in live picks before each series becomes active.`;
 
   const handleCopyInvite = async () => {
     if (!inviteUrl) {
@@ -141,9 +141,9 @@ const WelcomeDialog = ({
           />
           <GuidanceRow
             icon={<SportsBasketballIcon fontSize="small" />}
-            title="Fill in matchup predictions"
-            body="Set series picks before each matchup becomes active so you do not miss scoring opportunities."
-            pageLabel="Predictions"
+            title="Fill in live picks"
+            body="Set your live picks before each matchup becomes active so you do not miss scoring opportunities."
+            pageLabel="Live Picks"
           />
           <GuidanceRow
             icon={<GroupAddIcon fontSize="small" />}

@@ -116,6 +116,7 @@ This guideline applies to all frontend work - code changes, PR reviews, planning
 - **`console.log` is suppressed in production** via a guard in `src/index.js` (`process.env.NODE_ENV === 'production'`). Do not rely on `console.log` for anything that needs to surface in production — use error boundaries or notification service instead
 - **Service modules** (`UserServices`, `LeagueServices`, `MatchupServices`) are plain objects with async methods - not classes
 - **Data transformation happens in services** - services convert snake_case API responses to camelCase UI objects before returning. Components should never deal with raw API response shapes
+- `ConfigServices.getMvpCandidates()` returns active candidates for both user pickers and the Admin Config flow. Keep the transformed shape aligned with the server contract, including `teamId`, because the Admin page filters the actual-Finals-MVP selector to the remaining active team's roster.
 - **Notifications:** use `window.notify.success()`, `.error()`, `.warning()`, `.info()` (React Toastify via `NotificationService.js`). Always guard with `if (window.notify)`
 
 ### Data Fetching Pattern
@@ -142,6 +143,22 @@ useEffect(() => {
   fetchData();
 }, [dependencies]);
 ```
+
+### Jest Verification Files
+
+- Prefer narrow Jest runs for touched surfaces instead of defaulting to the full client suite
+- Existing focused verification files currently used locally:
+  - `src/FirstLoginGuard.test.jsx`
+  - `src/components/AppExplanation.test.jsx`
+  - `src/components/EditPicksDialog.test.jsx`
+  - `src/components/common/OnboardingDialogs.test.jsx`
+  - `src/pages/CreatePlayerPage.test.jsx`
+  - `src/pages/Dashboard.test.jsx`
+  - `src/utils/bracketUtils.test.js`
+- These focused verification files are intentionally local-only by default and are listed in `.gitignore`
+- Use them freely for local regression checks while developing; if a future task benefits from another focused Jest file, create it near the touched feature and add it to `.gitignore` unless the user explicitly wants that test tracked in git
+- Preferred command pattern:
+  `cmd /c "set CI=true && npm.cmd test -- --watchAll=false --runInBand <test paths...>"`
 
 ### Routing
 
