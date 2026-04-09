@@ -66,9 +66,9 @@ const FirstLoginDialog = ({ open, onClose }) => {
           />
           <GuidanceRow
             icon={<SportsBasketballIcon fontSize="small" />}
-            title="Complete matchup predictions"
-            body="Visit Predictions page early and fill in each series before it becomes active, otherwise you lose that pick window."
-            pageLabel="Predictions"
+            title="Complete live picks"
+            body="Visit Live Picks page early and lock in each live pick before a series becomes active, otherwise you lose that pick window."
+            pageLabel="Live Picks"
           />
           <GuidanceRow
             icon={<InsightsIcon fontSize="small" />}

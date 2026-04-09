@@ -13,6 +13,7 @@ import {
   Alert,
   CircularProgress,
   useTheme,
+  useMediaQuery,
   Card,
   CardActionArea,
   CardContent,
@@ -39,7 +40,8 @@ const CreatePlayerPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const { refreshLeagueData, clearIsNewUser } = useAuth();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { refreshLeagueData, clearIsNewUser, isNewUser } = useAuth();
   const { teams, loading: teamsLoading } = useTeams();
   const { mvpCandidates, loading: mvpLoading } = useMvpCandidates();
 
@@ -57,6 +59,11 @@ const CreatePlayerPage = () => {
 
   // Invite token: try navigation state first, fall back to sessionStorage (survives page refresh)
   const inviteToken = location.state?.inviteToken || sessionStorage.getItem('pendingInviteToken');
+  const hasPendingFirstLoginWelcome = sessionStorage.getItem(PENDING_FIRST_LOGIN_WELCOME_KEY) === 'true';
+  const hasCompletedOnboarding = localStorage.getItem(HAS_COMPLETED_ONBOARDING_KEY) === 'true';
+  const showInviteWelcomeBanner = Boolean(inviteToken)
+    && !hasCompletedOnboarding
+    && (isNewUser || hasPendingFirstLoginWelcome);
 
   // Persist invite token in sessionStorage so it survives page refresh
   useEffect(() => {
@@ -112,6 +119,27 @@ const CreatePlayerPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [welcomeData, setWelcomeData] = useState(null);
+
+  const autocompleteInputProps = (params) => (
+    isMobile
+      ? {
+          ...params.inputProps,
+          readOnly: true,
+          inputMode: 'none',
+          autoComplete: 'off',
+          autoCorrect: 'off',
+          spellCheck: false,
+        }
+      : params.inputProps
+  );
+
+  const mobileAutocompleteProps = isMobile
+    ? {
+        openOnFocus: true,
+        blurOnSelect: true,
+        disablePortal: true,
+      }
+    : {};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -231,6 +259,17 @@ const CreatePlayerPage = () => {
         <Typography variant="body1" sx={{ mb: 4 }} align="center" color="text.secondary">
           Set up your player profile, choose an avatar that best suits you, and make your predictions for the winners of the 2025 playoffs.
         </Typography>
+
+        {showInviteWelcomeBanner && (
+          <Alert severity="info" sx={{ mb: 3, alignItems: 'center' }}>
+            <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+              Welcome to Playoff Prophet
+            </Typography>
+            <Typography variant="body2">
+              Create your player to finish joining this league. Once setup is done, you&apos;ll land in the app with your next steps.
+            </Typography>
+          </Alert>
+        )}
         
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 3 }}>
           <Typography variant="h6" component="h2" gutterBottom>
@@ -337,24 +376,29 @@ const CreatePlayerPage = () => {
               options={teamOptions}
               loading={teamsLoading}
               fullWidth
+              {...mobileAutocompleteProps}
               value={selectedTeam ? teamOptions.find(team => team.name === selectedTeam) || null : null}
               onChange={(event, newValue) => {
                 setSelectedTeam(newValue ? newValue.name : null);
               }}
               getOptionLabel={(option) => option.name}
-              renderOption={(props, option) => (
-                <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, width: '100%' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
-                    <Avatar src={option.avatarSrc} alt={option.name} variant="rounded" sx={{ width: 32, height: 32 }} />
-                    <Typography variant="body2" fontWeight={600} noWrap>
-                      {option.name}
+              renderOption={(props, option) => {
+                const { key, ...optionProps } = props;
+
+                return (
+                  <Box key={key} component="li" {...optionProps} sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0, flex: 1 }}>
+                      <Avatar src={option.avatarSrc} alt={option.name} variant="rounded" sx={{ width: 32, height: 32 }} />
+                      <Typography variant="body2" fontWeight={600} noWrap>
+                        {option.name}
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto', minWidth: 56, textAlign: 'right', flexShrink: 0 }}>
+                      {option.points} pts
                     </Typography>
                   </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ ml: 2, flexShrink: 0 }}>
-                    {option.points} pts
-                  </Typography>
-                </Box>
-              )}
+                );
+              }}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -362,6 +406,7 @@ const CreatePlayerPage = () => {
                   required
                   variant="outlined"
                   margin="normal"
+                  inputProps={autocompleteInputProps(params)}
                 />
               )}
             />
@@ -372,29 +417,34 @@ const CreatePlayerPage = () => {
               options={mvpOptions}
               loading={mvpLoading}
               fullWidth
+              {...mobileAutocompleteProps}
               value={selectedMVP ? mvpOptions.find(player => player.name === selectedMVP) || null : null}
               onChange={(event, newValue) => {
                 setSelectedMVP(newValue ? newValue.name : null);
               }}
               getOptionLabel={(option) => option.name}
-              renderOption={(props, option) => (
-                <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, width: '100%' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
-                    <Avatar src={option.avatarSrc} alt={option.name} variant="rounded" sx={{ width: 32, height: 32 }} />
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography variant="body2" fontWeight={600} noWrap>
-                        {option.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" noWrap>
-                        {option.teamName}
-                      </Typography>
+              renderOption={(props, option) => {
+                const { key, ...optionProps } = props;
+
+                return (
+                  <Box key={key} component="li" {...optionProps} sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0, flex: 1 }}>
+                      <Avatar src={option.avatarSrc} alt={option.name} variant="rounded" sx={{ width: 32, height: 32 }} />
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography variant="body2" fontWeight={600} noWrap>
+                          {option.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" noWrap>
+                          {option.teamName}
+                        </Typography>
+                      </Box>
                     </Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto', minWidth: 56, textAlign: 'right', flexShrink: 0 }}>
+                      {option.points} pts
+                    </Typography>
                   </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ ml: 2, flexShrink: 0 }}>
-                    {option.points} pts
-                  </Typography>
-                </Box>
-              )}
+                );
+              }}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -402,6 +452,7 @@ const CreatePlayerPage = () => {
                   required
                   variant="outlined"
                   margin="normal"
+                  inputProps={autocompleteInputProps(params)}
                 />
               )}
             />

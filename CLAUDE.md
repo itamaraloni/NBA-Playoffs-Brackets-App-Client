@@ -143,6 +143,22 @@ useEffect(() => {
 }, [dependencies]);
 ```
 
+### Jest Verification Files
+
+- Prefer narrow Jest runs for touched surfaces instead of defaulting to the full client suite
+- Existing focused verification files currently used locally:
+  - `src/FirstLoginGuard.test.jsx`
+  - `src/components/AppExplanation.test.jsx`
+  - `src/components/EditPicksDialog.test.jsx`
+  - `src/components/common/OnboardingDialogs.test.jsx`
+  - `src/pages/CreatePlayerPage.test.jsx`
+  - `src/pages/Dashboard.test.jsx`
+  - `src/utils/bracketUtils.test.js`
+- These focused verification files are intentionally local-only by default and are listed in `.gitignore`
+- Use them freely for local regression checks while developing; if a future task benefits from another focused Jest file, create it near the touched feature and add it to `.gitignore` unless the user explicitly wants that test tracked in git
+- Preferred command pattern:
+  `cmd /c "set CI=true && npm.cmd test -- --watchAll=false --runInBand <test paths...>"`
+
 ### Routing
 
 - React Router v7 - routes defined in `src/App.js`

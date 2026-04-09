@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import StandaloneHeader from '../components/common/StandaloneHeader';
-import AppExplanation from '../components/AppExplanation';
 import {
   Box,
   Button,
@@ -197,10 +196,6 @@ const LandingPage = () => {
               </Paper>
             </Grid>
           </Grid>
-          {/* How It Works Section */}
-          <Box sx={{ mt: 8, color: 'text.primary' }}>
-            <AppExplanation elevation={2} />
-          </Box>
         </Container>
       </Box>
 

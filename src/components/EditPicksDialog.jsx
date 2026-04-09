@@ -6,15 +6,14 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Typography,
   Box,
   useTheme,
+  useMediaQuery,
   IconButton,
-  Avatar
+  Avatar,
+  Autocomplete,
+  TextField,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -29,6 +28,7 @@ import { getPlayerAvatar } from '../shared/playerUtils';
 
 const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { teams, loading: teamsLoading } = useTeams();
   const { mvpCandidates, loading: mvpLoading } = useMvpCandidates();
   const [isEditWindowClosed, setIsEditWindowClosed] = useState(
@@ -73,10 +73,6 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
     }
   }, [open, isEditWindowClosed, onClose]);
 
-  const handleChange = (event) => {
-    setSelection(event.target.value);
-  };
-
   const handleSave = () => {
     onSave(type, selection);
     onClose();
@@ -110,6 +106,28 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
 
   const optionsLoading = type === 'championship' ? teamsLoading : mvpLoading;
   const options = getOptions();
+  const selectedOption = options.find((item) => item.name === selection) || null;
+
+  const autocompleteInputProps = (params) => (
+    isMobile
+      ? {
+          ...params.inputProps,
+          readOnly: true,
+          inputMode: 'none',
+          autoComplete: 'off',
+          autoCorrect: 'off',
+          spellCheck: false,
+        }
+      : params.inputProps
+  );
+
+  const mobileAutocompleteProps = isMobile
+    ? {
+        openOnFocus: true,
+        blurOnSelect: true,
+        disablePortal: true,
+      }
+    : {};
 
   const getIcon = () => {
     return type === 'championship' 
@@ -152,24 +170,26 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
             type === 'championship' ? player?.championshipPrediction : player?.mvpPrediction
           }</strong>
         </Typography>
-        <FormControl fullWidth>
-          <InputLabel id="edit-prediction-label">
-            {type === 'championship' ? 'Championship Winner' : 'Finals MVP'}
-          </InputLabel>
-          <Select
-            labelId="edit-prediction-label"
-            value={selection}
-            label={type === 'championship' ? 'Championship Winner' : 'Finals MVP'}
-            onChange={handleChange}
-            color={getColor()}
-            disabled={optionsLoading}
-            renderValue={(value) => {
-              const option = options.find((item) => item.name === value);
-              if (!option) return value;
+        <Autocomplete
+          options={options}
+          loading={optionsLoading}
+          value={selectedOption}
+          onChange={(event, newValue) => {
+            setSelection(newValue ? newValue.name : '');
+          }}
+          getOptionLabel={(option) => option.name}
+          isOptionEqualToValue={(option, value) => option.name === value.name}
+          fullWidth
+          disableClearable
+          disabled={optionsLoading}
+          {...mobileAutocompleteProps}
+          renderOption={(props, option) => {
+            const { key, ...optionProps } = props;
 
-              return (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
-                  <Avatar src={option.avatarSrc} alt={option.name} variant="rounded" sx={{ width: 28, height: 28 }} />
+            return (
+              <Box key={key} component="li" {...optionProps} sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0, flex: 1 }}>
+                  <Avatar src={option.avatarSrc} alt={option.name} variant="rounded" sx={{ width: 32, height: 32 }} />
                   <Box sx={{ minWidth: 0 }}>
                     <Typography variant="body2" fontWeight={600} noWrap>
                       {option.name}
@@ -181,33 +201,21 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
                     )}
                   </Box>
                 </Box>
-              );
-            }}
-          >
-            {options.map((option) => (
-              <MenuItem key={option.name} value={option.name}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, width: '100%' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
-                    <Avatar src={option.avatarSrc} alt={option.name} variant="rounded" sx={{ width: 32, height: 32 }} />
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography variant="body2" fontWeight={600} noWrap>
-                        {option.name}
-                      </Typography>
-                      {option.teamName && (
-                        <Typography variant="caption" color="text.secondary" noWrap>
-                          {option.teamName}
-                        </Typography>
-                      )}
-                    </Box>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ ml: 2, flexShrink: 0 }}>
-                    {option.points} pts
-                  </Typography>
-                </Box>
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto', minWidth: 56, textAlign: 'right', flexShrink: 0 }}>
+                  {option.points} pts
+                </Typography>
+              </Box>
+            );
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label={type === 'championship' ? 'Championship Winner' : 'Finals MVP'}
+              color={getColor()}
+              inputProps={autocompleteInputProps(params)}
+            />
+          )}
+        />
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose} color="inherit">Cancel</Button>
