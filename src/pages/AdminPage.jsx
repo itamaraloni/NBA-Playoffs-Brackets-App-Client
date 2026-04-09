@@ -196,6 +196,19 @@ const AdminPage = () => {
     }
   };
 
+  const handlePickActualMvp = async (nbaPlayerId) => {
+    try {
+      const result = await AdminServices.pickActualMvp(nbaPlayerId);
+      if (window.notify) window.notify.success(`Actual MVP set to ${result.name}`);
+    } catch (err) {
+      if (window.notify) window.notify.error(err.message || 'Failed to set actual MVP');
+      throw err;
+    } finally {
+      clearMvpCandidatesCache();
+      await fetchConfigData();
+    }
+  };
+
   return (
     <Box>
       <Typography variant={isMobile ? 'h5' : 'h4'} sx={{ mb: 3, fontWeight: 'bold' }}>
@@ -259,6 +272,7 @@ const AdminPage = () => {
           onUpdateScoring={handleUpdateScoring}
           onUpdateTeam={handleUpdateTeam}
           onUpdateMvpPlayer={handleUpdateMvpPlayer}
+          onPickActualMvp={handlePickActualMvp}
         />
       )}
     </Box>
