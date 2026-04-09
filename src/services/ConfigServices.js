@@ -53,6 +53,7 @@ const ConfigServices = {
       return response.mvp_candidates.map(c => ({
         nbaPlayerId: c.nba_player_id,
         name: c.name,
+        teamId: c.team_id,
         teamName: c.team_name,
         mvpPoints: c.mvp_points,
       }));

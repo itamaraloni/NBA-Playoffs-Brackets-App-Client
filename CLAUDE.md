@@ -116,6 +116,7 @@ This guideline applies to all frontend work - code changes, PR reviews, planning
 - **`console.log` is suppressed in production** via a guard in `src/index.js` (`process.env.NODE_ENV === 'production'`). Do not rely on `console.log` for anything that needs to surface in production — use error boundaries or notification service instead
 - **Service modules** (`UserServices`, `LeagueServices`, `MatchupServices`) are plain objects with async methods - not classes
 - **Data transformation happens in services** - services convert snake_case API responses to camelCase UI objects before returning. Components should never deal with raw API response shapes
+- `ConfigServices.getMvpCandidates()` returns active candidates for both user pickers and the Admin Config flow. Keep the transformed shape aligned with the server contract, including `teamId`, because the Admin page filters the actual-Finals-MVP selector to the remaining active team's roster.
 - **Notifications:** use `window.notify.success()`, `.error()`, `.warning()`, `.info()` (React Toastify via `NotificationService.js`). Always guard with `if (window.notify)`
 
 ### Data Fetching Pattern

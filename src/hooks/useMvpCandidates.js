@@ -13,7 +13,7 @@ let cachedPromise = null;
  * only once per browser session, no matter how many components use it.
  *
  * @returns {{ mvpCandidates: Array|null, loading: boolean, error: string|null }}
- *   mvpCandidates shape: [{ nbaPlayerId, name, teamName, mvpPoints }]
+ *   mvpCandidates shape: [{ nbaPlayerId, name, teamId, teamName, mvpPoints }]
  */
 export const clearMvpCandidatesCache = () => { cachedPromise = null; };
 
