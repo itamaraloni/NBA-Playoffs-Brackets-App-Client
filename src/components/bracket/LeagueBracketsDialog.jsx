@@ -105,7 +105,9 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
       setBracketData(data);
     } catch (err) {
       console.error('Failed to load bracket:', err);
-      setBracketError('Failed to load bracket.');
+      setBracketError(err.status === 403
+        ? 'You are not a member of this league.'
+        : 'Failed to load bracket.');
     } finally {
       setLoadingBracket(false);
     }

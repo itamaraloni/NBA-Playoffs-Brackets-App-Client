@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   Box,
   Stack,
@@ -12,6 +12,7 @@ import {
   TableRow,
   TextField,
   Button,
+  MenuItem,
   CircularProgress,
   Alert,
   useTheme,
@@ -88,6 +89,7 @@ const ScoringConfigTab = ({
   onUpdateScoring,
   onUpdateTeam,
   onUpdateMvpPlayer,
+  onPickActualMvp,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -276,6 +278,47 @@ const ScoringConfigTab = ({
     () => mvpCandidates ? [...mvpCandidates].sort((a, b) => (a.mvpPoints ?? 0) - (b.mvpPoints ?? 0)) : [],
     [mvpCandidates]
   );
+
+  const championTeam = useMemo(
+    () => (teams?.length === 1 ? teams[0] : null),
+    [teams]
+  );
+
+  const eligibleActualMvpCandidates = useMemo(
+    () => (
+      championTeam
+        ? sortedMvpCandidates.filter(candidate => candidate.teamId === championTeam.teamId)
+        : []
+    ),
+    [championTeam, sortedMvpCandidates]
+  );
+
+  const [selectedActualMvpId, setSelectedActualMvpId] = useState('');
+  const [actualMvpSaving, setActualMvpSaving] = useState(false);
+
+  useEffect(() => {
+    if (!championTeam || eligibleActualMvpCandidates.length === 0) {
+      setSelectedActualMvpId('');
+      return;
+    }
+
+    if (!eligibleActualMvpCandidates.some(candidate => candidate.nbaPlayerId === selectedActualMvpId)) {
+      setSelectedActualMvpId(eligibleActualMvpCandidates[0].nbaPlayerId);
+    }
+  }, [championTeam, eligibleActualMvpCandidates, selectedActualMvpId]);
+
+  const handlePickActualMvp = async () => {
+    if (!selectedActualMvpId) return;
+
+    setActualMvpSaving(true);
+    try {
+      await onPickActualMvp(selectedActualMvpId);
+    } catch (err) {
+      // Notification is handled by the page-level callback.
+    } finally {
+      setActualMvpSaving(false);
+    }
+  };
 
   // --- Render ---
   if (loading) {
@@ -488,6 +531,59 @@ const ScoringConfigTab = ({
             <Typography variant="body2" color="text.secondary">
               No MVP candidates available
             </Typography>
+          )}
+        </Paper>
+
+        {/* Section 4: Actual Finals MVP */}        
+        <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Actual Finals MVP
+          </Typography>
+
+          {!championTeam ? (
+            <Typography variant="body2" color="text.secondary">
+              Available after the Finals complete and exactly one active team remains.
+            </Typography>
+          ) : eligibleActualMvpCandidates.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              No active MVP candidates are available for {championTeam.name}.
+            </Typography>
+          ) : (
+            <Stack spacing={2}>
+              <Alert severity="info">
+                Finals winner: {championTeam.name}. Selecting the actual MVP will award bonus points to matching picks
+                and mark the other active players on that roster as eliminated.
+              </Alert>
+
+              <Stack
+                direction={isMobile ? 'column' : 'row'}
+                spacing={2}
+                sx={{ alignItems: isMobile ? 'stretch' : 'flex-end' }}
+              >
+                <TextField
+                  select
+                  fullWidth={isMobile}
+                  label="Actual MVP"
+                  value={selectedActualMvpId}
+                  onChange={(event) => setSelectedActualMvpId(event.target.value)}
+                  sx={{ minWidth: isMobile ? 'auto' : 320 }}
+                >
+                  {eligibleActualMvpCandidates.map((candidate) => (
+                    <MenuItem key={candidate.nbaPlayerId} value={candidate.nbaPlayerId}>
+                      {candidate.name} ({candidate.mvpPoints} pts)
+                    </MenuItem>
+                  ))}
+                </TextField>
+
+                <Button
+                  variant="contained"
+                  disabled={!selectedActualMvpId || actualMvpSaving}
+                  onClick={handlePickActualMvp}
+                >
+                  {actualMvpSaving ? 'Saving...' : 'Set Actual MVP'}
+                </Button>
+              </Stack>
+            </Stack>
           )}
         </Paper>
       </Stack>

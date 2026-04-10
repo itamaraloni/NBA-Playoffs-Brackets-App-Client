@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTheme } from '@mui/material';
+import { useTheme, useMediaQuery } from '@mui/material';
 import TeamsDisplay from './common/MatchupTeamsDisplay';
 import ScoreCounter from './common/ScoreCounter';
 import MatchScoreDisplay from './common/MatchupScoreDisplay';
@@ -11,13 +11,15 @@ import {
   Box,
   Button,
   Alert,
-  Chip
+  Chip,
+  CircularProgress
 } from '@mui/material';
-import { RocketLaunch, EmojiEvents } from '@mui/icons-material';
+import { RocketLaunch, EmojiEvents, AccessTime, Lock } from '@mui/icons-material';
 import { Close } from '@mui/icons-material';
 import { BsBullseye } from 'react-icons/bs';
 import { TbCrystalBall } from 'react-icons/tb';
 import { useScoringConfig } from '../hooks/useScoringConfig';
+import { formatDeadline, getDeadlineTimestamp } from '../utils/deadlineUtils';
 
 /**
  * Card component displaying a playoff matchup with prediction functionality
@@ -32,6 +34,7 @@ const MatchupPredictionCard = ({
   predictedHomeScore = null,
   predictedAwayScore = null,
   round = 1,
+  predictionDeadlineAt = null,
   onSubmitPrediction,
   onViewDetails
 }) => {
@@ -39,8 +42,22 @@ const MatchupPredictionCard = ({
   const [awayScore, setAwayScore] = useState(predictedAwayScore || 0);
   const [validationError, setValidationError] = useState('');
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const [isSubmittingPrediction, setIsSubmittingPrediction] = useState(false);
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { scoringConfig } = useScoringConfig();
+  const isPlayInRound = round === "playin_first" || round === "playin_second";
+  const hasSavedPrediction = predictedHomeScore !== null && predictedAwayScore !== null;
+
+  const handleHomeScoreChange = (nextScore) => {
+    setHomeScore(nextScore);
+    setValidationError('');
+  };
+
+  const handleAwayScoreChange = (nextScore) => {
+    setAwayScore(nextScore);
+    setValidationError('');
+  };
 
   /**
    * Get round display text
@@ -74,7 +91,7 @@ const MatchupPredictionCard = ({
   /**
    * Handle user prediction submission
    */
-  const handleSubmitPrediction = () => {
+  const handleSubmitPrediction = async () => {
     const error = validateScore(homeScore, awayScore);
     if (error) {
       setValidationError(error);
@@ -84,11 +101,16 @@ const MatchupPredictionCard = ({
     setValidationError('');
 
     if (onSubmitPrediction) {
-      onSubmitPrediction({
-        matchupId: matchupId,
-        homeScore,
-        awayScore
-      });
+      setIsSubmittingPrediction(true);
+      try {
+        await onSubmitPrediction({
+          matchupId: matchupId,
+          homeScore,
+          awayScore
+        });
+      } finally {
+        setIsSubmittingPrediction(false);
+      }
     }
   };
 
@@ -116,7 +138,7 @@ const MatchupPredictionCard = ({
    */
   useEffect(() => {
     // If we have a previous prediction, set the selected team
-    if (round === "playin_first" || round === "playin_second") {
+    if (isPlayInRound) {
       if (predictedHomeScore === 1) {
         setSelectedTeam('home');
       } else if (predictedAwayScore === 1) {
@@ -124,15 +146,93 @@ const MatchupPredictionCard = ({
       } else {
         setSelectedTeam(null);
       }
+      setValidationError('');
     }
-  }, [round, predictedHomeScore, predictedAwayScore]);
+  }, [isPlayInRound, predictedHomeScore, predictedAwayScore]);
+
+  useEffect(() => {
+    if (isPlayInRound) {
+      return;
+    }
+
+    setHomeScore(predictedHomeScore ?? 0);
+    setAwayScore(predictedAwayScore ?? 0);
+    setValidationError('');
+  }, [isPlayInRound, predictedHomeScore, predictedAwayScore, matchupId]);
 
   /**
    * Render prediction input for upcoming games
    */
   const renderUpcomingMatchup = () => {
+    const deadlineTimestamp = getDeadlineTimestamp(predictionDeadlineAt);
+    const deadlineLabel = formatDeadline(predictionDeadlineAt, { compact: true });
+    const isDeadlinePassed = deadlineTimestamp !== null && Date.now() >= deadlineTimestamp;
+    const deadlineColor = isDeadlinePassed ? 'error.main' : 'warning.main';
+    const DeadlineIcon = isDeadlinePassed ? Lock : AccessTime;
+    const deadlineTitle = isDeadlinePassed ? 'Predictions closed at' : 'Predictions close at';
+    const selectedPlayInPrediction = selectedTeam === 'home'
+      ? { homeScore: 1, awayScore: 0 }
+      : selectedTeam === 'away'
+        ? { homeScore: 0, awayScore: 1 }
+        : null;
+    const isPlayInPredictionUnchanged = Boolean(selectedPlayInPrediction)
+      && predictedHomeScore === selectedPlayInPrediction.homeScore
+      && predictedAwayScore === selectedPlayInPrediction.awayScore;
+    const isSeriesPredictionUnchanged = hasSavedPrediction
+      && homeScore === predictedHomeScore
+      && awayScore === predictedAwayScore;
+    const isSubmitDisabled = Boolean(isDeadlinePassed)
+      || isSubmittingPrediction
+      || (isPlayInRound && !selectedPlayInPrediction)
+      || (isPlayInRound ? isPlayInPredictionUnchanged : isSeriesPredictionUnchanged);
+    const submitButtonLabel = isDeadlinePassed
+      ? 'Predictions Closed'
+      : isSubmittingPrediction
+        ? 'Submitting...'
+        : 'Submit Prediction';
+    const submitButtonIcon = isDeadlinePassed
+      ? <Lock />
+      : isSubmittingPrediction
+        ? <CircularProgress size={18} color="inherit" />
+        : <RocketLaunch />;
+
+    const deadlineDisplay = deadlineLabel ? (
+      <Box
+        sx={{
+          mt: 2,
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          px: { xs: 1, sm: 0 }
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, maxWidth: '100%' }}>
+          <DeadlineIcon fontSize="small" sx={{ color: deadlineColor, mt: 0.15, flexShrink: 0 }} />
+          <Box sx={{ minWidth: 0, textAlign: 'center' }}>
+            <Typography
+              variant="caption"
+              sx={{ color: deadlineColor, fontWeight: 600, display: 'block', lineHeight: 1.2 }}
+            >
+              {deadlineTitle}
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: deadlineColor,
+                fontWeight: 500,
+                lineHeight: 1.2,
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {deadlineLabel}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+    ) : null;
+
     // For Play-In games (single elimination)
-    if (round === "playin_first" || round === "playin_second") {
+    if (isPlayInRound) {
       const handleTeamSelect = (team) => {
         // Toggle selection if clicking the same team
         if (selectedTeam === team) {
@@ -143,7 +243,7 @@ const MatchupPredictionCard = ({
         setValidationError('');
       };
 
-      const handlePlayInPrediction = () => {
+      const handlePlayInPrediction = async () => {
         if (!selectedTeam) {
           setValidationError('Please select a team to win');
           return;
@@ -151,11 +251,16 @@ const MatchupPredictionCard = ({
 
         if (onSubmitPrediction) {
           const homeWin = selectedTeam === 'home';
-          onSubmitPrediction({
-            matchupId: matchupId,
-            homeScore: homeWin ? 1 : 0,
-            awayScore: homeWin ? 0 : 1
-          });
+          setIsSubmittingPrediction(true);
+          try {
+            await onSubmitPrediction({
+              matchupId: matchupId,
+              homeScore: homeWin ? 1 : 0,
+              awayScore: homeWin ? 0 : 1
+            });
+          } finally {
+            setIsSubmittingPrediction(false);
+          }
         }
       };
 
@@ -171,15 +276,18 @@ const MatchupPredictionCard = ({
             validationError={validationError}
           />
 
-          <Box sx={{ textAlign: 'center', mt: 3 }}>
+          {deadlineDisplay}
+
+          <Box sx={{ textAlign: 'center', mt: 1 }}>
             <Button
               variant="contained"
               color="primary"
-              startIcon={<RocketLaunch />}
+              startIcon={submitButtonIcon}
               onClick={handlePlayInPrediction}
+              disabled={isSubmitDisabled}
               sx={{ minWidth: '180px' }}
             >
-              Submit Prediction
+              {submitButtonLabel}
             </Button>
           </Box>
         </Box>
@@ -205,16 +313,18 @@ const MatchupPredictionCard = ({
           px: 2
         }}>
           <ScoreCounter
-            label={homeTeam.name}
+            label={null}
             value={homeScore}
-            onChange={setHomeScore}
+            onChange={handleHomeScoreChange}
+            disabled={!!isDeadlinePassed}
             sx={{ width: '100%', maxWidth: 200 }}
           />
           
           <ScoreCounter
-            label={awayTeam.name}
+            label={null}
             value={awayScore}
-            onChange={setAwayScore}
+            onChange={handleAwayScoreChange}
+            disabled={!!isDeadlinePassed}
             sx={{ width: '100%', maxWidth: 200 }}
           />
         </Box>
@@ -225,15 +335,18 @@ const MatchupPredictionCard = ({
           </Alert>
         )}
 
-        <Box sx={{ textAlign: 'center', mt: 2 }}>
+        {deadlineDisplay}
+
+        <Box sx={{ textAlign: 'center', mt: 1 }}>
           <Button
             variant="contained"
             color="primary"
-            startIcon={<RocketLaunch />}
+            startIcon={submitButtonIcon}
             onClick={handleSubmitPrediction}
+            disabled={isSubmitDisabled}
             sx={{ minWidth: '180px' }}
           >
-            Submit Prediction
+            {submitButtonLabel}
           </Button>
         </Box>
       </Box>
@@ -295,6 +408,8 @@ const MatchupPredictionCard = ({
           homeScore={actualHomeScore}
           awayScore={actualAwayScore}
           round={round}
+          resultColor="success"
+          showSeriesWinnerChip
           sx={{ mb: 1, width: '100%' }}
         />
 
@@ -381,9 +496,19 @@ const MatchupPredictionCard = ({
     switch (status) {
       case 'upcoming': return 'info';
       case 'in-progress': return 'warning';
-      case 'completed': return 'success';
+      case 'completed': return 'default';
       default: return 'default';
     }
+  };
+
+  const getStatusChipSx = () => {
+    if (status !== 'completed') return {};
+
+    return {
+      bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : theme.palette.grey[200],
+      color: theme.palette.text.primary,
+      border: `1px solid ${theme.palette.divider}`,
+    };
   };
 
   /**
@@ -457,38 +582,79 @@ const MatchupPredictionCard = ({
         borderRadius: 2,
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         position: 'relative',
-        overflow: 'visible'
+        overflow: isMobile ? 'hidden' : 'visible'
       }}
     >
-      {/* Round Badge */}
-      <Chip
-        icon={<EmojiEvents fontSize="small" />}
-        label={getRoundDisplay()}
-        color="primary"
-        sx={{
-          position: 'absolute',
-          top: -12,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          fontWeight: 'bold',
-          zIndex: 1
-        }}
-      />
-      
-      {/* Status Chip */}
-      <Chip
-        label={getStatusText()}
-        color={getStatusColor()}
-        size="small"
-        sx={{
-          position: 'absolute',
-          top: 10,
-          right: 10,
-          fontWeight: 'medium'
-        }}
-      />
-      
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pt: 4 }}>
+      {!isMobile && (
+        <>
+          <Chip
+            icon={<EmojiEvents fontSize="small" />}
+            label={getRoundDisplay()}
+            color="primary"
+            sx={{
+              position: 'absolute',
+              top: -12,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              fontWeight: 'bold',
+              zIndex: 1
+            }}
+          />
+
+          <Chip
+            label={getStatusText()}
+            color={getStatusColor()}
+            size="small"
+            sx={{
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              fontWeight: 'medium',
+              ...getStatusChipSx()
+            }}
+          />
+        </>
+      )}
+
+      <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pt: isMobile ? 2.5 : 4 }}>
+        {isMobile && (
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 1,
+              mb: 2,
+            }}
+          >
+            <Chip
+              icon={<EmojiEvents fontSize="small" />}
+              label={getRoundDisplay()}
+              color="primary"
+              sx={{
+                fontWeight: 'bold',
+                maxWidth: '100%',
+                '& .MuiChip-label': {
+                  display: 'block',
+                  whiteSpace: 'normal',
+                  textAlign: 'center'
+                }
+              }}
+            />
+            <Chip
+              label={getStatusText()}
+              color={getStatusColor()}
+              size="small"
+              sx={{
+                fontWeight: 'medium',
+                ...getStatusChipSx()
+              }}
+            />
+          </Box>
+        )}
+
         {/* Teams Display */}
         <TeamsDisplay 
           homeTeam={homeTeam} 

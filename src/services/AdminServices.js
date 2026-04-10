@@ -45,6 +45,7 @@ const AdminServices = {
         round: m.round,
         conference: m.conference,
         bracketPosition: m.bracket_position,
+        predictionDeadlineAt: m.prediction_deadline_at || null,
         createdAt: m.created_at,
         updatedAt: m.updated_at,
       }));
@@ -68,6 +69,7 @@ const AdminServices = {
         away_team_id: data.awayTeamId,
         round: data.round,
         conference: data.conference,
+        prediction_deadline_at: data.predictionDeadlineAt,
       });
 
       return {
@@ -316,6 +318,30 @@ const AdminServices = {
       };
     } catch (error) {
       console.error('Error updating NBA player MVP points:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Select the actual Finals MVP and apply player scoring/status updates.
+   * @param {string} nbaPlayerId
+   * @returns {Promise<Object>}
+   */
+  pickActualMvp: async (nbaPlayerId) => {
+    try {
+      const response = await apiClient.put('/admin/mvp/actual', {
+        nba_player_id: nbaPlayerId,
+      });
+      return {
+        nbaPlayerId: response.nba_player_id,
+        name: response.name,
+        teamId: response.team_id,
+        mvpPoints: response.mvp_points,
+        awardedPlayerCount: response.awarded_player_count,
+        deactivatedCandidateCount: response.deactivated_candidate_count,
+      };
+    } catch (error) {
+      console.error('Error selecting actual MVP:', error);
       throw error;
     }
   },

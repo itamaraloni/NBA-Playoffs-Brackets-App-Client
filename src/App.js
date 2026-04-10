@@ -1,11 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ThemeProvider from './theme/ThemeProvider';
 import Layout from './components/Layout';
 import StandaloneHeader from './components/common/StandaloneHeader';
+import FirstLoginGuard from './components/common/FirstLoginGuard';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
@@ -20,84 +21,103 @@ import AdminPage from './pages/AdminPage';
 import AdminRoute from './components/admin/AdminRoute';
 
 function AppContent() {
-  const { logout, isAuthenticated } = useAuth();
-  
+  const { logout } = useAuth();
+
   const handleLogout = () => {
-    logout(); // From AuthContext.useAuth()
+    logout();
   };
-  
+
   return (
     <Router>
-<Routes>
-  {/* Public landing page now at "/" */}
-  <Route path="/" element={<LandingPage />} />
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/invite/:token" element={<InviteLandingPage />} />
 
-  {/* Public invite landing page — must be before ProtectedRoute */}
-  <Route path="/invite/:token" element={<InviteLandingPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route
+            path="/create-league"
+            element={
+              <>
+                <StandaloneHeader title="Create League" onLogout={handleLogout} />
+                <div className="container mx-auto mt-8 px-4">
+                  <CreateLeaguePage />
+                </div>
+              </>
+            }
+          />
 
-  {/* Protected routes */}
-  <Route element={<ProtectedRoute />}>
-    <Route path="/create-league" element={
-      <>
-        <StandaloneHeader title="Create League" onLogout={handleLogout} />
-        <div className="container mx-auto mt-8 px-4">
-          <CreateLeaguePage />
-        </div>
-      </>
-    } />
-    
-    <Route path="/create-player" element={
-      <>
-        <StandaloneHeader title="Create Player" onLogout={handleLogout} />
-        <div className="container mx-auto mt-8 px-4">
-          <CreatePlayerPage />
-        </div>
-      </>
-    } />
+          <Route
+            path="/create-player"
+            element={
+              <>
+                <StandaloneHeader title="Create Player" onLogout={handleLogout} />
+                <div className="container mx-auto mt-8 px-4">
+                  <CreatePlayerPage />
+                </div>
+              </>
+            }
+          />
 
-    <Route path="/dashboard" element={
-      <Layout onLogout={handleLogout}>
-        <Dashboard />
-      </Layout>
-    } />
+          <Route
+            path="/dashboard"
+            element={
+              <Layout onLogout={handleLogout}>
+                <Dashboard />
+              </Layout>
+            }
+          />
 
-    <Route path="/predictions" element={
-      <Layout onLogout={handleLogout}>
-        <PredictionsPage />
-      </Layout>
-    } />
+          <Route
+            path="/predictions"
+            element={
+              <Layout onLogout={handleLogout}>
+                <PredictionsPage />
+              </Layout>
+            }
+          />
 
-    <Route path="/league" element={
-      <Layout onLogout={handleLogout}>
-        <LeaguePage />
-      </Layout>
-    } />
+          <Route
+            path="/league"
+            element={
+              <Layout onLogout={handleLogout}>
+                <LeaguePage />
+              </Layout>
+            }
+          />
 
-    <Route path="/profile" element={
-      <Layout onLogout={handleLogout}>
-        <ProfilePage />
-      </Layout>
-    } />
+          <Route
+            path="/profile"
+            element={
+              <Layout onLogout={handleLogout}>
+                <ProfilePage />
+              </Layout>
+            }
+          />
 
-    <Route path="/bracket" element={
-      <Layout onLogout={handleLogout}>
-        <BracketPage />
-      </Layout>
-    } />
+          <Route
+            path="/bracket"
+            element={
+              <Layout onLogout={handleLogout}>
+                <BracketPage />
+              </Layout>
+            }
+          />
 
-    <Route path="/admin" element={
-      <AdminRoute>
-        <Layout onLogout={handleLogout}>
-          <AdminPage />
-        </Layout>
-      </AdminRoute>
-    } />
-  </Route>
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <Layout onLogout={handleLogout}>
+                  <AdminPage />
+                </Layout>
+              </AdminRoute>
+            }
+          />
+        </Route>
 
-  {/* Redirect anything unknown to "/" (landing) */}
-  <Route path="*" element={<Navigate to="/" replace />} />
-</Routes>
-
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <FirstLoginGuard />
     </Router>
   );
 }

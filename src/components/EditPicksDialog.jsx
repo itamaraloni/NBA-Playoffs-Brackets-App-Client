@@ -6,14 +6,14 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Typography,
   Box,
   useTheme,
-  IconButton
+  useMediaQuery,
+  IconButton,
+  Avatar,
+  Autocomplete,
+  TextField,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -23,11 +23,17 @@ import {
 import { useTeams } from '../hooks/useTeams';
 import { useMvpCandidates } from '../hooks/useMvpCandidates';
 import { PLAYIN_START_DATE } from '../shared/SeasonConfig';
+import { getLogoPath } from '../shared/teamUtils';
+import { getPlayerAvatar } from '../shared/playerUtils';
 
 const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { teams, loading: teamsLoading } = useTeams();
   const { mvpCandidates, loading: mvpLoading } = useMvpCandidates();
+  const [isEditWindowClosed, setIsEditWindowClosed] = useState(
+    () => Date.now() >= PLAYIN_START_DATE.getTime()
+  );
   const [selection, setSelection] = useState(
     type === 'championship' 
       ? (player?.championshipPrediction || '') 
@@ -43,9 +49,29 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
     );
   }, [type, player]);
 
-  const handleChange = (event) => {
-    setSelection(event.target.value);
-  };
+  useEffect(() => {
+    const deadlineTimestamp = PLAYIN_START_DATE.getTime();
+
+    if (Date.now() >= deadlineTimestamp) {
+      setIsEditWindowClosed(true);
+      return undefined;
+    }
+
+    setIsEditWindowClosed(false);
+    const timeoutId = window.setTimeout(() => {
+      setIsEditWindowClosed(true);
+    }, deadlineTimestamp - Date.now());
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (open && isEditWindowClosed) {
+      onClose();
+    }
+  }, [open, isEditWindowClosed, onClose]);
 
   const handleSave = () => {
     onSave(type, selection);
@@ -55,21 +81,52 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
   const getTitle = () => {
     return type === 'championship' 
       ? 'Edit Championship Winner Pick' 
-      : 'Edit MVP Pick';
+      : 'Edit Finals MVP Pick';
   };
 
   const getOptions = () => {
     if (type === 'championship') {
       return (teams || [])
-        .map(t => ({ name: t.name, points: t.championshipPoints }))
+        .map(t => ({
+          name: t.name,
+          points: t.championshipPoints,
+          avatarSrc: getLogoPath(t.name),
+        }))
         .sort((a, b) => a.points - b.points);
     }
     return (mvpCandidates || [])
-      .map(c => ({ name: c.name, points: c.mvpPoints }))
+      .map(c => ({
+        name: c.name,
+        points: c.mvpPoints,
+        teamName: c.teamName,
+        avatarSrc: getPlayerAvatar(c.name),
+      }))
       .sort((a, b) => a.points - b.points);
   };
 
   const optionsLoading = type === 'championship' ? teamsLoading : mvpLoading;
+  const options = getOptions();
+  const selectedOption = options.find((item) => item.name === selection) || null;
+
+  const autocompleteInputProps = (params) => (
+    isMobile
+      ? {
+          ...params.inputProps,
+          readOnly: true,
+          inputMode: 'none',
+          autoComplete: 'off',
+          autoCorrect: 'off',
+          spellCheck: false,
+        }
+      : params.inputProps
+  );
+
+  const mobileAutocompleteProps = isMobile
+    ? {
+        openOnFocus: true,
+        blurOnSelect: true,
+      }
+    : {};
 
   const getIcon = () => {
     return type === 'championship' 
@@ -80,6 +137,10 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
   const getColor = () => {
     return type === 'championship' ? 'primary' : 'secondary';
   };
+
+  if (isEditWindowClosed) {
+    return null;
+  }
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -108,30 +169,52 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
             type === 'championship' ? player?.championshipPrediction : player?.mvpPrediction
           }</strong>
         </Typography>
-        <FormControl fullWidth>
-          <InputLabel id="edit-prediction-label">
-            {type === 'championship' ? 'Championship Winner' : 'MVP Player'}
-          </InputLabel>
-          <Select
-            labelId="edit-prediction-label"
-            value={selection}
-            label={type === 'championship' ? 'Championship Winner' : 'MVP Player'}
-            onChange={handleChange}
-            color={getColor()}
-            disabled={optionsLoading}
-          >
-            {getOptions().map((option) => (
-              <MenuItem key={option.name} value={option.name}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                  <span>{option.name}</span>
-                  <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
-                    {option.points} pts
-                  </Typography>
+        <Autocomplete
+          options={options}
+          loading={optionsLoading}
+          value={selectedOption}
+          onChange={(event, newValue) => {
+            setSelection(newValue ? newValue.name : '');
+          }}
+          getOptionLabel={(option) => option.name}
+          isOptionEqualToValue={(option, value) => option.name === value.name}
+          fullWidth
+          disableClearable
+          disabled={optionsLoading}
+          {...mobileAutocompleteProps}
+          renderOption={(props, option) => {
+            const { key, ...optionProps } = props;
+
+            return (
+              <Box key={key} component="li" {...optionProps} sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0, flex: 1 }}>
+                  <Avatar src={option.avatarSrc} alt={option.name} variant="rounded" sx={{ width: 32, height: 32 }} />
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="body2" fontWeight={600} noWrap>
+                      {option.name}
+                    </Typography>
+                    {option.teamName && (
+                      <Typography variant="caption" color="text.secondary" noWrap>
+                        {option.teamName}
+                      </Typography>
+                    )}
+                  </Box>
                 </Box>
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto', minWidth: 56, textAlign: 'right', flexShrink: 0 }}>
+                  {option.points} pts
+                </Typography>
+              </Box>
+            );
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label={type === 'championship' ? 'Championship Winner' : 'Finals MVP'}
+              color={getColor()}
+              inputProps={autocompleteInputProps(params)}
+            />
+          )}
+        />
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose} color="inherit">Cancel</Button>

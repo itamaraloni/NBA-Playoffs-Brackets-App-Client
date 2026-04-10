@@ -1,7 +1,8 @@
 import apiClient from './ApiClient';
 import { clearLocalStoragePreserveTheme } from '../utils/authStorage';
+import { getCorrelationHeaders } from '../utils/requestCorrelation';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 /**
  * User and authentication related service methods
@@ -30,18 +31,31 @@ const UserServices = {
       // so the browser stores the Set-Cookie response.
       const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getCorrelationHeaders(),
+        },
         credentials: 'include',
         body: JSON.stringify({ id_token: idToken })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to sync user with database');
+        let errorBody = null;
+        try { errorBody = await response.json(); } catch (_) {}
+        console.error('session_login failed:', response.status, errorBody);
+        const error = new Error(errorBody?.message || 'Failed to sync user with database');
+        error.status = response.status;
+        error.code = errorBody?.code;
+        throw error;
       }
 
       // Response: { is_admin: bool } with 200 (existing user) or 201 (new user)
+      const status = response.status;
       const userData = await response.json();
-      return userData;
+      return {
+        ...userData,
+        isNewUser: status === 201
+      };
     } catch (error) {
       console.error("Error syncing user with database:", error);
       throw error;
@@ -52,7 +66,9 @@ const UserServices = {
    * Lightweight auth check using existing cookies (no new session creation).
    */
   async checkUserWithSession() {
-    return apiClient.post('/user/check', {});
+    // Suppress the global 401 handler here: auth bootstrap should fall back to
+    // session_login instead of dispatching session-expired mid-recovery.
+    return apiClient.post('/user/check', {}, { suppressAuthEvent: true });
   },
   
   /**
@@ -107,13 +123,22 @@ const UserServices = {
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
-        headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
+        headers: {
+          ...getCorrelationHeaders(),
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
       });
     } catch (error) {
       // Log but don't throw — we still want to clear local state even if
       // the server call fails (e.g. network offline)
       console.error("Error calling /auth/logout:", error);
     }
+
+    // Clear CSRF cookie client-side — it is not httpOnly so JS can remove it.
+    // This ensures the cookie is gone even if the server call above fails or
+    // returns a non-2xx status (fetch only throws on network errors, not HTTP
+    // errors, so a server-side failure would be silently swallowed above).
+    document.cookie = 'csrf_token=; path=/; max-age=0; samesite=lax';
 
     clearLocalStoragePreserveTheme();
   },
@@ -123,12 +148,9 @@ const UserServices = {
    * @returns {Promise<Object>} Players array with league info
    */
   async getUserLeagues() {
-    try {
-      const data = await apiClient.get('/user/leagues');
-      return data;
-    } catch (error) {
-      throw error;
-    }
+    // suppressAuthEvent: fetchAndSetPlayerData retries on 401 (browser cookie-timing
+    // issue) and dispatches auth:session-expired itself after retries are exhausted.
+    return await apiClient.get('/user/leagues', { suppressAuthEvent: true });
   },
 
   // storeUserData() removed — session cookie is set automatically by the browser

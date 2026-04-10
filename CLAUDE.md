@@ -3,50 +3,50 @@
 **Read this file at the start of every session**
 
 > **Also read from the root `Playoff-Prophet/` directory:**
-> - `METHODOLOGY.md` — work process, GitHub workflow, quality standards
-> - `handover.md` — current project state, blockers, what to work on next
+> - `METHODOLOGY.md` - work process, GitHub workflow, quality standards
+> - `handover.md` - current project state, blockers, what to work on next
 
 ## Project Summary
 
-Frontend for Playoff Prophet — React 18 + MUI 6 SPA for NBA Playoffs predictions.
+Frontend for Playoff Prophet - React 18 + MUI 6 SPA for NBA Playoffs predictions.
 
 **Stack:** React 18, Material-UI 6, React Router 7, Firebase Auth (Google SSO), Recharts, React Toastify, html2canvas. CRA-based build.
 
 **Structure:**
-- `src/pages/` — route-level page components (Dashboard, Predictions, League, Profile, etc.)
-- `src/components/` — reusable UI (MatchupPredictionCard, StandingsTable, EditPicksDialog, etc.)
-- `src/components/common/` — shared low-level components (ScoreCounter, MatchupScoreDisplay, etc.)
-- `src/services/` — API client and service modules (ApiClient, UserServices, LeagueServices, etc.)
-- `src/contexts/` — React context providers (AuthContext)
-- `src/theme/` — MUI theme config and dark/light toggle
+- `src/pages/` - route-level page components (Dashboard, Predictions, League, Profile, etc.)
+- `src/components/` - reusable UI (MatchupPredictionCard, StandingsTable, EditPicksDialog, etc.)
+- `src/components/common/` - shared low-level components (ScoreCounter, MatchupScoreDisplay, etc.)
+- `src/services/` - API client and service modules (ApiClient, UserServices, LeagueServices, etc.)
+- `src/contexts/` - React context providers (AuthContext)
+- `src/theme/` - MUI theme config and dark/light toggle
 
 **Dev:** `npm start` (port 3000). Backend API URL configured via `REACT_APP_API_URL` in `.env`.
 
 ## Git Rules
 
 - Open new branch for big changes, features, or bug fixes
-- **Logical separation** — group related changes into separate commits
-- **Concise messages** — informative yet brief
-- **No co-author tags** — do NOT add "Co-Authored-By: Claude" or similar
-- **Conventional format** — start with a verb (Add, Fix, Update, Refactor, Modify, etc.)
+- **Logical separation** - group related changes into separate commits
+- **Concise messages** - informative yet brief
+- **No co-author tags** - do NOT add "Co-Authored-By: Claude" or similar
+- **Conventional format** - start with a verb (Add, Fix, Update, Refactor, Modify, etc.)
 
 ---
 
-## Frontend Work — Educational Feedback
+## Frontend Work - Educational Feedback
 
 **User Request:** The primary developer (darchock) is less experienced with React and frontend development. When working on client repo issues, provide more informative and educational feedback:
 
-- **Explain the "why"** — Don't just make changes, explain why this approach is better/correct
-- **Reference React concepts** — When using hooks, context, or patterns, briefly explain what they do
-- **Show alternatives** — If there are multiple ways to solve something, mention them and explain the trade-offs
-- **Point out best practices** — Call out when following or deviating from React/MUI conventions
-- **Explain side effects** — Describe how changes affect component lifecycle, re-renders, or state flow
-- **Educational comments** — When code might be unclear, add brief inline comments explaining the pattern
+- **Explain the "why"** - Don't just make changes, explain why this approach is better/correct
+- **Reference React concepts** - When using hooks, context, or patterns, briefly explain what they do
+- **Show alternatives** - If there are multiple ways to solve something, mention them and explain the trade-offs
+- **Point out best practices** - Call out when following or deviating from React/MUI conventions
+- **Explain side effects** - Describe how changes affect component lifecycle, re-renders, or state flow
+- **Educational comments** - When code might be unclear, add brief inline comments explaining the pattern
 
 **Example:** Instead of just "Added useCallback to prevent re-renders", say:
 > "Added `useCallback` to memoize the `handleSubmit` function. This prevents the function from being recreated on every render, which would cause child components that receive it as a prop to re-render unnecessarily. This is a performance optimization common in React when passing callbacks to child components."
 
-This guideline applies to all frontend work — code changes, PR reviews, planning, and debugging.
+This guideline applies to all frontend work - code changes, PR reviews, planning, and debugging.
 
 ---
 
@@ -54,7 +54,7 @@ This guideline applies to all frontend work — code changes, PR reviews, planni
 
 ### Component Architecture
 
-- **Functional components only** — no class components, use React Hooks
+- **Functional components only** - no class components, use React Hooks
 - **Page components** (`src/pages/`) own data fetching and page-level state. They orchestrate child components
 - **Feature components** (`src/components/`) are reusable UI that receive data and callbacks via props
 - **Common components** (`src/components/common/`) are small, highly reusable primitives (ScoreCounter, MatchupScoreDisplay, etc.)
@@ -69,47 +69,54 @@ This guideline applies to all frontend work — code changes, PR reviews, planni
 - **Event handler functions:** `handle` prefix (`handleSubmitPrediction`, `handleLogout`)
 - **Boolean state:** `is` prefix (`isAdmin`, `isLoading`, `isMobile`)
 - **Constants:** UPPER_SNAKE_CASE (`PLAYER_AVATARS`, `NBA_TEAMS_WITH_POINTS`)
-- **File extensions:** `.js` and `.jsx` are both used — match the convention of the file you're editing. For new files, prefer `.jsx` for components
+- **File extensions:** `.js` and `.jsx` are both used - match the convention of the file you're editing. For new files, prefer `.jsx` for components
 
 ### Environment Variables
 
-- **REACT_APP_API_URL** — Backend API endpoint (dev: localhost:5000, prod: api.playoffprophet.com)
-- **REACT_APP_FIREBASE_*** — Firebase config values (7 total, see .env.example for all)
-  - `REACT_APP_FIREBASE_API_KEY` — Firebase API key
-  - `REACT_APP_FIREBASE_AUTH_DOMAIN` — Firebase auth domain
-  - `REACT_APP_FIREBASE_PROJECT_ID` — Firebase project ID
-  - `REACT_APP_FIREBASE_STORAGE_BUCKET` — Firebase storage bucket
-  - `REACT_APP_FIREBASE_MESSAGING_SENDER_ID` — Firebase messaging sender ID
-  - `REACT_APP_FIREBASE_APP_ID` — Firebase app ID
-  - `REACT_APP_FIREBASE_MEASUREMENT_ID` — Firebase measurement ID (analytics)
+- **REACT_APP_API_URL** - Backend API endpoint (dev: localhost:5000, prod: api.playoffprophet.com). **Required** — `ApiClient.js` throws on startup if unset. Also referenced as `%REACT_APP_API_URL%` in `public/index.html` for the Content-Security-Policy `connect-src` directive; CRA substitutes it at build time, so dev and prod builds get the correct URL automatically
+- **REACT_APP_FIREBASE_*** - Firebase config values (7 total, see `.env.example` for all)
+  - `REACT_APP_FIREBASE_API_KEY` - Firebase API key
+  - `REACT_APP_FIREBASE_AUTH_DOMAIN` - Firebase auth domain
+  - `REACT_APP_FIREBASE_PROJECT_ID` - Firebase project ID
+  - `REACT_APP_FIREBASE_STORAGE_BUCKET` - Firebase storage bucket
+  - `REACT_APP_FIREBASE_MESSAGING_SENDER_ID` - Firebase messaging sender ID
+  - `REACT_APP_FIREBASE_APP_ID` - Firebase app ID
+  - `REACT_APP_FIREBASE_MEASUREMENT_ID` - Firebase measurement ID (analytics)
 - All env vars use Create React App's `REACT_APP_*` prefix (required for access via `process.env`)
 - To set up locally: copy `.env.example` to `.env` and fill in your values
-- Never commit `.env` — it's gitignored and contains environment-specific secrets
+- Never commit `.env` - it's gitignored and contains environment-specific secrets
 - Changing `.env` requires restarting the dev server (`npm start`)
 
 ### Styling
 
-- **MUI `sx` prop is the primary styling method** — do NOT introduce CSS modules, styled-components, or new CSS files
+- **MUI `sx` prop is the primary styling method** - do NOT introduce CSS modules, styled-components, or new CSS files
 - Use `useTheme()` hook to access theme palette, breakpoints, and shadows
-- Responsive design via `useMediaQuery(theme.breakpoints.down('sm'))` — conditionally render or adjust `sx`
-- Theme colors follow NBA palette: primary (blue), secondary (red) — defined in `src/theme/theme.js`
-- Dark/light mode supported — always use theme tokens (`theme.palette.*`), never hardcode colors
+- Responsive design via `useMediaQuery(theme.breakpoints.down('sm'))` - conditionally render or adjust `sx`
+- Theme colors follow NBA palette: primary (blue), secondary (red) - defined in `src/theme/theme.js`
+- Dark/light mode supported - always use theme tokens (`theme.palette.*`), never hardcode colors
 
 ### State Management
 
 - **Global state:** React Context only (AuthContext for auth, ThemeContext for theme). No Redux or other state libraries
 - **Page-level data:** `useState` in page components, fetched in `useEffect`
-- **localStorage keys in use:** `active_player_id`, `theme-mode`, `sidebar-collapsed`
-- **sessionStorage keys in use:** `pendingInviteToken` (temporary, cleared after joining a league)
-- `active_player_id` stores the user's last-selected league player as UX convenience (survives page reload). AuthContext is the source of truth — localStorage is just a hint. See ADR-003
+- **localStorage keys in use:** `active_player_id`, `theme-mode`, `sidebar-collapsed`, `hasCompletedOnboarding`, `leagueJoinPending`
+- **sessionStorage keys in use:** `pendingInviteToken`, `pendingFirstLoginWelcome`
+- `active_player_id` stores the user's last-selected league player as UX convenience (survives page reload). AuthContext is the source of truth - localStorage is just a hint. See ADR-003
+- `hasCompletedOnboarding` records that the current signed-in user already dismissed an onboarding dialog, so first-login onboarding does not re-open during the same signed-in lifecycle
+- `pendingInviteToken` keeps the invite-join flow alive across refreshes on `/create-player`
+- `pendingFirstLoginWelcome` is an ephemeral auth/onboarding handoff flag used when a brand-new app user is detected before the app decides which onboarding dialog to show
+- `leagueJoinPending` is a transient recovery key written by `CreatePlayerPage` immediately after `createLeague()` succeeds, holding `{ inviteToken, leagueName }`. It is consumed (and removed) after `joinViaInvite()` succeeds. Its presence means the league was created but join has not completed yet — on retry, `createLeague()` is skipped and the stored token is reused to avoid creating a duplicate orphan league
 - `theme-mode` is preserved on logout; all other keys are cleared
 
 ### API & Services
 
-- **All API calls go through `apiClient`** (`src/services/ApiClient.js`) — never use `fetch` directly (exception: `UserServices.syncUserWithDatabase` and `logout` use direct fetch for auth bootstrap/teardown)
-- apiClient handles: session cookie auth (`credentials: 'include'`), CSRF token header for state-changing requests, retry with exponential backoff (3 retries), connection monitoring, 401 auto-logout
-- **Service modules** (`UserServices`, `LeagueServices`, `MatchupServices`) are plain objects with async methods — not classes
-- **Data transformation happens in services** — services convert snake_case API responses to camelCase UI objects before returning. Components should never deal with raw API response shapes
+- **All API calls go through `apiClient`** (`src/services/ApiClient.js`) - never use `fetch` directly (exception: `UserServices.syncUserWithDatabase` and `logout` use direct fetch for auth bootstrap/teardown)
+- `apiClient` handles: session cookie auth (`credentials: 'include'`), CSRF token header for state-changing requests, retry with exponential backoff (3 retries), connection monitoring, and standard 401 session-expiry handling via the `auth:session-expired` event
+- Auth bootstrap/retry code may suppress the global 401 handler for a specific request (for example `/user/check` or the first `/user/leagues` retry) and resolve recovery locally instead of forcing sign-out
+- **`console.log` is suppressed in production** via a guard in `src/index.js` (`process.env.NODE_ENV === 'production'`). Do not rely on `console.log` for anything that needs to surface in production — use error boundaries or notification service instead
+- **Service modules** (`UserServices`, `LeagueServices`, `MatchupServices`) are plain objects with async methods - not classes
+- **Data transformation happens in services** - services convert snake_case API responses to camelCase UI objects before returning. Components should never deal with raw API response shapes
+- `ConfigServices.getMvpCandidates()` returns active candidates for both user pickers and the Admin Config flow. Keep the transformed shape aligned with the server contract, including `teamId`, because the Admin page filters the actual-Finals-MVP selector to the remaining active team's roster.
 - **Notifications:** use `window.notify.success()`, `.error()`, `.warning()`, `.info()` (React Toastify via `NotificationService.js`). Always guard with `if (window.notify)`
 
 ### Data Fetching Pattern
@@ -137,30 +144,49 @@ useEffect(() => {
 }, [dependencies]);
 ```
 
+### Jest Verification Files
+
+- Prefer narrow Jest runs for touched surfaces instead of defaulting to the full client suite
+- Existing focused verification files currently used locally:
+  - `src/FirstLoginGuard.test.jsx`
+  - `src/components/AppExplanation.test.jsx`
+  - `src/components/EditPicksDialog.test.jsx`
+  - `src/components/common/OnboardingDialogs.test.jsx`
+  - `src/pages/CreatePlayerPage.test.jsx`
+  - `src/pages/Dashboard.test.jsx`
+  - `src/utils/bracketUtils.test.js`
+- These focused verification files are intentionally local-only by default and are listed in `.gitignore`
+- Use them freely for local regression checks while developing; if a future task benefits from another focused Jest file, create it near the touched feature and add it to `.gitignore` unless the user explicitly wants that test tracked in git
+- Preferred command pattern:
+  `cmd /c "set CI=true && npm.cmd test -- --watchAll=false --runInBand <test paths...>"`
+
 ### Routing
 
-- React Router v7 — routes defined in `src/App.js`
+- React Router v7 - routes defined in `src/App.js`
 - All authenticated routes wrapped in `<ProtectedRoute>` and `<Layout>`
 - Public routes: `/` (LandingPage), `/invite/:token` (InviteLandingPage)
+- `FirstLoginGuard` lives in `App.js` and decides whether onboarding should appear based on auth state and storage-backed onboarding flags
 - Pattern for new routes: add to `App.js`, create page in `src/pages/`, wrap in `<Layout>` for sidebar/nav
 
 ### Auth Flow
 
-1. Google OAuth popup via Firebase `signInWithPopup()`
-2. Firebase ID token exchanged for httpOnly session cookie via `POST /auth/session-login` (server also sets a JS-readable `csrf_token` cookie)
-3. Backend sync via `UserServices.syncUserWithDatabase()` — no token stored in localStorage
-4. All subsequent API calls authenticated via session cookie (`credentials: 'include'`); CSRF token sent as `X-CSRF-Token` header on POST/PUT/DELETE
-5. `AuthContext` provides: `currentUser`, `isAuthenticated`, `isAdmin`, `userPlayers`, `activePlayer`, `switchActivePlayer()`, `signInWithGoogle()`, `logout()`
+1. Google OAuth popup starts via Firebase `signInWithPopup()`
+2. `onAuthStateChanged` in `AuthContext` is the single owner of backend auth sync and auth-state updates. Do not call `syncUserWithDatabase()` from page/components or in parallel with that listener.
+3. On first auth bootstrap, the Firebase ID token is exchanged for an httpOnly session cookie via `POST /auth/session_login` (server also sets a JS-readable `csrf_token` cookie). On reload with an existing CSRF cookie, `checkUserWithSession()` may validate the current session before minting a new one.
+4. All subsequent API calls authenticate via the session cookie (`credentials: 'include'`); CSRF token is sent as `X-CSRF-Token` on POST/PUT/DELETE. Standard 401s dispatch `auth:session-expired`, but auth bootstrap/retry paths may suppress that event and retry once locally.
+5. `AuthContext` provides: `currentUser`, `isAuthenticated`, `isAdmin`, `isNewUser`, `userPlayers`, `activePlayer`, `switchActivePlayer()`, `clearIsNewUser()`, `signInWithGoogle()`, `logout()`
 6. `useAuth()` hook to access auth state in any component
-7. After auth sync, `fetchAndSetPlayerData()` calls `/user/leagues` to populate `userPlayers` and restore `activePlayer` from localStorage hint
-8. Logout calls `POST /auth/logout` (revokes Firebase refresh tokens, clears cookies) then clears React state
+7. After auth sync, `fetchAndSetPlayerData()` calls `/user/leagues` to populate `userPlayers` and restore `activePlayer` from localStorage hint. It retries once on an immediate post-login 401 before treating the session as expired.
+8. New app users set `pendingFirstLoginWelcome` in sessionStorage when `/auth/session_login` returns `201 Created`; `App.js` uses that plus `isNewUser` to decide whether to show `FirstLoginDialog` or defer onboarding during the invite join flow
+9. Invite onboarding is intentionally split: `/invite/:token` and invite-driven `/create-player` suppress `FirstLoginDialog`, then `WelcomeDialog` completes onboarding only after `joinViaInvite()` succeeds
+10. Logout calls `POST /auth/logout` (revokes Firebase refresh tokens, clears cookies) then clears React state and session-scoped onboarding flags
 
 ### Scoring & Rounds (reference for UI logic)
 
 - Round codes: `playin_first`, `playin_second`, `first`, `second`, `conference_final`, `final`
 - Play-in rounds: team selector only (no score prediction)
 - Playoff rounds: score prediction via ScoreCounter (winner must have 4 wins)
-- Points escalate by round — see `src/shared/GeneralConsts.js` for values
+- Points escalate by round - see `src/shared/GeneralConsts.js` for values
 
 ### Import Order Convention
 
@@ -188,12 +214,11 @@ import { PLAYER_AVATARS } from '../shared/GeneralConsts';
 
 ### Things to Avoid
 
-- Do NOT add PropTypes or TypeScript — the codebase uses neither consistently
+- Do NOT add PropTypes or TypeScript - the codebase uses neither consistently
 - Do NOT introduce new state management libraries (Redux, Zustand, etc.)
-- Do NOT use inline styles (`style={}`) — use MUI `sx` prop instead
+- Do NOT use inline styles (`style={}`) - use MUI `sx` prop instead
 - Do NOT bypass `apiClient` for API calls
-- Do NOT add new CSS files — use MUI theming and `sx`
+- Do NOT add new CSS files - use MUI theming and `sx`
 - Do NOT store sensitive data in localStorage (auth tokens now use httpOnly cookies)
 
-
-> Workflow orchestration rules (Plan Mode, Subagent Strategy, Task Management, Core Principles) are defined in the root `Playoff-Prophet/CLAUDE.md` — not duplicated here.
+> Workflow orchestration rules (Plan Mode, Subagent Strategy, Task Management, Core Principles) are defined in the root `Playoff-Prophet/CLAUDE.md` - not duplicated here.

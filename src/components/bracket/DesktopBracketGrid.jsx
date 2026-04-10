@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Tooltip, Typography, useTheme } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { alpha } from '@mui/material/styles';
 import BracketMatchup from './BracketMatchup';
 import BonusPicks from './BonusPicks';
@@ -100,7 +101,7 @@ function RoundHeader({ label, pts, variant, gridColumn }) {
       gridColumn, gridRow: 2, alignSelf: 'end',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       borderRadius: '8px', px: 1, py: '5px', mx: '2px', mb: '6px',
-      gap: '6px', whiteSpace: 'nowrap',
+      gap: '6px', whiteSpace: 'nowrap', width: '100%', boxSizing: 'border-box',
       ...s,
     }}>
       <Typography sx={{
@@ -126,7 +127,7 @@ function RoundHeader({ label, pts, variant, gridColumn }) {
  * 15-column, 9-row grid: West play-in | West R1-Semis-CF | Finals | East CF-Semis-R1 | East play-in
  * Includes connector lines and hover path highlighting.
  */
-const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, scoringConfig }) => {
+const DesktopBracketGrid = ({ bracket, isLocked, interactionHint, onMatchupClick, bonusPicks, scoringConfig }) => {
   const theme = useTheme();
   const gridRef = useRef(null);
   const animatedRef = useRef(false);
@@ -202,8 +203,10 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
       ref={gridRef}
       sx={{
         display: 'grid',
+        // 17-column grid — two 24px horizontal-connector columns (8 & 10) flank the Finals
+        // column (9), giving breathing room + natural gaps between CF/Finals pills.
         gridTemplateColumns:
-          'minmax(140px,180px) 10px minmax(150px,1fr) 16px minmax(150px,1fr) 16px minmax(150px,1fr) minmax(160px,200px) minmax(150px,1fr) 16px minmax(150px,1fr) 16px minmax(150px,1fr) 10px minmax(140px,180px)',
+          'minmax(140px,180px) 10px minmax(150px,1fr) 16px minmax(150px,1fr) 16px minmax(150px,1fr) 24px minmax(220px,280px) 24px minmax(150px,1fr) 16px minmax(150px,1fr) 16px minmax(150px,1fr) 10px minmax(140px,180px)',
         gridTemplateRows:
           'auto auto 1fr 10px 1fr 20px 1fr 10px 1fr',
         minHeight: 520,
@@ -223,13 +226,11 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
         Western Conference
       </Box>
 
-      <Box sx={{
-        gridColumn: 8, gridRow: 1,
-        textAlign: 'center', pb: '6px', mb: '8px',
-      }} />
+      {/* Center spacer — cols 8, 9 (Finals), 10 */}
+      <Box sx={{ gridColumn: '8 / 11', gridRow: 1, pb: '6px', mb: '8px' }} />
 
       <Box sx={{
-        gridColumn: '9 / 16', gridRow: 1,
+        gridColumn: '11 / 18', gridRow: 1,
         fontSize: '0.75rem', fontWeight: 700,
         textTransform: 'uppercase', letterSpacing: '0.12em',
         color: theme.palette.primary.main, textAlign: 'center',
@@ -244,11 +245,11 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
       <RoundHeader label="Round 1" pts={r1Pts} variant="default" gridColumn={3} />
       <RoundHeader label="Semis" pts={semiPts} variant="semis" gridColumn={5} />
       <RoundHeader label="Conf Finals" pts={cfPts} variant="cf" gridColumn={7} />
-      <RoundHeader label="Finals" pts={finalPts} variant="finals" gridColumn={8} />
-      <RoundHeader label="Conf Finals" pts={cfPts} variant="cf" gridColumn={9} />
-      <RoundHeader label="Semis" pts={semiPts} variant="semis" gridColumn={11} />
-      <RoundHeader label="Round 1" pts={r1Pts} variant="default" gridColumn={13} />
-      <RoundHeader label="Play-In" pts={piPts} variant="playin" gridColumn={15} />
+      <RoundHeader label="Finals" pts={finalPts} variant="finals" gridColumn={9} />
+      <RoundHeader label="Conf Finals" pts={cfPts} variant="cf" gridColumn={11} />
+      <RoundHeader label="Semis" pts={semiPts} variant="semis" gridColumn={13} />
+      <RoundHeader label="Round 1" pts={r1Pts} variant="default" gridColumn={15} />
+      <RoundHeader label="Play-In" pts={piPts} variant="playin" gridColumn={17} />
 
       {/* ════ Separators (dashed dividers) ════ */}
       <Box sx={{
@@ -260,7 +261,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
         },
       }} />
       <Box sx={{
-        gridColumn: 14, gridRow: '2 / 10', alignSelf: 'stretch', position: 'relative',
+        gridColumn: 16, gridRow: '2 / 10', alignSelf: 'stretch', position: 'relative',
         '&::after': {
           content: '""', position: 'absolute',
           top: '15%', bottom: '15%', left: '50%',
@@ -278,11 +279,16 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
       }}>
         {westSurvivor && (
           <>
-            <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.palette.text.disabled, textAlign: 'center' }}>
-              Survivor
-            </Typography>
+            <Tooltip title="Loser of #7 vs #8 VS Winner of #9 vs #10" placement="top" arrow enterTouchDelay={0} leaveTouchDelay={3000}>
+              <Box sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'help', width: '100%', mb: '2px' }}>
+                <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.palette.text.disabled }}>
+                  Survivor
+                </Typography>
+                <InfoOutlinedIcon sx={{ fontSize: '0.625rem', color: theme.palette.text.disabled, flexShrink: 0 }} />
+              </Box>
+            </Tooltip>
             <HoverCard data-card-id="w-surv" data-feeds="w-pi-1,w-pi-2" delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}>
-              <BracketMatchup matchup={westSurvivor} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
+              <BracketMatchup matchup={westSurvivor} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} compact />
             </HoverCard>
           </>
         )}
@@ -292,7 +298,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
               {m.matchup_position === 1 ? '#7 vs #8' : '#9 vs #10'}
             </Typography>
             <HoverCard data-card-id={`w-pi-${m.matchup_position}`} data-feeds="" delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}>
-              <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
+              <BracketMatchup matchup={m} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} compact />
             </HoverCard>
           </React.Fragment>
         ))}
@@ -311,7 +317,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
             delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
             sx={{ gridColumn: 3, gridRow: rows[i], px: '2px' }}
           >
-            <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
+            <BracketMatchup matchup={m} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} compact />
           </HoverCard>
         );
       })}
@@ -328,7 +334,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
           delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
           sx={{ gridColumn: 5, gridRow: '3 / 6', px: '2px', alignSelf: 'center' }}
         >
-          <BracketMatchup matchup={westSemis[0]} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
+          <BracketMatchup matchup={westSemis[0]} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} compact />
         </HoverCard>
       )}
       {westSemis[1] && (
@@ -338,7 +344,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
           delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
           sx={{ gridColumn: 5, gridRow: '7 / 10', px: '2px', alignSelf: 'center' }}
         >
-          <BracketMatchup matchup={westSemis[1]} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
+          <BracketMatchup matchup={westSemis[1]} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} compact />
         </HoverCard>
       )}
 
@@ -353,13 +359,28 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
           delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
           sx={{ gridColumn: 7, gridRow: '3 / 10', px: '2px', alignSelf: 'center' }}
         >
-          <BracketMatchup matchup={westCf} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
+          <BracketMatchup matchup={westCf} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} compact />
         </HoverCard>
       )}
 
+      {/* ════ CF→Finals horizontal connectors ════
+           These thin lines bridge CF West (col 7) and CF East (col 11) to the Finals card
+           (col 9). They light up as part of the Finals hover path via data-conn-id. */}
+      <Box
+        data-conn-id="hconn-w"
+        sx={{
+          gridColumn: 8, gridRow: '3 / 10',
+          alignSelf: 'center', height: 2,
+          background: alpha(theme.palette.text.primary, theme.palette.mode === 'dark' ? 0.5 : 0.4),
+          '&.conn--highlight': {
+            background: alpha(theme.palette.primary.main, 0.7),
+          },
+        }}
+      />
+
       {/* ════ Finals Center Column ════ */}
       <Box sx={{
-        gridColumn: 8, gridRow: '3 / 10',
+        gridColumn: 9, gridRow: '3 / 10',
         alignSelf: 'center', px: '4px',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
       }}>
@@ -383,9 +404,17 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
         }}>
           NBA Finals
         </Typography>
-        <Box sx={{ width: '100%' }}>
-          <BracketMatchup matchup={bracket.final} isLocked={isLocked} isFinals onMatchupClick={onMatchupClick} compact />
-        </Box>
+        <HoverCard
+          data-card-id="final"
+          data-feeds="w-cf,e-cf,hconn-w,hconn-e"
+          delay={skipDelay ? undefined : cardIdx++ * 40}
+          onHoverStart={handleMouseEnter}
+          onHoverEnd={handleMouseLeave}
+          sx={{ width: '100%' }}
+        >
+          {/* Finals card: full team names (no compact) — wider column gives room */}
+          <BracketMatchup matchup={bracket.final} isLocked={isLocked} interactionHint={interactionHint} isFinals onMatchupClick={onMatchupClick} />
+        </HoverCard>
         {bonusPicks && (
           <Box sx={{ width: '100%', mt: '16px' }}>
             <BonusPicks {...bonusPicks} isLocked={isLocked} />
@@ -393,20 +422,33 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
         )}
       </Box>
 
+      {/* ════ CF East→Finals horizontal connector ════ */}
+      <Box
+        data-conn-id="hconn-e"
+        sx={{
+          gridColumn: 10, gridRow: '3 / 10',
+          alignSelf: 'center', height: 2,
+          background: alpha(theme.palette.text.primary, theme.palette.mode === 'dark' ? 0.5 : 0.4),
+          '&.conn--highlight': {
+            background: alpha(theme.palette.primary.main, 0.7),
+          },
+        }}
+      />
+
       {/* ════ East Conf Finals ════ */}
       {eastCf && (
         <HoverCard
           data-card-id="e-cf"
           data-feeds="e-s1,e-s2,e-c2"
           delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
-          sx={{ gridColumn: 9, gridRow: '3 / 10', px: '2px', alignSelf: 'center' }}
+          sx={{ gridColumn: 11, gridRow: '3 / 10', px: '2px', alignSelf: 'center' }}
         >
-          <BracketMatchup matchup={eastCf} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
+          <BracketMatchup matchup={eastCf} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} compact />
         </HoverCard>
       )}
 
       {/* ════ East Connector Semis→CF ════ */}
-      <Connector gridColumn={10} gridRow="3 / 10" mirrored connId="e-c2" />
+      <Connector gridColumn={12} gridRow="3 / 10" mirrored connId="e-c2" />
 
       {/* ════ East Semis ════ */}
       {eastSemis[0] && (
@@ -414,9 +456,9 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
           data-card-id="e-s1"
           data-feeds="e-r1-1,e-r1-4,e-c1-top"
           delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
-          sx={{ gridColumn: 11, gridRow: '3 / 6', px: '2px', alignSelf: 'center' }}
+          sx={{ gridColumn: 13, gridRow: '3 / 6', px: '2px', alignSelf: 'center' }}
         >
-          <BracketMatchup matchup={eastSemis[0]} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
+          <BracketMatchup matchup={eastSemis[0]} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} compact />
         </HoverCard>
       )}
       {eastSemis[1] && (
@@ -424,15 +466,15 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
           data-card-id="e-s2"
           data-feeds="e-r1-3,e-r1-2,e-c1-bot"
           delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
-          sx={{ gridColumn: 11, gridRow: '7 / 10', px: '2px', alignSelf: 'center' }}
+          sx={{ gridColumn: 13, gridRow: '7 / 10', px: '2px', alignSelf: 'center' }}
         >
-          <BracketMatchup matchup={eastSemis[1]} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
+          <BracketMatchup matchup={eastSemis[1]} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} compact />
         </HoverCard>
       )}
 
       {/* ════ East Connectors R1→Semis ════ */}
-      <Connector gridColumn={12} gridRow="3 / 6" mirrored connId="e-c1-top" />
-      <Connector gridColumn={12} gridRow="7 / 10" mirrored connId="e-c1-bot" />
+      <Connector gridColumn={14} gridRow="3 / 6" mirrored connId="e-c1-top" />
+      <Connector gridColumn={14} gridRow="7 / 10" mirrored connId="e-c1-bot" />
 
       {/* ════ East R1 Cards ════ */}
       {eastR1.map((m, i) => {
@@ -445,16 +487,16 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
             data-card-id={`e-r1-${m.matchup_position}`}
             data-feeds={feeds.join(',')}
             delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}
-            sx={{ gridColumn: 13, gridRow: rows[i], px: '2px' }}
+            sx={{ gridColumn: 15, gridRow: rows[i], px: '2px' }}
           >
-            <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
+            <BracketMatchup matchup={m} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} compact />
           </HoverCard>
         );
       })}
 
       {/* ════ East Play-In (stacked column) ════ */}
       <Box sx={{
-        gridColumn: 15, gridRow: '3 / 10',
+        gridColumn: 17, gridRow: '3 / 10',
         alignSelf: 'stretch',
         display: 'flex', flexDirection: 'column',
         justifyContent: 'center', alignItems: 'stretch',
@@ -462,11 +504,16 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
       }}>
         {eastSurvivor && (
           <>
-            <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.palette.text.disabled, textAlign: 'center' }}>
-              Survivor
-            </Typography>
+            <Tooltip title="Loser of #7 vs #8 VS Winner of #9 vs #10" placement="top" arrow enterTouchDelay={0} leaveTouchDelay={3000}>
+              <Box sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'help', width: '100%', mb: '2px' }}>
+                <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.palette.text.disabled }}>
+                  Survivor
+                </Typography>
+                <InfoOutlinedIcon sx={{ fontSize: '0.625rem', color: theme.palette.text.disabled, flexShrink: 0 }} />
+              </Box>
+            </Tooltip>
             <HoverCard data-card-id="e-surv" data-feeds="e-pi-1,e-pi-2" delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}>
-              <BracketMatchup matchup={eastSurvivor} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
+              <BracketMatchup matchup={eastSurvivor} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} compact />
             </HoverCard>
           </>
         )}
@@ -476,7 +523,7 @@ const DesktopBracketGrid = ({ bracket, isLocked, onMatchupClick, bonusPicks, sco
               {m.matchup_position === 1 ? '#7 vs #8' : '#9 vs #10'}
             </Typography>
             <HoverCard data-card-id={`e-pi-${m.matchup_position}`} data-feeds="" delay={skipDelay ? undefined : cardIdx++ * 40} onHoverStart={handleMouseEnter} onHoverEnd={handleMouseLeave}>
-              <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} compact />
+              <BracketMatchup matchup={m} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} compact />
             </HoverCard>
           </React.Fragment>
         ))}

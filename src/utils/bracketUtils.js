@@ -27,7 +27,7 @@ const COMPONENT_TO_API_ROUND = {
 
 /**
  * Determines the result state of a matchup for display purposes.
- * Returns: 'bullseye' | 'hit' | 'miss' | 'pending' | 'voided' | 'na'
+ * Returns: 'bullseye' | 'hit' | 'miss' | 'path_miss' | 'pending' | 'voided' | 'na'
  */
 export function getMatchupResultState(m) {
   if (!m?.hasPick) return 'na';
@@ -43,6 +43,7 @@ export function getMatchupResultState(m) {
 
   if (isBullseye) return 'bullseye';
   if (m.isCorrect === true) return 'hit';
+  if (m.isCorrect === false && m.actualWinnerIsOther) return 'path_miss';
   if (m.isCorrect === false) return 'miss';
   return 'na';
 }
@@ -53,12 +54,27 @@ export function getMatchupResultState(m) {
  * @param {Object} bracket - Transformed bracket state
  * @param {Object} scoringConfig - Bracket scoring config from API, keyed by API round name
  *   e.g. { playin_first: { hit: 3, bullseye: null }, first: { hit: 5, bullseye: 7 }, ... }
- * @returns {{ correct: number, wrong: number, pending: number, voided: number,
- *             pts: number, totalPotential: number, decided: number }}
+ * @returns {{ bullseyes: number, hits: number, misses: number, correct: number,
+ *             wrong: number, pending: number, voided: number, pts: number,
+ *             totalPotential: number, decided: number }}
  */
 export function computeBracketHealth(bracket, scoringConfig) {
-  if (!bracket) return { correct: 0, wrong: 0, pending: 0, voided: 0, pts: 0, totalPotential: 0, decided: 0 };
+  if (!bracket) {
+    return {
+      bullseyes: 0,
+      hits: 0,
+      misses: 0,
+      correct: 0,
+      wrong: 0,
+      pending: 0,
+      voided: 0,
+      pts: 0,
+      totalPotential: 0,
+      decided: 0,
+    };
+  }
 
+  let bullseyes = 0, hits = 0, misses = 0;
   let correct = 0, wrong = 0, pending = 0, voided = 0;
   let pts = 0, totalPotential = 0;
 
@@ -69,16 +85,20 @@ export function computeBracketHealth(bracket, scoringConfig) {
 
     switch (state) {
       case 'bullseye':
+        bullseyes++;
         correct++;
         pts += roundScoring.bullseye || roundScoring.hit || 0;
         totalPotential += maxPts;
         break;
       case 'hit':
+        hits++;
         correct++;
         pts += roundScoring.hit || 0;
         totalPotential += maxPts;
         break;
       case 'miss':
+      case 'path_miss':
+        misses++;
         wrong++;
         totalPotential += maxPts;
         break;
@@ -113,7 +133,7 @@ export function computeBracketHealth(bracket, scoringConfig) {
 
   const decided = correct + wrong + voided;
 
-  return { correct, wrong, pending, voided, pts, totalPotential, decided };
+  return { bullseyes, hits, misses, correct, wrong, pending, voided, pts, totalPotential, decided };
 }
 
 // ---------------------------------------------------------------------------

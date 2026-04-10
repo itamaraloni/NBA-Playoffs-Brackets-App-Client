@@ -1,6 +1,10 @@
 import { clearLocalStoragePreserveTheme } from '../utils/authStorage';
+import { getCorrelationHeaders } from '../utils/requestCorrelation';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL;
+if (!API_BASE_URL) {
+  throw new Error('REACT_APP_API_URL is not set. Set it in your .env file.');
+}
 
 /**
  * Base API client using fetch with retry logic
@@ -29,6 +33,7 @@ const apiClient = {
   getHeaders(method) {
     const headers = {
       'Content-Type': 'application/json',
+      ...getCorrelationHeaders(),
     };
 
     // Include CSRF token for state-changing requests
@@ -44,8 +49,14 @@ const apiClient = {
   
   /**
    * Handle fetch response with improved error handling
+   * @param {Response} response
+   * @param {Object} options
+   * @param {boolean} options.suppressAuthEvent - When true, a 401 throws an error
+   *   instead of dispatching auth:session-expired. Use for callers that implement
+   *   their own retry logic (e.g. fetchAndSetPlayerData) so the sign-out flow
+   *   isn't triggered prematurely on a transient cookie-timing 401.
    */
-  async handleResponse(response) {
+  async handleResponse(response, { suppressAuthEvent = false } = {}) {
     // Check if the request was successful
     if (!response.ok) {
       let errorData = null;
@@ -64,25 +75,24 @@ const apiClient = {
       
       // Handle auth errors (401 Unauthorized)
       if (response.status === 401) {
-        try {
-          console.log(`Auth error: ${errorMessage}`);
+        console.log(`Auth error: ${errorMessage}`);
 
-          clearLocalStoragePreserveTheme();
-
-          // Show notification first, before potential redirect
-          if (window.notify) {
-            window.notify.warning('Your session has expired. Please log in again.');
-          }
-
-          // Small delay to allow notification to appear before redirect
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 1000);
-
-          return; // Stop execution
-        } catch (e) {
-          console.error("Error in auth handling:", e);
+        if (suppressAuthEvent) {
+          // Caller handles this 401 (e.g. with retry logic) — throw so they
+          // can catch it without triggering the global sign-out event yet.
+          const error = new Error(errorMessage || 'Unauthorized');
+          error.status = 401;
+          error.code = errorCode;
+          error.data = errorData;
+          throw error;
         }
+
+        // Standard path: session genuinely expired mid-session.
+        // Dispatch so AuthContext can signOut(Firebase) before redirecting,
+        // preventing the silent re-auth loop on next page load.
+        clearLocalStoragePreserveTheme();
+        window.dispatchEvent(new CustomEvent('auth:session-expired'));
+        return;
       }
       
       // Handle other errors
@@ -134,27 +144,29 @@ const apiClient = {
   
   /**
    * GET request with retry logic
+   * @param {string} endpoint
+   * @param {Object} options - Passed through to handleResponse (e.g. suppressAuthEvent)
    */
-  async get(endpoint) {
+  async get(endpoint, options = {}) {
     const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
       method: 'GET',
       headers: this.getHeaders('GET'),
     });
 
-    return this.handleResponse(response);
+    return this.handleResponse(response, options);
   },
 
   /**
    * POST request with retry logic
    */
-  async post(endpoint, data) {
+  async post(endpoint, data, options = {}) {
     const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: this.getHeaders('POST'),
       body: JSON.stringify(data),
     });
 
-    return this.handleResponse(response);
+    return this.handleResponse(response, options);
   },
 
   /**

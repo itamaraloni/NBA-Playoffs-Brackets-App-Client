@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Box, Chip, Paper, Tooltip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { getLogoPath, getShortTeamName } from '../../shared/teamUtils';
@@ -31,6 +31,15 @@ function getResultChipConfig(state, theme) {
           color: theme.palette.error.main,
           background: alpha(theme.palette.error.main, 0.14),
           borderColor: alpha(theme.palette.error.main, 0.35),
+        },
+      };
+    case 'path_miss':
+      return {
+        label: 'Path Miss',
+        sx: {
+          color: theme.palette.error.main,
+          background: alpha(theme.palette.error.main, 0.18),
+          borderColor: alpha(theme.palette.error.main, 0.5),
         },
       };
     case 'pending':
@@ -71,6 +80,8 @@ function getResultTooltip(state) {
       return 'Correct winner, wrong series score.';
     case 'miss':
       return 'Wrong winner prediction.';
+    case 'path_miss':
+      return 'Neither predicted team reached this bracket position.';
     case 'pending':
       return 'Series not yet decided.';
     case 'voided':
@@ -118,7 +129,19 @@ function TeamLogo({ name }) {
   );
 }
 
-function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed, isMiss, isVoided, compact }) {
+function TeamRow({
+  team,
+  seed,
+  isPredWinner,
+  isActualWinner,
+  hasPick,
+  isPlayed,
+  isMiss,
+  isVoided,
+  isEliminated,
+  compact,
+  showWinnerIndicator = false,
+}) {
   const theme = useTheme();
 
   if (!team) {
@@ -190,28 +213,57 @@ function TeamRow({ team, seed, isPredWinner, isActualWinner, hasPick, isPlayed, 
         </Typography>
       )}
       <TeamLogo name={team.name} />
-      <Typography
-        sx={{
-          fontSize: '0.6875rem',
-          fontWeight: 600,
-          flex: 1,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          ...(isVoided && isPredWinner && {
-            textDecoration: 'line-through',
-            color: theme.palette.text.disabled,
-          }),
-        }}
-      >
-        {compact ? getShortTeamName(team.name) : team.name}
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flex: 1, minWidth: 0 }}>
+        <Typography
+          sx={{
+            fontSize: '0.6875rem',
+            fontWeight: 600,
+            flex: 1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            ...(isVoided && isPredWinner && {
+              textDecoration: 'line-through',
+              color: theme.palette.text.disabled,
+            }),
+            // Team was eliminated in an earlier round — show strikethrough on their name
+            // to signal that this prediction can no longer come true.
+            ...(isEliminated && !isVoided && {
+              textDecoration: 'line-through',
+              opacity: 0.55,
+            }),
+          }}
+        >
+          {compact ? getShortTeamName(team.name) : team.name}
+        </Typography>
+        {showWinnerIndicator && (
+          <Typography component="span" aria-label="Winning team" sx={{ fontSize: '0.75rem', flexShrink: 0 }}>
+            ✅
+          </Typography>
+        )}
+      </Box>
     </Box>
   );
 }
 
-const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compact }) => {
+const BracketMatchup = ({ matchup: m, isLocked, isFinals, interactionHint, onMatchupClick, compact }) => {
   const theme = useTheme();
+  const [isInteractionHintOpen, setIsInteractionHintOpen] = useState(false);
+  const showInteractionHint = Boolean(interactionHint && m?.can_edit && !isLocked && !onMatchupClick);
+
+  // Auto-close the hint after 2.5 s. useEffect cleans up the timer if the hint
+  // closes early (via hideHint) or if the component unmounts.
+  useEffect(() => {
+    if (!isInteractionHintOpen) return undefined;
+    const id = window.setTimeout(() => setIsInteractionHintOpen(false), 2500);
+    return () => window.clearTimeout(id);
+  }, [isInteractionHintOpen]);
+
+  const showHint = useCallback(() => {
+    if (showInteractionHint) setIsInteractionHintOpen(true);
+  }, [showInteractionHint]);
+
+  const hideHint = useCallback(() => setIsInteractionHintOpen(false), []);
 
   if (!m) return null;
 
@@ -222,13 +274,15 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
   let resultChip = getResultChipConfig(resultState, theme);
   let resultTooltip = getResultTooltip(resultState);
   let resultChipLabel = null; // computed below, after actual bracket override
-  const isMiss = resultState === 'miss';
+  const isMiss = resultState === 'miss' || resultState === 'path_miss';
   const isVoided = resultState === 'voided';
 
   // Actual bracket: override chip to show real results instead of prediction states
   if (m.isActualBracket) {
     if (m.isPlayed) {
-      const winnerName = getShortTeamName(m.actualWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name);
+      const winnerName = getShortTeamName(
+        m.actualWinnerName || (m.actualWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name)
+      );
       const scoreStr = m.isPlayin ? '' : ` ${m.actual_series_score}`;
       resultChip = getResultChipConfig('hit', theme);
       resultChipLabel = `${winnerName}${scoreStr}`;
@@ -256,7 +310,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
   const cardSx = {
     borderRadius: '10px',
     overflow: 'hidden',
-    opacity: m.isTbd ? 0.55 : isVoided ? 0.5 : 1,
+    opacity: m.isTbd ? 0.55 : isVoided ? 0.5 : showInteractionHint ? 0.6 : 1,
     cursor: isClickable ? 'pointer' : 'default',
     border: m.isTbd
       ? `1px dashed ${theme.palette.divider}`
@@ -290,13 +344,20 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
   // (skip for actual bracket — label was already set above)
   if (!resultChipLabel) {
     const actualWinnerName = m.isPlayed
-      ? getShortTeamName(m.actualWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name)
+      ? getShortTeamName(
+          m.actualWinnerName || (m.actualWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name)
+        )
       : null;
 
     let chipSuffix = '';
-    if (resultState === 'bullseye' || resultState === 'hit' || resultState === 'miss') {
+    if (
+      resultState === 'bullseye' ||
+      resultState === 'hit' ||
+      resultState === 'miss' ||
+      resultState === 'path_miss'
+    ) {
       chipSuffix = m.isPlayin
-        ? (actualWinnerName ? ` \u00B7 ${actualWinnerName}` : '')
+        ? (actualWinnerName ? ` \u00B7 ${actualWinnerName} won` : '')
         : (actualWinnerName && m.actual_series_score
             ? ` \u00B7 ${actualWinnerName} ${m.actual_series_score}`
             : '');
@@ -307,8 +368,8 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
     resultChipLabel = `${resultChip.label}${chipSuffix}`;
   }
 
-  // Score bar: "Prediction: Team 4-1" — hidden for play-in (team row highlight is sufficient)
-  const showScoreBar = m.hasPick && !m.isPlayin;
+  // Score bar: "Prediction: Team" — shown for all matchup types including play-in
+  const showScoreBar = m.hasPick;
   const predictedWinnerName = m.hasPick
     ? getShortTeamName(m.predWinnerIsTeam1 ? m.team_1?.name : m.team_2?.name)
     : null;
@@ -323,99 +384,125 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, onMatchupClick, compac
     : undefined;
 
   return (
-    <Paper
-      elevation={0}
-      sx={cardSx}
-      onClick={isClickable ? () => onMatchupClick(m) : undefined}
-      onKeyDown={handleKeyDown}
-      tabIndex={isClickable ? 0 : undefined}
-      role={isClickable ? 'button' : undefined}
-      aria-label={isClickable ? `Predict ${m.team_1?.name || 'TBD'} vs ${m.team_2?.name || 'TBD'}` : undefined}
+    <Tooltip
+      title={showInteractionHint ? interactionHint : ''}
+      arrow
+      placement="top"
+      open={showInteractionHint ? isInteractionHintOpen : false}
+      disableFocusListener
+      disableHoverListener
+      disableTouchListener
+      enterTouchDelay={0}
+      leaveTouchDelay={2500}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: '9px', pt: '6px', pb: '2px' }}>
-        <Tooltip
-          title={resultTooltip}
-          arrow
-          placement="top"
-          describeChild
-          enterTouchDelay={0}
-          leaveTouchDelay={3500}
+      <Box
+        component="span"
+        sx={{ display: 'block' }}
+        onMouseEnter={showInteractionHint ? showHint : undefined}
+        onMouseLeave={showInteractionHint ? hideHint : undefined}
+        onFocus={showInteractionHint ? showHint : undefined}
+        onBlur={showInteractionHint ? hideHint : undefined}
+        onClick={showInteractionHint ? showHint : undefined}
+      >
+        <Paper
+          elevation={0}
+          sx={cardSx}
+          onClick={isClickable ? () => onMatchupClick(m) : undefined}
+          onKeyDown={handleKeyDown}
+          tabIndex={isClickable ? 0 : undefined}
+          role={isClickable ? 'button' : undefined}
+          aria-label={isClickable ? `Predict ${m.team_1?.name || 'TBD'} vs ${m.team_2?.name || 'TBD'}` : undefined}
         >
-          <Box
-            component="span"
-            sx={{ display: 'inline-flex' }}
-            onClick={(event) => event.stopPropagation()}
-            onMouseDown={(event) => event.stopPropagation()}
-            onTouchStart={(event) => event.stopPropagation()}
-          >
-            <Chip
-              size="small"
-              variant="outlined"
-              label={resultChipLabel}
-              sx={{
-                height: 18,
-                fontSize: '0.625rem',
-                fontWeight: 700,
-                letterSpacing: '0.02em',
-                '& .MuiChip-label': { px: '6px' },
-                ...resultChip.sx,
-              }}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: '9px', pt: '6px', pb: '2px' }}>
+            <Tooltip
+              title={resultTooltip}
+              arrow
+              placement="top"
+              describeChild
+              enterTouchDelay={0}
+              leaveTouchDelay={3500}
+            >
+              <Box
+                component="span"
+                sx={{ display: 'inline-flex' }}
+                onClick={(event) => event.stopPropagation()}
+                onMouseDown={(event) => event.stopPropagation()}
+                onTouchStart={(event) => event.stopPropagation()}
+              >
+                <Chip
+                  size="small"
+                  variant="outlined"
+                  label={resultChipLabel}
+                  sx={{
+                    height: 18,
+                    fontSize: '0.625rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.02em',
+                    '& .MuiChip-label': { px: '6px' },
+                    ...resultChip.sx,
+                  }}
+                />
+              </Box>
+            </Tooltip>
+          </Box>
+          <TeamRow
+            team={m.team_1}
+            seed={m.team_1?.seed}
+            isPredWinner={t1IsPredWinner}
+            isActualWinner={t1IsActualWinner}
+            hasPick={m.hasPick}
+            isPlayed={isLocked && m.isPlayed}
+            isMiss={isMiss}
+            isVoided={isVoided}
+            isEliminated={isLocked && m.team_1?.is_active === false && !t1IsActualWinner}
+            compact={compact}
+            showWinnerIndicator={isLocked && m.isPlayed && t1IsActualWinner}
+          />
+          <Box sx={{ borderTop: `1px solid ${theme.palette.divider}` }}>
+            <TeamRow
+              team={m.team_2}
+              seed={m.team_2?.seed}
+              isPredWinner={t2IsPredWinner}
+              isActualWinner={t2IsActualWinner}
+              hasPick={m.hasPick}
+              isPlayed={isLocked && m.isPlayed}
+              isMiss={isMiss}
+              isVoided={isVoided}
+              isEliminated={isLocked && m.team_2?.is_active === false && !t2IsActualWinner}
+              compact={compact}
+              showWinnerIndicator={isLocked && m.isPlayed && t2IsActualWinner}
             />
           </Box>
-        </Tooltip>
-      </Box>
-      <TeamRow
-        team={m.team_1}
-        seed={m.team_1?.seed}
-        isPredWinner={t1IsPredWinner}
-        isActualWinner={t1IsActualWinner}
-        hasPick={m.hasPick}
-        isPlayed={isLocked && m.isPlayed}
-        isMiss={isMiss}
-        isVoided={isVoided}
-        compact={compact}
-      />
-      <Box sx={{ borderTop: `1px solid ${theme.palette.divider}` }}>
-        <TeamRow
-          team={m.team_2}
-          seed={m.team_2?.seed}
-          isPredWinner={t2IsPredWinner}
-          isActualWinner={t2IsActualWinner}
-          hasPick={m.hasPick}
-          isPlayed={isLocked && m.isPlayed}
-          isMiss={isMiss}
-          isVoided={isVoided}
-          compact={compact}
-        />
-      </Box>
 
-      {showScoreBar && scoreBarText && (
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '3px',
-            px: '9px',
-            py: '3px',
-            background: alpha(theme.palette.text.primary, 0.06),
-            borderTop: `1px solid ${theme.palette.divider}`,
-          }}
-        >
-          <Typography
-            component="span"
-            sx={{ fontSize: '0.625rem', fontWeight: 400, opacity: 0.7, color: theme.palette.text.secondary }}
-          >
-            Prediction:
-          </Typography>
-          <Typography
-            component="span"
-            sx={{ fontSize: '0.625rem', fontWeight: 700, color: theme.palette.text.secondary }}
-          >
-            {predictedWinnerName}{m.predicted_series_score ? ` ${m.predicted_series_score}` : ''}
-          </Typography>
-        </Box>
-      )}
-    </Paper>
+          {showScoreBar && scoreBarText && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                px: '9px',
+                py: '3px',
+                background: alpha(theme.palette.text.primary, 0.06),
+                borderTop: `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <Typography
+                component="span"
+                sx={{ fontSize: '0.625rem', fontWeight: 400, opacity: 0.7, color: theme.palette.text.secondary }}
+              >
+                Prediction:
+              </Typography>
+              <Typography
+                component="span"
+                sx={{ fontSize: '0.625rem', fontWeight: 700, color: theme.palette.text.secondary }}
+              >
+                {predictedWinnerName}{m.predicted_series_score ? ` ${m.predicted_series_score}` : ''}
+              </Typography>
+            </Box>
+          )}
+        </Paper>
+      </Box>
+    </Tooltip>
   );
 };
 

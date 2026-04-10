@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -25,6 +25,7 @@ import MatchupScoreDisplay from './common/MatchupScoreDisplay';
 import MatchupPredictionsStats from './MatchupPredictionsStats';
 import { useAuth } from '../contexts/AuthContext';
 import { PLAYER_AVATARS } from '../shared/GeneralConsts';
+import { getLogoPath } from '../shared/teamUtils';
 
 /**
  * Dialog to display league predictions for a matchup
@@ -35,7 +36,6 @@ const MatchupDetailsDialog = ({
   matchup,
   leaguePredictions = []
 }) => {
-  const [loading, setLoading] = useState(false);
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
@@ -175,6 +175,8 @@ const MatchupDetailsDialog = ({
                 homeScore={actualHomeScore}
                 awayScore={actualAwayScore}
                 round={round}
+                resultColor="success"
+                showSeriesWinnerChip
               />
             ) : status === 'in-progress' ? (
               <MatchupScoreDisplay
@@ -196,7 +198,6 @@ const MatchupDetailsDialog = ({
         {/* Prediction Statistics */}
         <MatchupPredictionsStats 
           stats={matchup?.predictionStats} 
-          loading={loading} 
           homeTeam={homeTeam} 
           awayTeam={awayTeam}
           leaguePredictions={leaguePredictions}
@@ -215,6 +216,11 @@ const MatchupDetailsDialog = ({
             leaguePredictions.map((prediction, index) => {
               const accuracy = getPredictionAccuracy(prediction);
               const isCurrentPlayer = prediction.userName === activePlayer?.player_name;
+              const pickedHomeTeam = prediction.homeScore > prediction.awayScore;
+              const pickedTeam = pickedHomeTeam ? homeTeam : awayTeam;
+              const scoreLabel = pickedHomeTeam
+                ? `${prediction.homeScore}-${prediction.awayScore}`
+                : `${prediction.awayScore}-${prediction.homeScore}`;
               
               // Check if this prediction is for a play-in game
               const isPredictionPlayIn = isPlayIn || 
@@ -270,24 +276,46 @@ const MatchupDetailsDialog = ({
                     
                         {isPredictionPlayIn ? (
                           // Display for Play-In games
-                          <Typography variant="body1" sx={{ 
+                          <Box sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
                               fontWeight: 'bold',
                               mb: { xs: status === 'completed' ? 1 : 0, sm: 0 },
                               ml: { xs: 0, sm: status === 'completed' ? 1 : 0 }
                           }}>
-                              Picked: {prediction.homeScore === 1 ? homeTeam.name : awayTeam.name}
-                          </Typography>
+                              <Avatar
+                                src={getLogoPath(pickedTeam.name)}
+                                alt={pickedTeam.name}
+                                variant="rounded"
+                                sx={{ width: 28, height: 28 }}
+                              />
+                              <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                                {pickedTeam.name}
+                              </Typography>
+                          </Box>
                         ) : (
                           // Display for regular playoff series
-                          <Typography variant="body1" sx={{ 
+                          <Box sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
                               fontWeight: 'bold',
                               mb: { xs: status === 'completed' ? 1 : 0, sm: 0 },
                               ml: { xs: 0, sm: status === 'completed' ? 1 : 0 }
                           }}>
-                              {homeTeam.name} {prediction.homeScore} - {prediction.awayScore} {awayTeam.name}
-                          </Typography>
-                        )}
-                    </Box>
+                              <Avatar
+                                src={getLogoPath(pickedTeam.name)}
+                               alt={pickedTeam.name}
+                               variant="rounded"
+                               sx={{ width: 28, height: 28 }}
+                               />
+                               <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                                 {pickedTeam.name} {scoreLabel}
+                               </Typography>
+                           </Box>
+                         )}
+                     </Box>
                   </Box>
                 </ListItem>
               );
