@@ -218,7 +218,7 @@ function BracketHeader({
                 <Box sx={{
                   height: '100%',
                   width: `${hitPct}%`,
-                  background: theme.palette.warning.main,
+                  background: theme.palette.warning.light,
                   transition: 'width 0.4s ease',
                 }} />
               )}

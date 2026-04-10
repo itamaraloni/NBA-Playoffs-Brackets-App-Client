@@ -160,7 +160,7 @@ const RoundBar = ({ row, isBestRound, isMobile }) => {
                 <Box sx={{
                   width: `${hitPct}%`,
                   minWidth: 6,
-                  bgcolor: theme.palette.warning.main,
+                  bgcolor: theme.palette.warning.light,
                   transition: 'width 0.4s ease',
                   cursor: 'pointer'
                 }} />
