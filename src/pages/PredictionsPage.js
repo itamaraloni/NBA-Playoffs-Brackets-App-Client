@@ -272,7 +272,7 @@ const PredictionsPage = () => {
       return (
         <Box sx={{ textAlign: 'center', py: 4 }}>
           <Typography variant="body1" color="text.secondary">
-            No matchups available in this category.
+            No matchups available
           </Typography>
         </Box>
       );
@@ -302,7 +302,7 @@ const PredictionsPage = () => {
       return (
         <Box sx={{ textAlign: 'center', py: 4 }}>
           <Typography variant="body1" color="text.secondary">
-            No matchups available in this category.
+            No matchups available
           </Typography>
         </Box>
       );
@@ -401,7 +401,7 @@ const PredictionsPage = () => {
           fontSize: { xs: '1.35rem', sm: '2.125rem' },
         }}
       >
-        NBA Playoff Live Picks
+        NBA Playoffs Live Picks
       </Typography>
 
       {error && (
