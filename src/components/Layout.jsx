@@ -18,7 +18,6 @@ import {
   Tooltip
 } from '@mui/material';
 import {
-  Menu as MenuIcon,
   Home as DashboardIcon,
   Group as MyLeagueIcon,
   Whatshot as LivePicksIcon,
@@ -204,23 +203,30 @@ const Layout = ({ children, onLogout }) => {
         }}
       >
         <Toolbar sx={appBarToolbarSx}>
+          {/* Mobile: logo image acts as the drawer toggle; desktop: hidden (no hamburger needed) */}
           <IconButton
             color="inherit"
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ display: { md: 'none' }, gridColumn: { xs: 1, md: 1 } }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Box
-            sx={{ minWidth: 0, gridColumn: { xs: 2, md: 2 }, display: 'flex', alignItems: 'center', gap: 1 }}
+            sx={{ display: { md: 'none' }, gridColumn: { xs: 1, md: 1 }, p: 0.5 }}
           >
             <Box
               component="img"
               src="/head-logo.png"
+              alt="Playoff Prophet"
+              sx={{ width: 36, height: 36, borderRadius: '50%', display: 'block' }}
+            />
+          </IconButton>
+          <Box
+            sx={{ minWidth: 0, gridColumn: { xs: 2, md: 2 }, display: 'flex', alignItems: 'center', gap: 1 }}
+          >
+            {/* Logo only shown on desktop — on mobile it's already the menu trigger above */}
+            <Box
+              component="img"
+              src="/head-logo.png"
               alt="Playoff Prophet logo"
-              sx={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0 }}
+              sx={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, display: { xs: 'none', md: 'block' } }}
             />
             <Typography
               variant="h6"
