@@ -181,16 +181,6 @@ const LeaguePage = () => {
         error={pickDistributionError}
       />
 
-      {/* Global Rankings — top 10 across all leagues */}
-      {globalRankings && (
-        <>
-          <Typography variant="h5" component="h2" sx={{ mt: 4, mb: 2 }}>
-            Global Rankings
-          </Typography>
-          <GlobalRankings globalRankings={globalRankings} />
-        </>
-      )}
-
       {/* League Information */}
       <Typography variant="h5" component="h2" sx={{ mt: 4, mb: 2 }}>
         League Information
@@ -212,6 +202,16 @@ const LeaguePage = () => {
         Scoring Rules
       </Typography>
       <ScoringRules showTitle={false} />
+
+      {/* Global Rankings — top 10 across all leagues */}
+      {globalRankings && (
+        <>
+          <Typography variant="h5" component="h2" sx={{ mt: 4, mb: 2 }}>
+            Global Rankings
+          </Typography>
+          <GlobalRankings globalRankings={globalRankings} />
+        </>
+      )}
 
       {/* Player Detail Dialog */}
       <PlayerDetailDialog 

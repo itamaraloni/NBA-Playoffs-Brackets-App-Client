@@ -160,7 +160,7 @@ const LeagueInsights = ({ pickDistribution, currentPlayer, loading, error }) => 
 
       <Stack spacing={3}>
         <DistributionCard
-          title="Championship Picks"
+          title="Championship Team Picks"
           entries={championEntries}
           currentPickName={currentChampPick}
           progressColor="primary"

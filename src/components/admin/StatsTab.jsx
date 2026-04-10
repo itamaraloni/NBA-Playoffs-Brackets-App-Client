@@ -43,7 +43,7 @@ const StatsTab = ({ stats, loading, error }) => {
         {/* Champion distribution */}
         <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" sx={{ mb: 2 }}>
-            Championship Picks
+            Championship Team Picks
           </Typography>
           {stats.championDistribution.length > 0 ? (
             <Stack spacing={1.5}>
@@ -67,7 +67,7 @@ const StatsTab = ({ stats, loading, error }) => {
             </Stack>
           ) : (
             <Typography variant="body2" color="text.secondary">
-              No championship picks yet
+              No championship team picks yet
             </Typography>
           )}
         </Paper>

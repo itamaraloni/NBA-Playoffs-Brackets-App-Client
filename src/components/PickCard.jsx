@@ -137,7 +137,7 @@ const PickCard = ({
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
         <Icon sx={{ color: '#FFD700', mr: 0.75, fontSize: 22 }} />
         <Typography variant="body2" fontWeight={600} color="text.secondary">
-          {isChampionship ? 'Championship Pick' : 'MVP Pick'}
+          {isChampionship ? 'Championship Team' : 'Finals MVP'}
         </Typography>
       </Box>
 

@@ -267,9 +267,9 @@ const BonusPicks = ({
         <Box sx={{ flex: 1, height: '1px', background: alpha(theme.palette.warning.main, 0.18) }} />
       </Box>
 
-      {/* Championship Pick */}
+      {/* Championship Team */}
       <BonusCard
-        title="Championship Pick"
+        title="Championship Team"
         chipLabel={champConfig.chipLabel}
         chipSx={champConfig.chipSx}
         name={championshipPick}
