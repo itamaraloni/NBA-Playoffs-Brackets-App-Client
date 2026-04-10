@@ -13,25 +13,14 @@ export const formatDeadline = () => PLAYIN_START_DATE.toLocaleString('en-US', {
 });
 
 export const HeaderLogoPlaceholder = () => (
-  <Box
-    sx={{
-      width: LOGO_PLACEHOLDER_SIZE,
-      height: LOGO_PLACEHOLDER_SIZE,
-      borderRadius: 1.5,
-      border: '1px dashed',
-      borderColor: 'divider',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      bgcolor: 'background.paper',
-      color: 'text.secondary',
-      fontSize: '0.6rem',
-      fontWeight: 700,
-      letterSpacing: '0.04em',
-      flexShrink: 0
-    }}
-  >
-    LOGO
+  <Box sx={{ flexShrink: 0 }}>
+    <img
+      src={`${window.location.origin}/logo192.png`}
+      alt="Playoff Prophet"
+      width={LOGO_PLACEHOLDER_SIZE}
+      height={LOGO_PLACEHOLDER_SIZE}
+      style={{ borderRadius: 8, display: 'block' }}
+    />
   </Box>
 );
 
