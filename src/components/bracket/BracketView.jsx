@@ -90,10 +90,10 @@ function BracketHeader({
         gap: 1.5,
         p: 1.5,
         mb: flat ? 0 : 1.5,
-        background: theme.palette.background.paper,
+        background: flat ? theme.palette.background.paper : 'transparent',
         borderRadius: flat ? 0 : 2,
-        border: flat ? 'none' : `1px solid ${theme.palette.divider}`,
-        ...(flat && { borderBottom: `1px solid ${theme.palette.divider}` }),
+        border: `1px solid ${alpha(theme.palette.text.primary, 0.18)}`,
+        borderRadius: flat ? 0 : 2,
       }}>
         {viewingPlayerName && (
           <Box sx={{
@@ -154,10 +154,10 @@ function BracketHeader({
         gap: 1.5,
         p: 1.5,
         mb: flat ? 0 : 1.5,
-        background: theme.palette.background.paper,
+        background: flat ? theme.palette.background.paper : 'transparent',
         borderRadius: flat ? 0 : 2,
-        border: flat ? 'none' : `1px solid ${theme.palette.divider}`,
-        ...(flat && { borderBottom: `1px solid ${theme.palette.divider}` }),
+        border: `1px solid ${alpha(theme.palette.text.primary, 0.18)}`,
+        borderRadius: flat ? 0 : 2,
       }}>
         <Box
           sx={{
@@ -218,7 +218,7 @@ function BracketHeader({
                 <Box sx={{
                   height: '100%',
                   width: `${hitPct}%`,
-                  background: theme.palette.warning.main,
+                  background: theme.palette.warning.light,
                   transition: 'width 0.4s ease',
                 }} />
               )}
@@ -340,7 +340,8 @@ function BracketHeader({
       gap: 2,
       p: 1.5,
       mb: flat ? 0 : 1.5,
-      background: theme.palette.background.paper,
+      background: flat ? theme.palette.background.paper : alpha(theme.palette.background.paper, 0.82),
+      backdropFilter: flat ? undefined : 'blur(8px)',
       borderRadius: flat ? 0 : 2,
       border: flat ? 'none' : `1px solid ${theme.palette.divider}`,
       ...(flat && { borderBottom: `1px solid ${theme.palette.divider}` }),
@@ -438,7 +439,10 @@ const BracketView = ({
           position: 'sticky',
           top: stickyHeaderTop,
           zIndex: 10,
-          bgcolor: inDialog ? 'background.paper' : 'background.default',
+          // Semi-transparent + backdrop blur so the fixed background image shows through
+          // while still masking the bracket cards that scroll underneath the header.
+          bgcolor: inDialog ? 'background.paper' : 'transparent',
+          backdropFilter: inDialog ? undefined : 'blur(6px)',
           pb: inDialog ? 0 : 0.5,
         }}>
           {header}

@@ -4,20 +4,22 @@ import {
   Container,
   Typography,
   Button,
-  Paper,
   Box,
   CircularProgress,
   Alert,
+  AppBar,
+  Toolbar,
 } from '@mui/material';
 import {
-  SportsBasketball as BallIcon,
   Groups as GroupsIcon,
   Login as LoginIcon,
 } from '@mui/icons-material';
 
-import StandaloneHeader from '../components/common/StandaloneHeader';
+import ThemeToggle from '../theme/ThemeToggle';
 import LeagueServices from '../services/LeagueServices';
 import { useAuth } from '../contexts/AuthContext';
+
+const NAV_LOGO_SRC = '/head-logo-nav.png';
 
 const InviteLandingPage = () => {
   const { token } = useParams();
@@ -52,7 +54,6 @@ const InviteLandingPage = () => {
     try {
       setSigningIn(true);
       await signInWithGoogle();
-      // After sign-in, the component re-renders with isAuthenticated=true
       if (window.notify) {
         window.notify.success('Signed in successfully!');
       }
@@ -71,111 +72,240 @@ const InviteLandingPage = () => {
     navigate('/dashboard');
   };
 
-  // Show a loading spinner while auth state or preview is loading
-  if (authLoading || loading) {
-    return (
-      <>
-        <StandaloneHeader title="League Invite" showLogout={false} showHome={false} />
-        <Container maxWidth="sm" sx={{ mt: 8, textAlign: 'center' }}>
-          <CircularProgress />
-          <Typography sx={{ mt: 2 }} color="text.secondary">
-            Loading invite...
-          </Typography>
-        </Container>
-      </>
-    );
-  }
-
-  // Show error state
-  if (error) {
-    return (
-      <>
-        <StandaloneHeader
-          title="League Invite"
-          showLogout={isAuthenticated}
-          showHome={isAuthenticated}
-          onLogout={logout}
-        />
-        <Container maxWidth="sm" sx={{ mt: 8 }}>
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-          {isAuthenticated && (
-            <Button variant="contained" onClick={handleGoToDashboard}>
-              Go to Dashboard
-            </Button>
-          )}
-        </Container>
-      </>
-    );
-  }
-
   return (
-    <>
-      <StandaloneHeader
-        title="League Invite"
-        showLogout={isAuthenticated}
-        showHome={isAuthenticated}
-        onLogout={logout}
+    <Box
+      sx={{
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Background image — same as LandingPage for brand consistency */}
+      <Box
+        component="img"
+        src="/og-image-clean.png"
+        alt=""
+        aria-hidden="true"
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          /*
+            Mobile: goat centered (default position).
+            Desktop: shift left so the goat occupies the center-left of the
+            viewport and the card sits on the right without covering it.
+          */
+          objectPosition: { xs: '78% center', md: '62% center' },
+          zIndex: 0,
+        }}
       />
-      <Container maxWidth="sm" sx={{ mt: 8 }}>
-        <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-          <BallIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
 
-          <Typography variant="h5" gutterBottom>
-            You've been invited to join
-          </Typography>
-          <Typography variant="h4" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
-            {preview.leagueName}
-          </Typography>
+      {/* Overlay — uniform dark across mobile; right-side fade on desktop */}
+      <Box
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          background: {
+            xs: 'rgba(0,0,0,0.52)',
+            md: 'linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.55) 35%, rgba(0,0,0,0.20) 65%, rgba(0,0,0,0.05) 100%)',
+          },
+          zIndex: 1,
+        }}
+      />
 
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3 }}>
-            <GroupsIcon sx={{ mr: 1, color: 'text.secondary' }} />
-            <Typography color="text.secondary">
-              {preview.playerCount} {preview.playerCount === 1 ? 'player' : 'players'}
+      {/* Transparent header */}
+      <AppBar
+        position="relative"
+        sx={{ background: 'transparent', boxShadow: 'none', zIndex: 2 }}
+      >
+        <Toolbar>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexGrow: 1 }}>
+            <Box
+              component="img"
+              src={NAV_LOGO_SRC}
+              alt="Playoff Prophet logo"
+              sx={{ width: 36, height: 36, borderRadius: '50%' }}
+            />
+            <Typography variant="h6" fontWeight="bold" sx={{ color: 'white' }}>
+              Playoff Prophet
             </Typography>
           </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <ThemeToggle />
+            {isAuthenticated && (
+              <>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={handleGoToDashboard}
+                  sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.4)' }}
+                >
+                  Home
+                </Button>
+                <Button
+                  size="small"
+                  onClick={logout}
+                  sx={{ color: 'rgba(255,255,255,0.7)' }}
+                >
+                  Logout
+                </Button>
+              </>
+            )}
+          </Box>
+        </Toolbar>
+      </AppBar>
 
-          {/* Not authenticated — prompt sign in */}
-          {!isAuthenticated && (
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={signingIn ? <CircularProgress size={20} color="inherit" /> : <LoginIcon />}
-              onClick={handleSignIn}
-              disabled={signingIn}
-              fullWidth
-            >
-              {signingIn ? 'Signing in...' : 'Sign in with Google to Join'}
-            </Button>
+      {/*
+        Content area — centered on mobile, right-aligned on desktop
+        so the goat (center-left of image) is fully visible alongside the card.
+      */}
+      <Box
+        sx={{
+          position: 'relative',
+          zIndex: 2,
+          flexGrow: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: { xs: 'center', md: 'flex-start' },
+          // Mobile: push card to the lower half so the goat face is unobstructed above
+          alignItems: { xs: 'flex-end', md: 'center' },
+          pb: { xs: 5, md: 0 },
+          pt: { xs: 2, md: 4 },
+          pl: { md: 8 },
+        }}
+      >
+        <Box sx={{ width: { xs: '90%', sm: 340 } }}>
+
+          {/* Loading state */}
+          {(authLoading || loading) && (
+            <Box sx={{ textAlign: 'center' }}>
+              <CircularProgress sx={{ color: 'white' }} />
+              <Typography sx={{ mt: 2, color: 'rgba(255,255,255,0.8)' }}>
+                Loading invite...
+              </Typography>
+            </Box>
           )}
 
-          {/* Authenticated but already a member */}
-          {isAuthenticated && isAlreadyMember && (
-            <>
-              <Alert severity="info" sx={{ mb: 2 }}>
-                You're already a member of this league.
+          {/* Error state */}
+          {!authLoading && !loading && error && (
+            <Box>
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
               </Alert>
-              <Button variant="contained" onClick={handleGoToDashboard} fullWidth>
-                Go to Dashboard
-              </Button>
-            </>
+              {isAuthenticated && (
+                <Button variant="contained" onClick={handleGoToDashboard}>
+                  Go to Dashboard
+                </Button>
+              )}
+            </Box>
           )}
 
-          {/* Authenticated and not a member — ready to join */}
-          {isAuthenticated && !isAlreadyMember && (
-            <Button
-              variant="contained"
-              size="large"
-              onClick={handleJoin}
-              fullWidth
+          {/* Glass invite card */}
+          {!authLoading && !loading && !error && preview && (
+            <Box
+              sx={{
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                bgcolor: 'rgba(255,255,255,0.10)',
+                border: '1px solid rgba(255,255,255,0.20)',
+                borderRadius: 3,
+                p: 3,
+                textAlign: 'center',
+              }}
             >
-              Join League
-            </Button>
+              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', mb: 0.5 }}>
+                You've been invited to join
+              </Typography>
+              <Typography
+                variant="h5"
+                gutterBottom
+                sx={{ fontWeight: 'bold', color: 'secondary.main', mb: 1 }}
+              >
+                {preview.leagueName}
+              </Typography>
+
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2.5 }}>
+                <GroupsIcon sx={{ mr: 1, color: 'rgba(255,255,255,0.55)', fontSize: 18 }} />
+                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.65)' }}>
+                  {preview.playerCount} {preview.playerCount === 1 ? 'player' : 'players'}
+                </Typography>
+              </Box>
+
+              {/* Not authenticated — prompt sign in */}
+              {!isAuthenticated && (
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="large"
+                  startIcon={signingIn ? <CircularProgress size={20} color="inherit" /> : <LoginIcon />}
+                  onClick={handleSignIn}
+                  disabled={signingIn}
+                  fullWidth
+                >
+                  {signingIn ? 'Signing in...' : 'Sign in with Google to Join'}
+                </Button>
+              )}
+
+              {/* Authenticated but already a member */}
+              {isAuthenticated && isAlreadyMember && (
+                <>
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    You're already a member of this league.
+                  </Alert>
+                  <Button variant="contained" onClick={handleGoToDashboard} fullWidth>
+                    Go to Dashboard
+                  </Button>
+                </>
+              )}
+
+              {/* Authenticated and not a member — ready to join */}
+              {isAuthenticated && !isAlreadyMember && (
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="large"
+                  onClick={handleJoin}
+                  fullWidth
+                >
+                  Join League
+                </Button>
+              )}
+            </Box>
           )}
-        </Paper>
-      </Container>
-    </>
+        </Box>
+      </Box>
+
+      {/* ── Footer — same as LandingPage ── */}
+      <Box
+        component="footer"
+        sx={{ py: 2.5, bgcolor: '#111111', color: 'white', position: 'relative', zIndex: 2 }}
+      >
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 0.5, gap: 1 }}>
+              <Box
+                component="img"
+                src={NAV_LOGO_SRC}
+                alt=""
+                aria-hidden="true"
+                sx={{ width: 28, height: 28, borderRadius: '50%' }}
+              />
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'white' }}>
+                Playoff Prophet
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+              © {new Date().getFullYear()} All Rights Reserved to Darch & Itapita8
+            </Typography>
+          </Box>
+        </Container>
+      </Box>
+    </Box>
   );
 };
 

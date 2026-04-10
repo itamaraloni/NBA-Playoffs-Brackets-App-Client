@@ -18,7 +18,6 @@ import {
   Tooltip
 } from '@mui/material';
 import {
-  Menu as MenuIcon,
   Home as DashboardIcon,
   Group as MyLeagueIcon,
   Whatshot as LivePicksIcon,
@@ -37,6 +36,8 @@ import { useAuth } from '../contexts/AuthContext';
 
 const DRAWER_WIDTH = 240;
 const DRAWER_WIDTH_COLLAPSED = 64;
+const APP_BACKGROUND_SRC = '/og-image-clean-layout.jpg';
+const NAV_LOGO_SRC = '/head-logo-nav.png';
 
 const Layout = ({ children, onLogout }) => {
   const theme = useTheme();
@@ -195,32 +196,69 @@ const Layout = ({ children, onLogout }) => {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <AppBar 
-        position="fixed" 
+      {/* OPTION A POC — subtle blurred background image across all pages */}
+      <Box
+        component="img"
+        src={APP_BACKGROUND_SRC}
+        aria-hidden="true"
+        sx={{
+          position: 'fixed',
+          top: 0, left: 0,
+          width: '100%', height: '100%',
+          objectFit: 'cover',
+          objectPosition: '62% center',
+          zIndex: -1,
+          pointerEvents: 'none',
+          opacity: 0.18,
+          filter: 'blur(10px)',
+          transform: 'scale(1.05)', // prevent blur edges from showing
+        }}
+      />
+
+      <AppBar
+        position="fixed"
         color="default"
         elevation={1}
-        sx={{ 
+        sx={{
           zIndex: (theme) => theme.zIndex.drawer + 1,
         }}
       >
+
         <Toolbar sx={appBarToolbarSx}>
+          {/* Mobile: logo image acts as the drawer toggle; desktop: hidden (no hamburger needed) */}
           <IconButton
             color="inherit"
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ display: { md: 'none' }, gridColumn: { xs: 1, md: 1 } }}
+            sx={{ display: { md: 'none' }, gridColumn: { xs: 1, md: 1 }, p: 0.5 }}
           >
-            <MenuIcon />
+            <Box
+              component="img"
+              src={NAV_LOGO_SRC}
+              alt="Playoff Prophet"
+              sx={{ width: 36, height: 36, borderRadius: '50%', display: 'block' }}
+            />
           </IconButton>
-          <Typography 
-            variant="h6" 
-            noWrap 
-            component="div"
-            sx={{ minWidth: 0, fontSize: { xs: '1rem', sm: '1.25rem' }, gridColumn: { xs: 2, md: 2 } }}
+          <Box
+            sx={{ minWidth: 0, gridColumn: { xs: 2, md: 2 }, display: 'flex', alignItems: 'center', gap: 1 }}
           >
-            Playoff Prophet
-          </Typography>
+            {/* Logo only shown on desktop — on mobile it's already the menu trigger above */}
+            <Box
+              component="img"
+              src={NAV_LOGO_SRC}
+              alt="Playoff Prophet logo"
+              sx={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, display: { xs: 'none', md: 'block' } }}
+            />
+            <Typography
+              variant="h6"
+              noWrap
+              component="div"
+              sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+            >
+              Playoff Prophet
+            </Typography>
+          </Box>
           <Box
             sx={{
               minWidth: 0,
@@ -303,7 +341,7 @@ const Layout = ({ children, onLogout }) => {
             duration: theme.transitions.duration.enteringScreen,
           }),
           minHeight: '100vh',
-          backgroundColor: (theme) => theme.palette.background.default
+          backgroundColor: 'transparent'
         }}
       >
         <Toolbar sx={{ minHeight: 64 }} /> {/* Spacer for fixed AppBar */}

@@ -354,12 +354,12 @@ const LeagueBracketsDialog = ({ open, onClose, leagueId, currentPlayerId }) => {
       >
         {selectedPlayer.playerName?.charAt(0)}
       </Avatar>
-      <Typography variant="h6" noWrap>
+      <Typography variant="h6" component="span" noWrap>
         {selectedPlayer.playerName}'s Bracket
       </Typography>
     </Box>
   ) : (
-    <Typography variant="h6">League Brackets</Typography>
+    <Typography variant="h6" component="span">League Brackets</Typography>
   );
 
   return (

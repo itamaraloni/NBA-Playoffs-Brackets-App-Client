@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
+import { Box, Container } from '@mui/material';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ThemeProvider from './theme/ThemeProvider';
@@ -20,12 +21,52 @@ import InviteLandingPage from './pages/InviteLandingPage';
 import AdminPage from './pages/AdminPage';
 import AdminRoute from './components/admin/AdminRoute';
 
+const STANDALONE_BACKGROUND_SRC = '/og-image-clean-layout.jpg';
+
 function AppContent() {
   const { logout } = useAuth();
 
   const handleLogout = () => {
     logout();
   };
+
+  const renderStandaloneFlowPage = (title, child) => (
+    <Box sx={{ position: 'relative', minHeight: '100vh' }}>
+      <Box
+        component="img"
+        src={STANDALONE_BACKGROUND_SRC}
+        aria-hidden="true"
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: '62% center',
+          zIndex: 0,
+          pointerEvents: 'none',
+          opacity: 0.18,
+          filter: 'blur(10px)',
+          transform: 'scale(1.05)',
+        }}
+      />
+
+      <Box sx={{ position: 'relative', zIndex: 1, minHeight: '100vh' }}>
+        <StandaloneHeader title={title} onLogout={handleLogout} />
+        <Container
+          maxWidth="lg"
+          sx={{
+            mt: { xs: 3, sm: 4 },
+            px: { xs: 2, sm: 3 },
+            pb: { xs: 4, sm: 5 },
+          }}
+        >
+          {child}
+        </Container>
+      </Box>
+    </Box>
+  );
 
   return (
     <Router>
@@ -36,26 +77,12 @@ function AppContent() {
         <Route element={<ProtectedRoute />}>
           <Route
             path="/create-league"
-            element={
-              <>
-                <StandaloneHeader title="Create League" onLogout={handleLogout} />
-                <div className="container mx-auto mt-8 px-4">
-                  <CreateLeaguePage />
-                </div>
-              </>
-            }
+            element={renderStandaloneFlowPage('Create League', <CreateLeaguePage />)}
           />
 
           <Route
             path="/create-player"
-            element={
-              <>
-                <StandaloneHeader title="Create Player" onLogout={handleLogout} />
-                <div className="container mx-auto mt-8 px-4">
-                  <CreatePlayerPage />
-                </div>
-              </>
-            }
+            element={renderStandaloneFlowPage('Create Player', <CreatePlayerPage />)}
           />
 
           <Route
