@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import ThemeToggle from '../theme/ThemeToggle';
@@ -46,6 +46,26 @@ const LandingPage = () => {
   const [error, setError] = useState(null);
   const { signInWithGoogle, isAuthenticated, error: authError } = useAuth();
   const navigate = useNavigate();
+
+  // Pill swipe / dot-nav state — same pattern as AppExplanation
+  const pillScrollRef = useRef(null);
+  const pillRefs = useRef([]);
+  const [activePill, setActivePill] = useState(0);
+
+  const handlePillScroll = useCallback((event) => {
+    const container = event.currentTarget;
+    const next = Math.round(container.scrollLeft / container.clientWidth);
+    setActivePill(Math.min(Math.max(next, 0), FEATURES.length - 1));
+  }, []);
+
+  const scrollToPill = useCallback((index) => {
+    pillRefs.current[index]?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'start',
+    });
+    setActivePill(index);
+  }, []);
 
   // Navigate to dashboard once auth state confirms the user is signed in.
   useEffect(() => {
@@ -272,15 +292,17 @@ const LandingPage = () => {
         >
           <Container maxWidth="lg" disableGutters={isMobile}>
             {/*
-              Desktop: natural flex row.
-              Mobile: horizontal scroll with CSS snap — swipe to reveal each pill.
-              Scrollbar is hidden for a native-app feel.
+              Desktop: natural flex row — all pills visible side by side.
+              Mobile: one pill at a time, horizontal CSS snap scroll, dot nav below.
+              Same pattern as AppExplanation mobile carousel.
             */}
             <Box
+              ref={pillScrollRef}
+              onScroll={isMobile ? handlePillScroll : undefined}
               sx={{
                 display: 'flex',
                 flexDirection: 'row',
-                gap: { xs: 1.5, md: 3 },
+                gap: { xs: 0, md: 3 },
                 px: { xs: 2, md: 0 },
                 overflowX: { xs: 'auto', md: 'visible' },
                 scrollSnapType: { xs: 'x mandatory', md: 'none' },
@@ -289,9 +311,10 @@ const LandingPage = () => {
                 msOverflowStyle: 'none',
               }}
             >
-              {FEATURES.map(({ Icon, title, body }) => (
+              {FEATURES.map(({ Icon, title, body }, index) => (
                 <Box
                   key={title}
+                  ref={(node) => { pillRefs.current[index] = node; }}
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
@@ -303,8 +326,9 @@ const LandingPage = () => {
                     borderRadius: 99,
                     px: 2.5,
                     py: 1.25,
-                    // On mobile each pill fills the full scroll container so exactly one is visible at a time
-                    minWidth: { xs: '100%', md: 'auto' },
+                    mx: { xs: 1, md: 0 },
+                    // On mobile each pill fills the viewport width (minus padding) — one at a time
+                    minWidth: { xs: 'calc(100% - 32px)', md: 'auto' },
                     flexShrink: 0,
                     scrollSnapAlign: 'center',
                   }}
@@ -328,6 +352,36 @@ const LandingPage = () => {
                 </Box>
               ))}
             </Box>
+
+            {/* Dot nav — mobile only */}
+            {isMobile && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 1.5 }}>
+                {FEATURES.map((_, index) => (
+                  <Box
+                    key={index}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Go to feature ${index + 1}`}
+                    onClick={() => scrollToPill(index)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        scrollToPill(index);
+                      }
+                    }}
+                    sx={{
+                      width: index === activePill ? 22 : 10,
+                      height: 10,
+                      borderRadius: 999,
+                      bgcolor: index === activePill ? 'secondary.main' : 'rgba(255,255,255,0.35)',
+                      transition: 'all 0.2s ease',
+                      cursor: 'pointer',
+                      outline: 'none',
+                    }}
+                  />
+                ))}
+              </Box>
+            )}
           </Container>
         </Box>
       </Box>

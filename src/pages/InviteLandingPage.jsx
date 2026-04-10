@@ -170,7 +170,10 @@ const InviteLandingPage = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: { xs: 'center', md: 'flex-start' },
-          py: 4,
+          // Mobile: push card to the lower half so the goat face is unobstructed above
+          alignItems: { xs: 'flex-end', md: 'center' },
+          pb: { xs: 5, md: 0 },
+          pt: { xs: 2, md: 4 },
           pl: { md: 8 },
         }}
       >

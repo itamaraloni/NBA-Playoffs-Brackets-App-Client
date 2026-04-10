@@ -220,7 +220,7 @@ const Layout = ({ children, onLogout }) => {
               component="img"
               src="/head-logo.png"
               alt="Playoff Prophet logo"
-              sx={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, display: { xs: 'none', sm: 'block' } }}
+              sx={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0 }}
             />
             <Typography
               variant="h6"
