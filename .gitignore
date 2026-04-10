@@ -13,3 +13,4 @@ src/pages/CreatePlayerPage.test.jsx
 src/pages/BracketPage.test.jsx
 src/pages/Dashboard.test.jsx
 src/utils/bracketUtils.test.js
+src/utils/bracketExport.test.js
