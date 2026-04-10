@@ -20,8 +20,7 @@ jest.mock('../contexts/AuthContext', () => ({
   useAuth: jest.fn(),
 }));
 
-jest.mock('../components/common/StandaloneHeader', () => () => <div>Header</div>);
-jest.mock('../components/AppExplanation', () => () => <div>App explanation</div>);
+jest.mock('../theme/ThemeToggle', () => () => <div>ThemeToggle</div>);
 
 const theme = createTheme();
 
@@ -54,7 +53,7 @@ describe('LandingPage', () => {
 
     const { rerender } = renderLandingPage();
 
-    fireEvent.click(screen.getByRole('button', { name: /get started with google/i }));
+    fireEvent.click(screen.getByRole('button', { name: /sign in with google/i }));
 
     expect(authState.signInWithGoogle).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('button', { name: /loading/i })).toBeDisabled();
@@ -71,7 +70,7 @@ describe('LandingPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /get started with google/i })).not.toBeDisabled();
+      expect(screen.getByRole('button', { name: /sign in with google/i })).not.toBeDisabled();
     });
   });
 
@@ -104,7 +103,7 @@ describe('LandingPage', () => {
     });
   });
 
-  it('does not render the app explanation on landing anymore', () => {
+  it('renders the hero headline', () => {
     useAuth.mockImplementation(() => ({
       signInWithGoogle: jest.fn(),
       isAuthenticated: false,
@@ -113,6 +112,6 @@ describe('LandingPage', () => {
 
     renderLandingPage();
 
-    expect(screen.queryByText('App explanation')).not.toBeInTheDocument();
+    expect(screen.getByText(/predict every series outcome/i)).toBeInTheDocument();
   });
 });

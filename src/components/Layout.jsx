@@ -213,14 +213,24 @@ const Layout = ({ children, onLogout }) => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography 
-            variant="h6" 
-            noWrap 
-            component="div"
-            sx={{ minWidth: 0, fontSize: { xs: '1rem', sm: '1.25rem' }, gridColumn: { xs: 2, md: 2 } }}
+          <Box
+            sx={{ minWidth: 0, gridColumn: { xs: 2, md: 2 }, display: 'flex', alignItems: 'center', gap: 1 }}
           >
-            Playoff Prophet
-          </Typography>
+            <Box
+              component="img"
+              src="/head-logo.png"
+              alt="Playoff Prophet logo"
+              sx={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, display: { xs: 'none', sm: 'block' } }}
+            />
+            <Typography
+              variant="h6"
+              noWrap
+              component="div"
+              sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+            >
+              Playoff Prophet
+            </Typography>
+          </Box>
           <Box
             sx={{
               minWidth: 0,
