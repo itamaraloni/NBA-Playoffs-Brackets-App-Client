@@ -125,7 +125,6 @@ const EditPicksDialog = ({ open, onClose, type, player, onSave }) => {
     ? {
         openOnFocus: true,
         blurOnSelect: true,
-        disablePortal: true,
       }
     : {};
 

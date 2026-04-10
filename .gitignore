@@ -6,8 +6,10 @@ build/
 # Local-only verification files
 src/FirstLoginGuard.test.jsx
 src/components/AppExplanation.test.jsx
+src/components/bracket/BracketMatchup.test.jsx
 src/components/EditPicksDialog.test.jsx
 src/components/common/OnboardingDialogs.test.jsx
 src/pages/CreatePlayerPage.test.jsx
+src/pages/BracketPage.test.jsx
 src/pages/Dashboard.test.jsx
 src/utils/bracketUtils.test.js

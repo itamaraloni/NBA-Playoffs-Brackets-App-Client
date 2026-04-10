@@ -79,6 +79,7 @@ function transformBracketData(apiResponse) {
     predictedMatchups:   apiResponse.predicted_matchups ?? apiResponse.total_matchups,
     totalMatchups:       apiResponse.total_matchups,
     deadline:            apiResponse.deadline,
+    predictionsOpenDate: apiResponse.predictions_open_date ?? null,
     isLocked:            apiResponse.is_locked,
     isActualBracket,
     east:  groupByRound(apiResponse.conferences.east, isActualBracket),

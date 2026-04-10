@@ -24,6 +24,30 @@ function formatCountdown(ms) {
   return `${mins}m`;
 }
 
+function formatPredictionsOpenLabel(dateString) {
+  if (!dateString) return null;
+  const parsed = new Date(dateString);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  const parts = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Asia/Jerusalem',
+  }).formatToParts(parsed);
+
+  const month = parts.find(part => part.type === 'month')?.value;
+  const day = parts.find(part => part.type === 'day')?.value;
+  const hour = parts.find(part => part.type === 'hour')?.value;
+  const minute = parts.find(part => part.type === 'minute')?.value;
+  const dayPeriod = parts.find(part => part.type === 'dayPeriod')?.value;
+
+  if (!month || !day || !hour || !minute || !dayPeriod) return null;
+  return `${month} ${day}, ${hour}:${minute} ${dayPeriod}`;
+}
+
 /**
  * BracketHeader - adapts between write mode (progress bar + countdown) and
  * read mode (health stats + accuracy bar + viewing badge).
@@ -33,6 +57,7 @@ function BracketHeader({
   totalMatchups,
   isLocked,
   deadline,
+  predictionsOpenDate,
   bracketHealth,
   viewingPlayerName,
   actionButtons,
@@ -290,9 +315,16 @@ function BracketHeader({
     ? Math.round((predictedMatchups / totalMatchups) * 100)
     : 0;
 
+  const openDate = predictionsOpenDate ? new Date(predictionsOpenDate) : null;
+  const isPredictionsOpen = !openDate || now >= openDate.getTime();
+  const openDateLabel = formatPredictionsOpenLabel(predictionsOpenDate);
+
   let deadlineLabel = null;
   let deadlineColor = 'text.secondary';
-  if (isLocked) {
+  if (!isPredictionsOpen) {
+    deadlineLabel = openDateLabel ? `\u23F3 Submissions open ${openDateLabel}` : '\u23F3 Submissions not yet open';
+    deadlineColor = 'text.secondary';
+  } else if (isLocked) {
     deadlineLabel = lockedDateLabel ? `\uD83D\uDD12 Bracket locked on ${lockedDateLabel}` : '\uD83D\uDD12 Bracket locked';
     deadlineColor = 'error.main';
   } else if (countdownStr) {
@@ -367,6 +399,8 @@ const BracketView = ({
   predictedMatchups,
   totalMatchups,
   deadline,
+  predictionsOpenDate,
+  interactionHint,
   onMatchupClick,
   bracketHealth,
   viewingPlayerName,
@@ -387,6 +421,7 @@ const BracketView = ({
       totalMatchups={totalMatchups}
       isLocked={isLocked}
       deadline={deadline}
+      predictionsOpenDate={predictionsOpenDate}
       bracketHealth={bracketHealth}
       viewingPlayerName={viewingPlayerName}
       actionButtons={actionButtons}
@@ -411,6 +446,7 @@ const BracketView = ({
         <MobileBracketScroll
           bracket={bracket}
           isLocked={isLocked}
+          interactionHint={interactionHint}
           onMatchupClick={onMatchupClick}
           bonusPicks={bonusPicks}
           scoringConfig={scoringConfig}
@@ -428,6 +464,7 @@ const BracketView = ({
         <DesktopBracketGrid
           bracket={bracket}
           isLocked={isLocked}
+          interactionHint={interactionHint}
           onMatchupClick={onMatchupClick}
           bonusPicks={bonusPicks}
           scoringConfig={scoringConfig}

@@ -24,6 +24,7 @@ import PredictionDialog from '../components/bracket/PredictionDialog';
 import LeagueBracketsDialog from '../components/bracket/LeagueBracketsDialog';
 import BracketServices from '../services/BracketServices';
 import { applyPick, countPicks, picksMatch, flattenBracketPicks, computeBracketHealth, randomFillBracket, clearAllPicks } from '../utils/bracketUtils';
+import { PREDICTIONS_OPEN_DATE } from '../shared/SeasonConfig';
 import { captureBracketImage, downloadBracketImage, shareBracketImage, copyBracketImage } from '../utils/bracketExport';
 
 // PredictionDialog passes matchup.round (API key: 'playin_first', 'first', etc.)
@@ -37,6 +38,30 @@ const API_TO_COMPONENT_ROUND = {
   final:             'final',
 };
 
+function formatPredictionsOpenText(dateString) {
+  if (!dateString) return null;
+  const parsed = new Date(dateString);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  const parts = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Asia/Jerusalem',
+  }).formatToParts(parsed);
+
+  const month = parts.find(part => part.type === 'month')?.value;
+  const day = parts.find(part => part.type === 'day')?.value;
+  const hour = parts.find(part => part.type === 'hour')?.value;
+  const minute = parts.find(part => part.type === 'minute')?.value;
+  const dayPeriod = parts.find(part => part.type === 'dayPeriod')?.value;
+
+  if (!month || !day || !hour || !minute || !dayPeriod) return null;
+  return `${month} ${day} at ${hour}:${minute} ${dayPeriod} Jerusalem time`;
+}
+
 const BracketPage = () => {
   // serverBracket: last confirmed server state — used to detect unsaved changes
   // bracketState:  live working copy that diverges from serverBracket during editing
@@ -44,6 +69,7 @@ const BracketPage = () => {
   const [bracketState, setBracketState]   = useState(null);
   const [loading, setLoading]             = useState(true);
   const [error, setError]                 = useState(null);
+  const [now, setNow]                     = useState(() => Date.now());
 
   // Dialog state
   const [dialogOpen, setDialogOpen]           = useState(false);
@@ -121,13 +147,60 @@ const BracketPage = () => {
     };
   }, [bracketState]);
 
+  const predictionsOpenDate = bracketState?.predictionsOpenDate ?? PREDICTIONS_OPEN_DATE.toISOString();
+  const predictionsOpenAt = useMemo(() => {
+    const parsed = Date.parse(predictionsOpenDate);
+    return Number.isNaN(parsed) ? null : parsed;
+  }, [predictionsOpenDate]);
+  const predictionsOpenLabel = useMemo(
+    () => formatPredictionsOpenText(predictionsOpenDate),
+    [predictionsOpenDate],
+  );
+  const deadlineAt = useMemo(() => {
+    if (!bracketState?.deadline) return null;
+    const parsed = Date.parse(bracketState.deadline);
+    return Number.isNaN(parsed) ? null : parsed;
+  }, [bracketState?.deadline]);
+  const isPredictionsOpen = predictionsOpenAt === null || now >= predictionsOpenAt;
+  const isBracketLocked = Boolean(
+    bracketState?.isLocked || (deadlineAt !== null && now >= deadlineAt)
+  );
+  const isEditingEnabled = Boolean(bracketState && !isBracketLocked && isPredictionsOpen);
+  const preOpenMessage = predictionsOpenLabel
+    ? `Bracket submissions open ${predictionsOpenLabel}, after the regular season ends.`
+    : 'Bracket submissions open after the regular season ends.';
+  const preOpenInteractionHint = !isPredictionsOpen && !isBracketLocked ? preOpenMessage : null;
+
+  useEffect(() => {
+    if (!bracketState) return undefined;
+
+    const pendingTransitions = [predictionsOpenAt, deadlineAt]
+      .filter(timestamp => timestamp !== null && now < timestamp);
+    if (pendingTransitions.length === 0) return undefined;
+
+    const timeoutId = window.setTimeout(
+      () => setNow(Date.now()),
+      Math.max(0, Math.min(...pendingTransitions) - now),
+    );
+
+    return () => window.clearTimeout(timeoutId);
+  }, [bracketState, predictionsOpenAt, deadlineAt, now]);
+
   const hasUnsavedChanges = useMemo(() => {
-    if (!bracketState || bracketState.isLocked) return false;
+    if (!bracketState || isBracketLocked) return false;
     // Never-submitted bracket: any pick counts as unsaved
     if (!bracketState.isBracketSubmitted) return predictedCount > 0;
     // Submitted bracket: unsaved when React state differs from server snapshot
     return !picksMatch(bracketState, serverBracket);
-  }, [bracketState, serverBracket, predictedCount]);
+  }, [bracketState, isBracketLocked, serverBracket, predictedCount]);
+
+  useEffect(() => {
+    if (!isEditingEnabled) {
+      setDialogOpen(false);
+      setRandomFillAnchor(null);
+      setConfirmFillOpen(false);
+    }
+  }, [isEditingEnabled]);
 
   // -------------------------------------------------------------------------
   // Navigation guard — tab close / browser back button
@@ -147,11 +220,13 @@ const BracketPage = () => {
   // Handlers
   // -------------------------------------------------------------------------
   const handleMatchupClick = useCallback((matchup) => {
+    if (!isEditingEnabled) return;
     setSelectedMatchup(matchup);
     setDialogOpen(true);
-  }, []);
+  }, [isEditingEnabled]);
 
   const handlePredictWinner = (round, conference, matchupPosition, winnerTeamId, seriesScoreLoser) => {
+    if (!isEditingEnabled) return;
     const roundKey = API_TO_COMPONENT_ROUND[round] ?? round;
     setBracketState(prev =>
       applyPick(prev, { round: roundKey, conference, matchupPosition, winnerTeamId, seriesScoreLoser })
@@ -160,7 +235,7 @@ const BracketPage = () => {
   };
 
   const handleSubmitBracket = async () => {
-    if (!isComplete || submitting) return;
+    if (!isComplete || submitting || !isPredictionsOpen || isBracketLocked) return;
     setSubmitting(true);
     try {
       const picks  = flattenBracketPicks(bracketState);
@@ -182,7 +257,7 @@ const BracketPage = () => {
       if (window.notify) {
         window.notify.error(
           err?.status === 423
-            ? 'Bracket is locked — the deadline has passed.'
+            ? (err.message || 'Bracket submission is not available.')
             : 'Failed to submit bracket. Please try again.',
         );
       }
@@ -195,6 +270,7 @@ const BracketPage = () => {
   // Random fill handlers
   // -------------------------------------------------------------------------
   const handleRandomFill = useCallback((mode, strategy = 'random') => {
+    if (!isEditingEnabled) return;
     setRandomFillAnchor(null);
     if (mode === 'clear') {
       if (predictedCount > 0) {
@@ -209,16 +285,17 @@ const BracketPage = () => {
       return;
     }
     setBracketState(prev => randomFillBracket(prev, mode, strategy));
-  }, [predictedCount]);
+  }, [isEditingEnabled, predictedCount]);
 
   const handleConfirmFillAll = useCallback(() => {
+    if (!isEditingEnabled) return;
     setConfirmFillOpen(false);
     if (pendingStrategy === 'clear') {
       setBracketState(prev => clearAllPicks(prev));
     } else {
       setBracketState(prev => randomFillBracket(prev, 'all', pendingStrategy));
     }
-  }, [pendingStrategy]);
+  }, [isEditingEnabled, pendingStrategy]);
 
   // -------------------------------------------------------------------------
   // Share / export handlers
@@ -234,7 +311,7 @@ const BracketPage = () => {
         bracket: bracketState,
         bonusPicks,
         scoringConfig: bracketState.scoringConfig,
-        isLocked: bracketState.isLocked,
+        isLocked: isBracketLocked,
         playerName: activePlayer.player_name,
         leagueName: activePlayer.league_name,
         themeMode,
@@ -315,11 +392,13 @@ const BracketPage = () => {
       {/* Bracket display */}
       <BracketView
         bracket={bracketState}
-        isLocked={bracketState.isLocked}
+        isLocked={isBracketLocked}
         predictedMatchups={predictedCount}
         totalMatchups={bracketState.totalMatchups}
         deadline={bracketState.deadline}
-        onMatchupClick={bracketState.isLocked ? undefined : handleMatchupClick}
+        predictionsOpenDate={predictionsOpenDate}
+        interactionHint={preOpenInteractionHint}
+        onMatchupClick={isEditingEnabled ? handleMatchupClick : undefined}
         bracketHealth={bracketHealth}
         bonusPicks={bonusPicks}
         scoringConfig={bracketState.scoringConfig}
@@ -350,7 +429,7 @@ const BracketPage = () => {
               </Button>
             )}
 
-            {bracketState.isLocked && (
+            {isBracketLocked && (
               <Button
                 variant="outlined"
                 size="medium"
@@ -360,36 +439,46 @@ const BracketPage = () => {
                 League Brackets
               </Button>
             )}
-            {!bracketState.isLocked && (
+            {!isBracketLocked && (
               <>
-                {isMobile ? (
-                  <Tooltip title="Random Fill">
-                    <IconButton
+                {isPredictionsOpen && (
+                  isMobile ? (
+                    <Tooltip title="Random Fill">
+                      <IconButton
+                        onClick={(e) => setRandomFillAnchor(e.currentTarget)}
+                        color="primary"
+                      >
+                        <CasinoIcon />
+                      </IconButton>
+                    </Tooltip>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      size="medium"
                       onClick={(e) => setRandomFillAnchor(e.currentTarget)}
-                      color="primary"
+                      startIcon={<CasinoIcon />}
                     >
-                      <CasinoIcon />
-                    </IconButton>
-                  </Tooltip>
-                ) : (
-                  <Button
-                    variant="outlined"
-                    size="medium"
-                    onClick={(e) => setRandomFillAnchor(e.currentTarget)}
-                    startIcon={<CasinoIcon />}
-                  >
-                    Random Fill
-                  </Button>
+                      Random Fill
+                    </Button>
+                  )
                 )}
-                <Button
-                  variant="contained"
-                  size="medium"
-                  onClick={handleSubmitBracket}
-                  disabled={!isComplete || submitting || isSubmitted}
-                  startIcon={submitIcon}
+                <Tooltip
+                  title={!isPredictionsOpen ? preOpenMessage : ''}
+                  enterTouchDelay={0}
+                  leaveTouchDelay={2000}
                 >
-                  {submitLabel}
-                </Button>
+                  <span>
+                    <Button
+                      variant="contained"
+                      size="medium"
+                      onClick={handleSubmitBracket}
+                      disabled={!isComplete || submitting || isSubmitted || !isEditingEnabled}
+                      startIcon={submitIcon}
+                    >
+                      {submitLabel}
+                    </Button>
+                  </span>
+                </Tooltip>
               </>
             )}
           </>
