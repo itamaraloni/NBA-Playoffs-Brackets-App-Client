@@ -74,7 +74,7 @@ function ConferenceSection({ title, children, defaultExpanded = true }) {
  * Play-in section with fork connector showing Survivor → PI-1/PI-2 relationship.
  * `conference` is 'w' or 'e' — used for tap-to-highlight card IDs.
  */
-function PlayinSection({ survivor, playinGames, isLocked, onMatchupClick, conference, onTap, cardIdx, skipDelay }) {
+function PlayinSection({ survivor, playinGames, isLocked, interactionHint, onMatchupClick, conference, onTap, cardIdx, skipDelay }) {
   const theme = useTheme();
   const connColor = alpha(theme.palette.warning.main, 0.4);
   const c = conference;
@@ -96,7 +96,7 @@ function PlayinSection({ survivor, playinGames, isLocked, onMatchupClick, confer
             </Box>
           </Tooltip>
           <TappableCard data-card-id={`${c}-surv`} data-feeds={`${c}-pi-1,${c}-pi-2`} delay={skipDelay ? undefined : cardIdx.val++ * 40} onTap={onTap}>
-            <BracketMatchup matchup={survivor} isLocked={isLocked} onMatchupClick={onMatchupClick} />
+            <BracketMatchup matchup={survivor} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} />
           </TappableCard>
         </Box>
       )}
@@ -137,7 +137,7 @@ function PlayinSection({ survivor, playinGames, isLocked, onMatchupClick, confer
             {m.matchup_position === 1 ? '#7 vs #8' : '#9 vs #10'}
           </Typography>
           <TappableCard data-card-id={`${c}-pi-${m.matchup_position}`} data-feeds="" delay={skipDelay ? undefined : cardIdx.val++ * 40} onTap={onTap}>
-            <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} />
+            <BracketMatchup matchup={m} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} />
           </TappableCard>
         </Box>
       ))}
@@ -277,7 +277,7 @@ function TappableCard({ children, delay, onTap, sx: sxProp, ...props }) {
  * 5 round columns: Play-In, R1, Semis, Conf Finals, Finals.
  * Each column has collapsible West/East sections.
  */
-const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, scoringConfig, inDialog = false }) => {
+const MobileBracketScroll = ({ bracket, isLocked, interactionHint, onMatchupClick, bonusPicks, scoringConfig, inDialog = false }) => {
   const theme = useTheme();
   const scrollRef = useRef(null);
   const colRefs = useRef([]);
@@ -392,7 +392,8 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
   };
 
   return (
-    <Box sx={{ position: 'relative' }}>
+    <>
+      <Box sx={{ position: 'relative' }}>
       {/* Swipe hint — fades out after 3s or on first scroll */}
       <Box sx={{
         position: 'absolute', top: '50%', right: 8, transform: 'translateY(-50%)',
@@ -433,6 +434,7 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
               survivor={(west.survivor || [])[0]}
               playinGames={west.playin || []}
               isLocked={isLocked}
+              interactionHint={interactionHint}
               onMatchupClick={onMatchupClick}
               conference="w"
               onTap={handleCardTap}
@@ -445,6 +447,7 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
               survivor={(east.survivor || [])[0]}
               playinGames={east.playin || []}
               isLocked={isLocked}
+              interactionHint={interactionHint}
               onMatchupClick={onMatchupClick}
               conference="e"
               onTap={handleCardTap}
@@ -464,7 +467,7 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
               return (
                 <React.Fragment key={m.matchup_position}>
                   <TappableCard data-card-id={`w-r1-${m.matchup_position}`} data-feeds={feeds} delay={skipDelay ? undefined : cardIdx.val++ * 40} onTap={handleCardTap} sx={{ mb: 1 }}>
-                    <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} />
+                    <BracketMatchup matchup={m} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} />
                   </TappableCard>
                   {i === 2 && arr.length > 2 && <FlowLabel text={'\u2192 Western Semi-Final 2'} />}
                   {i === 0 && <FlowLabel text={'\u2192 Western Semi-Final 1'} />}
@@ -479,7 +482,7 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
               return (
                 <React.Fragment key={m.matchup_position}>
                   <TappableCard data-card-id={`e-r1-${m.matchup_position}`} data-feeds={feeds} delay={skipDelay ? undefined : cardIdx.val++ * 40} onTap={handleCardTap} sx={{ mb: 1 }}>
-                    <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} />
+                    <BracketMatchup matchup={m} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} />
                   </TappableCard>
                   {i === 2 && arr.length > 2 && <FlowLabel text={'\u2192 Eastern Semi-Final 2'} />}
                   {i === 0 && <FlowLabel text={'\u2192 Eastern Semi-Final 1'} />}
@@ -496,7 +499,7 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
             {(west.semis || []).sort((a, b) => a.matchup_position - b.matchup_position).map((m, i) => (
               <React.Fragment key={m.matchup_position}>
                 <TappableCard data-card-id={`w-s${m.matchup_position}`} data-feeds={m.matchup_position === 1 ? 'w-r1-1,w-r1-4' : 'w-r1-3,w-r1-2'} delay={skipDelay ? undefined : cardIdx.val++ * 40} onTap={handleCardTap} sx={{ mb: 1 }}>
-                  <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} />
+                  <BracketMatchup matchup={m} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} />
                 </TappableCard>
                 {i === 0 && <FlowLabel text={'\u2192 Western Conference Final'} accent />}
               </React.Fragment>
@@ -506,7 +509,7 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
             {(east.semis || []).sort((a, b) => a.matchup_position - b.matchup_position).map((m, i) => (
               <React.Fragment key={m.matchup_position}>
                 <TappableCard data-card-id={`e-s${m.matchup_position}`} data-feeds={m.matchup_position === 1 ? 'e-r1-1,e-r1-4' : 'e-r1-3,e-r1-2'} delay={skipDelay ? undefined : cardIdx.val++ * 40} onTap={handleCardTap} sx={{ mb: 1 }}>
-                  <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} />
+                  <BracketMatchup matchup={m} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} />
                 </TappableCard>
                 {i === 0 && <FlowLabel text={'\u2192 Eastern Conference Final'} accent />}
               </React.Fragment>
@@ -520,14 +523,14 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
           <ConferenceSection title="Western Conference">
             {(west.cf || []).map(m => (
               <TappableCard key={m.matchup_position} data-card-id="w-cf" data-feeds="w-s1,w-s2" delay={skipDelay ? undefined : cardIdx.val++ * 40} onTap={handleCardTap} sx={{ mb: 1 }}>
-                <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} />
+                <BracketMatchup matchup={m} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} />
               </TappableCard>
             ))}
           </ConferenceSection>
           <ConferenceSection title="Eastern Conference">
             {(east.cf || []).map(m => (
               <TappableCard key={m.matchup_position} data-card-id="e-cf" data-feeds="e-s1,e-s2" delay={skipDelay ? undefined : cardIdx.val++ * 40} onTap={handleCardTap} sx={{ mb: 1 }}>
-                <BracketMatchup matchup={m} isLocked={isLocked} onMatchupClick={onMatchupClick} />
+                <BracketMatchup matchup={m} isLocked={isLocked} interactionHint={interactionHint} onMatchupClick={onMatchupClick} />
               </TappableCard>
             ))}
           </ConferenceSection>
@@ -545,7 +548,7 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
             </Typography>
           </Box>
           <TappableCard data-card-id="final" data-feeds="w-cf,e-cf" delay={skipDelay ? undefined : cardIdx.val++ * 40} onTap={handleCardTap} sx={{ mb: 1 }}>
-            <BracketMatchup matchup={bracket.final} isLocked={isLocked} isFinals onMatchupClick={onMatchupClick} />
+            <BracketMatchup matchup={bracket.final} isLocked={isLocked} interactionHint={interactionHint} isFinals onMatchupClick={onMatchupClick} />
           </TappableCard>
           {bonusPicks && (
             <BonusPicks {...bonusPicks} isLocked={isLocked} />
@@ -553,12 +556,14 @@ const MobileBracketScroll = ({ bracket, isLocked, onMatchupClick, bonusPicks, sc
         </Box>
       </Box>
 
+      </Box>
+
       {/* Dot navigation — portaled to body so position:fixed works regardless of ancestor transforms */}
       {createPortal(
         <DotNav count={5} activeIndex={activeRound} onDotClick={scrollToRound} zIndex={inDialog ? theme.zIndex.modal + 100 : 10} />,
         document.body,
       )}
-    </Box>
+    </>
   );
 };
 
