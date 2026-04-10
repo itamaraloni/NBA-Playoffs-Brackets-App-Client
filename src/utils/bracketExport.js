@@ -11,24 +11,71 @@ import { toPng } from 'html-to-image';
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Wait for all <img> elements inside a container to finish loading (or error). */
-function waitForImages(container, timeout = 5000) {
-  const imgs = Array.from(container.querySelectorAll('img'));
-  if (imgs.length === 0) return Promise.resolve();
+// 1×1 transparent PNG — used to blank out images that failed to load so
+// html-to-image never tries to fetch a 404/error URL during toPng().
+const TRANSPARENT_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
-  const loaded = imgs.map(
+/**
+ * Wait for all <img> elements inside a container to settle (load or error),
+ * then pre-inline every image as a base64 data URL.
+ *
+ * Why pre-inline?
+ * html-to-image fetches image srcs internally via fetch(). When a resource is
+ * already browser-cached, fetch() may return a bodyless 304 Not Modified,
+ * producing an empty data URL that breaks canvas rendering. Pre-inlining with
+ * `cache: 'reload'` forces a full 200 response and bypasses html-to-image's
+ * fetch path entirely for loaded images.
+ *
+ * Failed images (404, CORS, missing file) are replaced with a transparent 1×1
+ * PNG so html-to-image has nothing to fetch — avoids the canvas error that
+ * previously caused locked-mode exports to fail.
+ */
+async function waitForImages(container, timeout = 5000) {
+  const imgs = Array.from(container.querySelectorAll('img'));
+  if (imgs.length === 0) return;
+
+  // Step 1: wait for all images to settle — use addEventListener so we don't
+  // overwrite React's onError handlers (which set imgError state in BonusPicks).
+  const settled = imgs.map(
     (img) =>
       new Promise((resolve) => {
-        if (img.complete) return resolve();
-        img.onload = resolve;
-        img.onerror = resolve; // resolve on error too — fallback text handles it
+        if (img.complete) return resolve(img);
+        img.addEventListener('load', () => resolve(img), { once: true });
+        img.addEventListener('error', () => resolve(img), { once: true });
       }),
   );
-
-  return Promise.race([
-    Promise.all(loaded),
+  await Promise.race([
+    Promise.all(settled),
     new Promise((resolve) => setTimeout(resolve, timeout)),
   ]);
+
+  // Step 2: inline loaded images as base64; blank out anything that failed.
+  await Promise.all(
+    imgs.map(async (img) => {
+      if (!img.src || img.src.startsWith('data:')) return;
+
+      if (!img.complete || img.naturalWidth === 0) {
+        // Image didn't load (404, missing file, etc.) — blank it out so
+        // html-to-image doesn't attempt a fetch that would also fail.
+        img.src = TRANSPARENT_PNG;
+        return;
+      }
+
+      try {
+        const res = await fetch(img.src, { cache: 'reload' });
+        const blob = await res.blob();
+        await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => { img.src = e.target.result; resolve(); };
+          reader.onerror = () => { img.src = TRANSPARENT_PNG; resolve(); };
+          reader.readAsDataURL(blob);
+        });
+      } catch {
+        // Fetch failed (CORS, network error, etc.) — blank out as fallback.
+        img.src = TRANSPARENT_PNG;
+      }
+    }),
+  );
 }
 
 /** Convert a base64 data URL to a Blob. */
@@ -151,6 +198,10 @@ export async function captureBracketImage({
     const dataUrl = await toPng(container, {
       pixelRatio: 2,
       backgroundColor: bgColor,
+      // Images were pre-inlined as base64 data URLs by waitForImages() above,
+      // so html-to-image has nothing to fetch. cacheBust is kept as a safety net
+      // in case any image src wasn't processed (e.g. added after waitForImages).
+      cacheBust: true,
       // Override hiding styles on the CLONE so it renders visibly in the SVG.
       // html-to-image applies these to the cloned root element, not the original.
       style: {
