@@ -19,6 +19,8 @@ import ThemeToggle from '../theme/ThemeToggle';
 import LeagueServices from '../services/LeagueServices';
 import { useAuth } from '../contexts/AuthContext';
 
+const NAV_LOGO_SRC = '/head-logo-nav.png';
+
 const InviteLandingPage = () => {
   const { token } = useParams();
   const navigate = useNavigate();
@@ -125,7 +127,7 @@ const InviteLandingPage = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexGrow: 1 }}>
             <Box
               component="img"
-              src="/head-logo.png"
+              src={NAV_LOGO_SRC}
               alt="Playoff Prophet logo"
               sx={{ width: 36, height: 36, borderRadius: '50%' }}
             />
@@ -288,7 +290,7 @@ const InviteLandingPage = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 0.5, gap: 1 }}>
               <Box
                 component="img"
-                src="/head-logo.png"
+                src={NAV_LOGO_SRC}
                 alt=""
                 aria-hidden="true"
                 sx={{ width: 28, height: 28, borderRadius: '50%' }}

@@ -36,6 +36,8 @@ import { useAuth } from '../contexts/AuthContext';
 
 const DRAWER_WIDTH = 240;
 const DRAWER_WIDTH_COLLAPSED = 64;
+const APP_BACKGROUND_SRC = '/og-image-clean-layout.jpg';
+const NAV_LOGO_SRC = '/head-logo-nav.png';
 
 const Layout = ({ children, onLogout }) => {
   const theme = useTheme();
@@ -197,7 +199,7 @@ const Layout = ({ children, onLogout }) => {
       {/* OPTION A POC — subtle blurred background image across all pages */}
       <Box
         component="img"
-        src="/og-image-clean.png"
+        src={APP_BACKGROUND_SRC}
         aria-hidden="true"
         sx={{
           position: 'fixed',
@@ -233,7 +235,7 @@ const Layout = ({ children, onLogout }) => {
           >
             <Box
               component="img"
-              src="/head-logo.png"
+              src={NAV_LOGO_SRC}
               alt="Playoff Prophet"
               sx={{ width: 36, height: 36, borderRadius: '50%', display: 'block' }}
             />
@@ -244,7 +246,7 @@ const Layout = ({ children, onLogout }) => {
             {/* Logo only shown on desktop — on mobile it's already the menu trigger above */}
             <Box
               component="img"
-              src="/head-logo.png"
+              src={NAV_LOGO_SRC}
               alt="Playoff Prophet logo"
               sx={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, display: { xs: 'none', md: 'block' } }}
             />

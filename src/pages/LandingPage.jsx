@@ -38,6 +38,7 @@ const FEATURES = [
     body: 'Compete head-to-head with friends',
   },
 ];
+const NAV_LOGO_SRC = '/head-logo-nav.png';
 
 const LandingPage = () => {
   const theme = useTheme();
@@ -158,7 +159,7 @@ const LandingPage = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, gap: 1 }}>
               <Box
                 component="img"
-                src="/head-logo.png"
+                src={NAV_LOGO_SRC}
                 alt="Playoff Prophet logo"
                 sx={{ width: 36, height: 36, borderRadius: '50%' }}
               />
@@ -396,7 +397,7 @@ const LandingPage = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 0.5, gap: 1 }}>
               <Box
                 component="img"
-                src="/head-logo.png"
+                src={NAV_LOGO_SRC}
                 alt=""
                 aria-hidden="true"
                 sx={{ width: 28, height: 28, borderRadius: '50%' }}
