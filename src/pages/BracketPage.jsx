@@ -180,7 +180,7 @@ const BracketPage = () => {
 
     const timeoutId = window.setTimeout(
       () => setNow(Date.now()),
-      Math.min(...pendingTransitions) - now,
+      Math.max(0, Math.min(...pendingTransitions) - now),
     );
 
     return () => window.clearTimeout(timeoutId);
@@ -311,7 +311,7 @@ const BracketPage = () => {
         bracket: bracketState,
         bonusPicks,
         scoringConfig: bracketState.scoringConfig,
-        isLocked: bracketState.isLocked,
+        isLocked: isBracketLocked,
         playerName: activePlayer.player_name,
         leagueName: activePlayer.league_name,
         themeMode,

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Box, Chip, Paper, Tooltip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { getLogoPath, getShortTeamName } from '../../shared/teamUtils';
@@ -248,34 +248,22 @@ function TeamRow({
 
 const BracketMatchup = ({ matchup: m, isLocked, isFinals, interactionHint, onMatchupClick, compact }) => {
   const theme = useTheme();
-  const hintTimeoutRef = useRef(null);
   const [isInteractionHintOpen, setIsInteractionHintOpen] = useState(false);
   const showInteractionHint = Boolean(interactionHint && m?.can_edit && !isLocked && !onMatchupClick);
 
-  useEffect(() => () => {
-    if (hintTimeoutRef.current) {
-      window.clearTimeout(hintTimeoutRef.current);
-    }
-  }, []);
+  // Auto-close the hint after 2.5 s. useEffect cleans up the timer if the hint
+  // closes early (via hideHint) or if the component unmounts.
+  useEffect(() => {
+    if (!isInteractionHintOpen) return undefined;
+    const id = window.setTimeout(() => setIsInteractionHintOpen(false), 2500);
+    return () => window.clearTimeout(id);
+  }, [isInteractionHintOpen]);
 
   const showHint = useCallback(() => {
-    if (!showInteractionHint) return;
-    if (hintTimeoutRef.current) {
-      window.clearTimeout(hintTimeoutRef.current);
-    }
-    setIsInteractionHintOpen(true);
-    hintTimeoutRef.current = window.setTimeout(() => {
-      setIsInteractionHintOpen(false);
-    }, 2500);
+    if (showInteractionHint) setIsInteractionHintOpen(true);
   }, [showInteractionHint]);
 
-  const hideHint = useCallback(() => {
-    if (hintTimeoutRef.current) {
-      window.clearTimeout(hintTimeoutRef.current);
-      hintTimeoutRef.current = null;
-    }
-    setIsInteractionHintOpen(false);
-  }, []);
+  const hideHint = useCallback(() => setIsInteractionHintOpen(false), []);
 
   if (!m) return null;
 
@@ -322,7 +310,7 @@ const BracketMatchup = ({ matchup: m, isLocked, isFinals, interactionHint, onMat
   const cardSx = {
     borderRadius: '10px',
     overflow: 'hidden',
-    opacity: m.isTbd ? 0.55 : isVoided ? 0.5 : 1,
+    opacity: m.isTbd ? 0.55 : isVoided ? 0.5 : showInteractionHint ? 0.6 : 1,
     cursor: isClickable ? 'pointer' : 'default',
     border: m.isTbd
       ? `1px dashed ${theme.palette.divider}`
