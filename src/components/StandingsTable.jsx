@@ -371,7 +371,7 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
         </TableBody>
       </Table>
     </TableContainer>
-    {players.length > rowsPerPage && (
+    {sortedPlayers.length > rowsPerPage && (
       <TablePagination
         component="div"
         count={sortedPlayers.length}

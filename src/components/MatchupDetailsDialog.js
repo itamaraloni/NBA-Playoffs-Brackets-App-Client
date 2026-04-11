@@ -46,10 +46,13 @@ const MatchupDetailsDialog = ({
 
   const [page, setPage] = useState(1);
 
-  // Reset to first page when the dialog opens or the predictions list changes
+  // Reset to first page when the dialog opens or the number of predictions changes.
+  // Using leaguePredictions.length instead of leaguePredictions avoids resetting the page
+  // on every parent re-render that passes a new array reference with the same contents —
+  // a common React pattern where arrays are recreated inline (e.g. `data ?? []`).
   useEffect(() => {
     setPage(1);
-  }, [open, leaguePredictions]);
+  }, [open, leaguePredictions.length]);
 
   const totalPages = Math.ceil(leaguePredictions.length / PAGE_SIZE);
   const displayedPredictions = leaguePredictions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
