@@ -20,8 +20,8 @@ import PlayerStatsCard from './PlayerStatsCard';
 import UserServices from '../services/UserServices';
 
 const BOT_INFO = {
-  '100': 'Always bets on the favorite',
-  '101': 'Bets randomly on each matchup',
+  '100': 'Always bets on the home team in each matchup. Championship Team and Finals MVP are favorite.',
+  '101': 'Bets randomly on each matchup. Championship Team and Finals MVP are random as well',
 };
 
 const PlayerDetailDialog = ({ player, leagueName, open, onClose }) => {
