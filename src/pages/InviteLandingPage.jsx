@@ -55,8 +55,11 @@ const InviteLandingPage = () => {
     try {
       setSigningIn(true);
       await signInWithGoogle();
+      // Scroll to top so the invite card (hero) is visible after signing in,
+      // especially important when the user clicked the bottom CTA.
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       if (window.notify) {
-        window.notify.success('Signed in successfully!');
+        window.notify.info("You're signed in — check out your invite above!");
       }
     } catch (err) {
       setError('Sign in failed. Please try again.');

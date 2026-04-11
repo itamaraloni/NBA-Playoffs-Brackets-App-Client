@@ -9,28 +9,32 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import {
-  SportsBasketball,
   EmojiEvents,
   Groups,
   Google,
   Whatshot,
   Star,
+  Lock,
 } from '@mui/icons-material';
+import { TbCrystalBall } from 'react-icons/tb';
 
 // ── How It Works ─────────────────────────────────────────────────────────────
+// Step 01 = Bonus Picks first (locked before playoffs begin — sets context)
+// Step 02 = Bracket / series predictions
+// Step 03 = Compete in league
 
 const STEPS = [
   {
     number: '01',
-    Icon: SportsBasketball,
-    title: 'Predict Every Series',
-    body: 'Before each matchup tips off, pick the winner and exact series score — from the Play-In all the way to the Finals.',
-  },
-  {
-    number: '02',
     Icon: EmojiEvents,
     title: 'Lock In Bonus Picks',
     body: 'Before the playoffs begin, choose your Championship winner and Finals MVP. Get them right for a big bonus.',
+  },
+  {
+    number: '02',
+    Icon: Whatshot,
+    title: 'Predict Every Series',
+    body: 'Fill and Lock your full bracket before the Play-In games begin. Live pick every series winner and exact score, from the Play-In through the Finals.',
   },
   {
     number: '03',
@@ -154,7 +158,7 @@ const LandingInfoSection = ({ onSignIn, loading = false }) => {
           </Box>
         </Box>
 
-        {/* ── Scoring at a Glance ── */}
+        {/* ── Scoring ── */}
         <Box sx={{ mb: onSignIn ? { xs: 8, md: 10 } : 0 }}>
           <Typography
             variant="overline"
@@ -163,6 +167,7 @@ const LandingInfoSection = ({ onSignIn, loading = false }) => {
               textAlign: 'center',
               color: 'secondary.main',
               letterSpacing: 4,
+              textTransform: 'none',   // override MUI overline auto-uppercase
               mb: 1,
             }}
           >
@@ -171,9 +176,23 @@ const LandingInfoSection = ({ onSignIn, loading = false }) => {
           <Typography
             variant={isMobile ? 'h5' : 'h4'}
             fontWeight="bold"
-            sx={{ textAlign: 'center', color: 'white', mb: { xs: 4, md: 6 } }}
+            sx={{ textAlign: 'center', color: 'white', mb: 1.5 }}
           >
             Points escalate every round
+          </Typography>
+          {/* Bracket vs live picks clarification */}
+          <Typography
+            variant="body2"
+            sx={{
+              textAlign: 'center',
+              color: 'rgba(255,255,255,0.55)',
+              mb: { xs: 4, md: 5 },
+              maxWidth: 520,
+              mx: 'auto',
+              lineHeight: 1.7,
+            }}
+          >
+            As Bracket picks locks before the Play-In games they worth more than live series picks.
           </Typography>
 
           {/* Round escalation — horizontal scroll on mobile */}
@@ -191,7 +210,7 @@ const LandingInfoSection = ({ onSignIn, loading = false }) => {
             }}
           >
             {ROUNDS.map(({ label, sublabel }, index) => {
-              // Visually grow each round chip: opacity + border intensity + size
+              // Visually grow each round chip: opacity + border intensity
               const intensity = 0.35 + (index / (ROUNDS.length - 1)) * 0.65;
               const isLast = index === ROUNDS.length - 1;
               return (
@@ -203,7 +222,7 @@ const LandingInfoSection = ({ onSignIn, loading = false }) => {
                     alignItems: 'center',
                     gap: 0.5,
                     bgcolor: isLast
-                      ? 'rgba(211,47,47,0.18)'   // Finals gets a red tint
+                      ? 'rgba(211,47,47,0.18)'
                       : `rgba(255,255,255,${0.04 + index * 0.015})`,
                     border: '1px solid',
                     borderColor: isLast
@@ -247,53 +266,99 @@ const LandingInfoSection = ({ onSignIn, loading = false }) => {
             })}
           </Box>
 
-          {/* Bonus callouts */}
+          {/* Bonus callouts — 3 cards */}
           <Box
             sx={{
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' },
+              flexWrap: { sm: 'wrap' },
               gap: 2,
               justifyContent: 'center',
             }}
           >
-            {[
-              {
-                Icon: Whatshot,
-                label: 'Bullseye Bonus',
-                desc: 'Nail the exact series score for extra points',
-              },
-              {
-                Icon: EmojiEvents,
-                label: 'Bonus Picks',
-                desc: 'Championship winner + Finals MVP = bonus rounds',
-              },
-            ].map(({ Icon, label, desc }) => (
-              <Box
-                key={label}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 1.5,
-                  bgcolor: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.09)',
-                  borderRadius: 2,
-                  px: 2.5,
-                  py: 2,
-                  maxWidth: { sm: 320 },
-                  width: '100%',
-                }}
-              >
-                <Icon sx={{ color: 'secondary.main', fontSize: 22, mt: 0.25, flexShrink: 0 }} />
-                <Box>
-                  <Typography variant="body2" fontWeight="bold" sx={{ color: 'white', lineHeight: 1.3 }}>
-                    {label}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 }}>
-                    {desc}
-                  </Typography>
-                </Box>
+            {/* Bullseye Bonus — react-icons TbCrystalBall */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 1.5,
+                bgcolor: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.09)',
+                borderRadius: 2,
+                px: 2.5,
+                py: 2,
+                maxWidth: { sm: 300 },
+                width: '100%',
+              }}
+            >
+              {/*
+                TbCrystalBall is from react-icons and doesn't accept the MUI sx prop.
+                Wrapping in a Box with color set lets us use theme color via currentColor.
+              */}
+              <Box sx={{ color: 'secondary.main', display: 'flex', mt: 0.25, flexShrink: 0 }}>
+                <TbCrystalBall size={22} color="currentColor" />
               </Box>
-            ))}
+              <Box>
+                <Typography variant="body2" fontWeight="bold" sx={{ color: 'white', lineHeight: 1.3 }}>
+                  Bullseye Bonus
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 }}>
+                  Nail the exact series score for extra points
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Bonus Picks */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 1.5,
+                bgcolor: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.09)',
+                borderRadius: 2,
+                px: 2.5,
+                py: 2,
+                maxWidth: { sm: 300 },
+                width: '100%',
+              }}
+            >
+              <EmojiEvents sx={{ color: 'secondary.main', fontSize: 22, mt: 0.25, flexShrink: 0 }} />
+              <Box>
+                <Typography variant="body2" fontWeight="bold" sx={{ color: 'white', lineHeight: 1.3 }}>
+                  Bonus Picks
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 }}>
+                  Championship winner + Finals MVP = bonus rounds
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Bracket picks pay more */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 1.5,
+                bgcolor: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.09)',
+                borderRadius: 2,
+                px: 2.5,
+                py: 2,
+                maxWidth: { sm: 300 },
+                width: '100%',
+              }}
+            >
+              <Lock sx={{ color: 'secondary.main', fontSize: 22, mt: 0.25, flexShrink: 0 }} />
+              <Box>
+                <Typography variant="body2" fontWeight="bold" sx={{ color: 'white', lineHeight: 1.3 }}>
+                  Early Lock Multiplier
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 }}>
+                  Bracket picks beat live picks — commit before playoffs for bigger rewards
+                </Typography>
+              </Box>
+            </Box>
           </Box>
         </Box>
 
@@ -305,7 +370,7 @@ const LandingInfoSection = ({ onSignIn, loading = false }) => {
               flexDirection: 'column',
               alignItems: 'center',
               gap: 2,
-              pt: { xs: 2, md: 3 },
+              pt: { xs: 4, md: 5 },
               borderTop: '1px solid rgba(255,255,255,0.08)',
             }}
           >
