@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -12,6 +12,7 @@ import {
   ListItem,
   Avatar,
   Chip,
+  Pagination,
   useMediaQuery,
   IconButton
 } from '@mui/material';
@@ -27,6 +28,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { PLAYER_AVATARS } from '../shared/GeneralConsts';
 import { getLogoPath } from '../shared/teamUtils';
 
+const PAGE_SIZE = 10;
+
 /**
  * Dialog to display league predictions for a matchup
  */
@@ -40,6 +43,16 @@ const MatchupDetailsDialog = ({
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const { activePlayer } = useAuth();
+
+  const [page, setPage] = useState(1);
+
+  // Reset to first page when the dialog opens or the predictions list changes
+  useEffect(() => {
+    setPage(1);
+  }, [open, leaguePredictions]);
+
+  const totalPages = Math.ceil(leaguePredictions.length / PAGE_SIZE);
+  const displayedPredictions = leaguePredictions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   // If no matchup data, don't render
   if (!matchup) return null;
@@ -212,8 +225,8 @@ const MatchupDetailsDialog = ({
         </Typography>
 
         <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-          {leaguePredictions.length > 0 ? (
-            leaguePredictions.map((prediction, index) => {
+          {displayedPredictions.length > 0 ? (
+            displayedPredictions.map((prediction, index) => {
               const accuracy = getPredictionAccuracy(prediction);
               const isCurrentPlayer = prediction.userName === activePlayer?.player_name;
               const pickedHomeTeam = prediction.homeScore > prediction.awayScore;
@@ -231,7 +244,7 @@ const MatchupDetailsDialog = ({
               return (
                 <ListItem 
                   key={`${prediction.userName}-${index}`}
-                  divider={index < leaguePredictions.length - 1}
+                  divider={index < displayedPredictions.length - 1}
                   sx={{ 
                     py: 2,
                     flexDirection: { xs: 'column', sm: 'row' },
@@ -328,6 +341,18 @@ const MatchupDetailsDialog = ({
             </Box>
           )}
         </List>
+
+        {totalPages > 1 && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(_, value) => setPage(value)}
+              size="small"
+              color="primary"
+            />
+          </Box>
+        )}
       </DialogContent>
       
       <DialogActions>
