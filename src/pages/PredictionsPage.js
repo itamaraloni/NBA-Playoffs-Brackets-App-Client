@@ -417,12 +417,13 @@ const PredictionsPage = () => {
       ) : (
         <Box sx={{ width: '100%' }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs 
-              value={tabIndex} 
-              onChange={handleTabChange} 
+            <Tabs
+              value={tabIndex}
+              onChange={handleTabChange}
               aria-label="matchup tabs"
               variant={isMobile ? "fullWidth" : "standard"}
               centered={!isMobile}
+              sx={{ '& .MuiTab-root': { textTransform: 'none' } }}
             >
               <Tab 
                 label={`Upcoming (${matchups.upcoming.length})`} 

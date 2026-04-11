@@ -13,6 +13,7 @@ import {
 import PlayerStatsCard from '../components/PlayerStatsCard';
 import EditPicksDialog from '../components/EditPicksDialog';
 import AppExplanation from '../components/AppExplanation';
+import PlayModesCard from '../components/common/PlayModesCard';
 import UserServices from '../services/UserServices';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -125,11 +126,14 @@ const Dashboard = () => {
     return (
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <PlayerStatsCard 
+          <PlayerStatsCard
             playerData={playerProfile?.player}
             leagueData={playerProfile?.league}
             onEditPicks={handleEditPicks}
           />
+        </Grid>
+        <Grid item xs={12}>
+          <PlayModesCard />
         </Grid>
       </Grid>
     );

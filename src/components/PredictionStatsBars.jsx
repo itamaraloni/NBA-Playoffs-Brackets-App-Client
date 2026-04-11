@@ -8,6 +8,7 @@ import {
   useTheme,
   useMediaQuery
 } from '@mui/material';
+import { InfoOutlined } from '@mui/icons-material';
 import { TbCrystalBall } from 'react-icons/tb';
 import { BsBullseye } from 'react-icons/bs';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
@@ -260,7 +261,7 @@ const PredictionStatsBars = ({ matchupStats, bracketStats = null }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        mb: 1.5,
+        mb: 0.75,
         flexWrap: 'wrap',
         gap: 1
       }}>
@@ -285,6 +286,26 @@ const PredictionStatsBars = ({ matchupStats, bracketStats = null }) => {
           <ToggleButton value="matchup">Live Picks</ToggleButton>
           <ToggleButton value="bracket">Bracket</ToggleButton>
         </ToggleButtonGroup>
+      </Box>
+
+      {/* Toggle hint — right-aligned to sit visually under the toggle without affecting its layout */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1 }}>
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          px: 1,
+          py: 0.375,
+          borderRadius: 1,
+          bgcolor: 'action.hover'
+        }}>
+          <InfoOutlined sx={{ fontSize: 12, color: 'text.disabled' }} />
+          <Typography variant="caption" color="text.secondary">
+            {activeTab === 'matchup'
+              ? 'Bet on each series as the playoffs unfold'
+              : 'Full bracket locked in before the playoffs start'}
+          </Typography>
+        </Box>
       </Box>
 
       {/* Legend + column headers */}

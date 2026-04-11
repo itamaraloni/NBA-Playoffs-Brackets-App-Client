@@ -96,7 +96,6 @@ function BonusCard({ title, chipLabel, chipSx, name, subText, logo, avatar, icon
       }}>
         <Typography sx={{
           fontSize: '0.625rem', fontWeight: 800,
-          textTransform: 'uppercase', letterSpacing: '0.08em',
           color: theme.palette.text.secondary,
         }}>
           {title}
@@ -247,7 +246,7 @@ const BonusPicks = ({
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: '4px' }}>
         <Box sx={{ flex: 1, height: '1px', background: alpha(theme.palette.warning.main, 0.18) }} />
         <Tooltip
-          title="These picks are tied to your player profile, not the bracket — Championship winner and Finals MVP can be updated independently from the Dashboard."
+          title="These picks are tied to your player profile, not the bracket — Championship team and Finals MVP can be updated independently from the Dashboard."
           placement="top"
           arrow
           enterTouchDelay={0}
@@ -256,7 +255,6 @@ const BonusPicks = ({
           <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'help' }}>
             <Typography sx={{
               fontSize: '0.625rem', fontWeight: 800,
-              textTransform: 'uppercase', letterSpacing: '0.12em',
               color: theme.palette.warning.main, opacity: 0.7,
             }}>
               Bonus Picks
