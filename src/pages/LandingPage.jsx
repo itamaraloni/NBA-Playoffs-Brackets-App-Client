@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import ThemeToggle from '../theme/ThemeToggle';
+import LandingInfoSection from '../components/LandingInfoSection';
 import {
   Box,
   AppBar,
@@ -98,7 +99,28 @@ const LandingPage = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'relative' }}>
+
+      {/*
+        Background image — fixed so it remains visible as the user scrolls
+        into the info section below the hero.
+      */}
+      <Box
+        component="img"
+        src="/og-image-clean.png"
+        alt=""
+        aria-hidden="true"
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: { xs: '78% center', md: '62% center' },
+          zIndex: 0,
+        }}
+      />
 
       {/* ── Hero — full viewport height ── */}
       <Box
@@ -108,30 +130,9 @@ const LandingPage = () => {
           minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden',
+          zIndex: 1,
         }}
       >
-        {/*
-          Background image.
-          - Desktop: goat sits right-of-center, text overlays the left half.
-          - Mobile: shift right so the goat is visible; CTA is pinned to the bottom.
-        */}
-        <Box
-          component="img"
-          src="/og-image-clean.png"
-          alt=""
-          aria-hidden="true"
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            objectPosition: { xs: '78% center', md: '62% center' },
-            zIndex: 0,
-          }}
-        />
 
         {/*
           Gradient overlay.
@@ -275,7 +276,7 @@ const LandingPage = () => {
                   boxShadow: '0 4px 20px rgba(0,0,0,0.45)',
                 }}
               >
-                {loading ? 'Loading...' : 'Sign in with Google'}
+                {loading ? 'Loading...' : 'Sign in with Google to Join'}
               </Button>
             </Box>
           </Container>
@@ -387,10 +388,13 @@ const LandingPage = () => {
         </Box>
       </Box>
 
+      {/* ── Informational section — scrolls below the hero ── */}
+      <LandingInfoSection onSignIn={handleSignIn} loading={loading} />
+
       {/* ── Footer ── */}
       <Box
         component="footer"
-        sx={{ py: 2.5, bgcolor: '#111111', color: 'white' }}
+        sx={{ py: 2.5, bgcolor: '#111111', color: 'white', position: 'relative', zIndex: 1 }}
       >
         <Container maxWidth="lg">
           <Box sx={{ textAlign: 'center' }}>
