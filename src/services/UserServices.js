@@ -98,6 +98,19 @@ const UserServices = {
   },
   
   /**
+   * Update player avatar
+   * @param {String} playerId - Player ID
+   * @param {String} playerAvatar - Avatar id string (e.g. '1', '5')
+   * @returns {Promise<Object>} { success: true, message }
+   */
+  async updateAvatar(playerId, playerAvatar) {
+    return await apiClient.post('/user/update_avatar', {
+      player_id: playerId,
+      player_avatar: playerAvatar,
+    });
+  },
+
+  /**
    * Update user's championship or MVP picks
    * @param {String} type - 'championship' or 'mvp'
    * @param {String} selection - Selected team or player
