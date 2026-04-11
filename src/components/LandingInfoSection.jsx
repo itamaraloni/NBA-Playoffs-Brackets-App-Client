@@ -15,8 +15,14 @@ import {
   Whatshot,
   Star,
   Lock,
+  CalendarToday,
+  LockClock,
 } from '@mui/icons-material';
 import { TbCrystalBall } from 'react-icons/tb';
+import { PREDICTIONS_OPEN_DATE, PLAYIN_START_DATE } from '../shared/SeasonConfig';
+
+// Format a Date as "Apr 13" in the user's local locale.
+const fmt = (date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
 // ── How It Works ─────────────────────────────────────────────────────────────
 // Step 01 = Bonus Picks first (locked before playoffs begin — sets context)
@@ -40,7 +46,7 @@ const STEPS = [
     number: '03',
     Icon: Groups,
     title: 'Compete in Your League',
-    body: 'Join a private league with your crew, track live standings, and settle the GOAT debate once and for all.',
+    body: 'Join multiple private leagues with different crews — each league gets its own set of predictions. Track live standings per league and settle the GOAT debate once and for all.',
   },
 ];
 
@@ -101,10 +107,88 @@ const LandingInfoSection = ({ onSignIn, loading = false }) => {
           <Typography
             variant={isMobile ? 'h5' : 'h4'}
             fontWeight="bold"
-            sx={{ textAlign: 'center', color: 'white', mb: { xs: 5, md: 7 } }}
+            sx={{ textAlign: 'center', color: 'white', mb: { xs: 3, md: 4 } }}
           >
             Three steps. One champion.
           </Typography>
+
+          {/* ── Key Dates strip ── */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: { xs: 1, sm: 0 },
+              mb: { xs: 5, md: 7 },
+            }}
+          >
+            {/* Opens chip */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                bgcolor: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.14)',
+                borderRadius: { xs: 2, sm: '8px 0 0 8px' },
+                px: 2.5,
+                py: 1.25,
+              }}
+            >
+              <CalendarToday sx={{ color: 'rgba(255,255,255,0.55)', fontSize: 16 }} />
+              <Box>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.45)', display: 'block', lineHeight: 1.2 }}>
+                  Bracket opens
+                </Typography>
+                <Typography variant="caption" fontWeight="bold" sx={{ color: 'white', display: 'block', lineHeight: 1.2 }}>
+                  {fmt(PREDICTIONS_OPEN_DATE)}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Arrow divider — desktop only */}
+            <Box
+              sx={{
+                display: { xs: 'none', sm: 'flex' },
+                alignItems: 'center',
+                bgcolor: 'rgba(255,255,255,0.06)',
+                borderTop: '1px solid rgba(255,255,255,0.14)',
+                borderBottom: '1px solid rgba(255,255,255,0.14)',
+                py: 1.25,
+                px: 1,
+                color: 'rgba(255,255,255,0.3)',
+                fontSize: 12,
+              }}
+            >
+              →
+            </Box>
+
+            {/* Locks chip */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                bgcolor: 'rgba(211,47,47,0.14)',
+                border: '1px solid',
+                borderColor: 'secondary.main',
+                borderRadius: { xs: 2, sm: '0 8px 8px 0' },
+                px: 2.5,
+                py: 1.25,
+              }}
+            >
+              <LockClock sx={{ color: 'secondary.main', fontSize: 16 }} />
+              <Box>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.55)', display: 'block', lineHeight: 1.2 }}>
+                  Locks at Play-In tip-off
+                </Typography>
+                <Typography variant="caption" fontWeight="bold" sx={{ color: 'secondary.main', display: 'block', lineHeight: 1.2 }}>
+                  {fmt(PLAYIN_START_DATE)}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
 
           <Box
             sx={{
