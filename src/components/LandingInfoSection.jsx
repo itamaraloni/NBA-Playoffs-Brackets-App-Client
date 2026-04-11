@@ -99,6 +99,7 @@ const LandingInfoSection = ({ onSignIn, loading = false }) => {
               textAlign: 'center',
               color: 'secondary.main',
               letterSpacing: 4,
+              textTransform: 'none',
               mb: 1,
             }}
           >
@@ -139,7 +140,7 @@ const LandingInfoSection = ({ onSignIn, loading = false }) => {
               <CalendarToday sx={{ color: 'rgba(255,255,255,0.55)', fontSize: 16 }} />
               <Box>
                 <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.45)', display: 'block', lineHeight: 1.2 }}>
-                  Bracket opens
+                  Bracket opens after regular season ends
                 </Typography>
                 <Typography variant="caption" fontWeight="bold" sx={{ color: 'white', display: 'block', lineHeight: 1.2 }}>
                   {fmt(PREDICTIONS_OPEN_DATE)}
