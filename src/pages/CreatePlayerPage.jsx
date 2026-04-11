@@ -9,23 +9,27 @@ import {
   Typography,
   Grid,
   Paper,
-  Avatar,
   Alert,
   CircularProgress,
   useTheme,
   useMediaQuery,
-  Card,
-  CardActionArea,
-  CardContent,
   Divider,
-  Autocomplete
+  Autocomplete,
+  Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
 } from '@mui/material';
 import {
-  SportsMma as SportsMmaIcon,
+  Close as CloseIcon,
   EmojiEvents as EmojiEventsIcon,
-  Save as SaveIcon
+  Save as SaveIcon,
+  SportsMma as SportsMmaIcon,
 } from '@mui/icons-material';
 import LeagueServices from '../services/LeagueServices';
+import AvatarPickerGrid from '../components/common/AvatarPickerGrid';
 import { PLAYER_AVATARS } from '../shared/GeneralConsts';
 import { useTeams } from '../hooks/useTeams';
 import { useMvpCandidates } from '../hooks/useMvpCandidates';
@@ -114,6 +118,7 @@ const CreatePlayerPage = () => {
 
   const [playerName, setPlayerName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(null);
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedMVP, setSelectedMVP] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -302,53 +307,77 @@ const CreatePlayerPage = () => {
             <SportsMmaIcon color="primary" /> Choose Your Fighter
           </Typography>
           
-          <Grid container spacing={2} sx={{ mb: 4 }}>
-            {PLAYER_AVATARS.map((avatar) => (
-              avatar.id < 100 &&
-              <Grid item xs={6} sm={4} key={avatar.id}>
-                <Card 
-                  elevation={selectedAvatar === avatar.id ? 8 : 1}
-                  sx={{ 
-                    borderRadius: 2,
-                    border: selectedAvatar === avatar.id 
-                      ? `2px solid ${theme.palette.primary.main}` 
-                      : '2px solid transparent',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <CardActionArea onClick={() => setSelectedAvatar(selectedAvatar === avatar.id ? null : avatar.id)}>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      justifyContent: 'center', 
-                      p: 2,
-                      bgcolor: selectedAvatar === avatar.id 
-                        ? theme.palette.mode === 'dark' 
-                          ? 'rgba(66, 66, 66, 0.5)' 
-                          : 'rgba(224, 242, 254, 0.5)' 
-                        : 'transparent'
-                    }}>
-                      <Avatar
-                        src={avatar.src}
-                        alt={avatar.alt}
-                        sx={{ 
-                          width: 80, 
-                          height: 80,
-                          border: selectedAvatar === avatar.id 
-                            ? `2px solid ${theme.palette.primary.main}` 
-                            : 'none'
-                        }}
+          {isMobile ? (
+            <>
+              {/* Mobile: trigger button + fullscreen dialog */}
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={() => setAvatarPickerOpen(true)}
+                sx={{ mb: 4, py: 1.5, justifyContent: 'flex-start', gap: 1.5 }}
+                startIcon={
+                  selectedAvatar
+                    ? <Avatar
+                        src={PLAYER_AVATARS.find(a => a.id === selectedAvatar)?.src}
+                        sx={{ width: 32, height: 32 }}
                       />
-                    </Box>
-                    <CardContent sx={{ py: 1, textAlign: 'center' }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {avatar.alt}
-                      </Typography>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+                    : null
+                }
+              >
+                {selectedAvatar
+                  ? PLAYER_AVATARS.find(a => a.id === selectedAvatar)?.alt
+                  : 'Choose your fighter…'}
+              </Button>
+
+              <Dialog
+                open={avatarPickerOpen}
+                onClose={() => setAvatarPickerOpen(false)}
+                fullScreen
+              >
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <SportsMmaIcon color="primary" /> Choose Your Fighter
+                  </Box>
+                  <IconButton onClick={() => setAvatarPickerOpen(false)} edge="end">
+                    <CloseIcon />
+                  </IconButton>
+                </DialogTitle>
+                <DialogContent sx={{ display: 'flex', flexDirection: 'column', p: 0, flex: 1, overflow: 'hidden' }}>
+                  <AvatarPickerGrid
+                    value={selectedAvatar}
+                    onChange={(id) => setSelectedAvatar(selectedAvatar === id ? null : id)}
+                    fillHeight
+                  />
+                </DialogContent>
+                <DialogActions sx={{ px: 2, pb: 2 }}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={() => setAvatarPickerOpen(false)}
+                    disabled={!selectedAvatar}
+                  >
+                    {selectedAvatar ? 'Confirm' : 'Pick an avatar first'}
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </>
+          ) : (
+            /* Desktop: inline bordered picker */
+            <Box
+              sx={{
+                mb: 4,
+                border: 1,
+                borderColor: 'divider',
+                borderRadius: 2,
+                overflow: 'hidden',
+              }}
+            >
+              <AvatarPickerGrid
+                value={selectedAvatar}
+                onChange={(id) => setSelectedAvatar(selectedAvatar === id ? null : id)}
+              />
+            </Box>
+          )}
           
           <Divider sx={{ my: 3 }} />
           

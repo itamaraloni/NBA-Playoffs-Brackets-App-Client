@@ -64,6 +64,18 @@ const Dashboard = () => {
     setEditDialogOpen(true);
   };
 
+  const handleEditAvatar = async (avatarId) => {
+    try {
+      await UserServices.updateAvatar(playerId, avatarId);
+      window.notify.success('Avatar updated!');
+      const data = await UserServices.getPlayerProfile(playerId);
+      setPlayerProfile(data);
+    } catch (err) {
+      console.error('Error updating avatar:', err);
+      window.notify.error('Failed to update avatar. Please try again.');
+    }
+  };
+
   const handleSavePick = async (type, selection) => {
     try {
       setIsLoading(true);
@@ -130,6 +142,7 @@ const Dashboard = () => {
             playerData={playerProfile?.player}
             leagueData={playerProfile?.league}
             onEditPicks={handleEditPicks}
+            onEditAvatar={handleEditAvatar}
           />
         </Grid>
         <Grid item xs={12}>

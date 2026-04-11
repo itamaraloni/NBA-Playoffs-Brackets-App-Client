@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Paper,
   Typography,
@@ -8,12 +8,23 @@ import {
   Chip,
   Divider,
   Tooltip,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
   useTheme,
   useMediaQuery
 } from '@mui/material';
+import {
+  Close as CloseIcon,
+  Edit as EditIcon,
+} from '@mui/icons-material';
 import ScoreBreakdownChart from './ScoreBreakdownChart';
 import PickCard from './PickCard';
 import PredictionStatsBars from './PredictionStatsBars';
+import AvatarPickerGrid from './common/AvatarPickerGrid';
 import { PLAYER_AVATARS } from '../shared/GeneralConsts';
 import { useTeams } from '../hooks/useTeams';
 import { useMvpCandidates } from '../hooks/useMvpCandidates';
@@ -27,6 +38,7 @@ const PlayerStatsCard = ({
   playerData,
   leagueData,
   onEditPicks,
+  onEditAvatar,
   allowEditing = true,
   elevation = 2
 }) => {
@@ -34,6 +46,10 @@ const PlayerStatsCard = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { teams } = useTeams();
   const { mvpCandidates } = useMvpCandidates();
+
+  // Avatar edit dialog state
+  const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
+  const [pendingAvatar, setPendingAvatar] = useState(null);
 
   if (!playerData) return null;
 
@@ -47,6 +63,26 @@ const PlayerStatsCard = ({
   const mvpLookup = (mvpCandidates || []).find((player) => player.name === playerData.mvp);
   const canEdit = new Date() < PLAYIN_START_DATE && allowEditing;
   const playerAvatarSrc = PLAYER_AVATARS.find((avatar) => avatar.id === playerData.playerAvatar)?.src;
+
+  // Avatar can always be changed — not deadline-gated
+  const canEditAvatar = Boolean(onEditAvatar) && allowEditing;
+
+  const handleOpenAvatarDialog = () => {
+    setPendingAvatar(playerData.playerAvatar ?? null);
+    setAvatarDialogOpen(true);
+  };
+
+  const handleSaveAvatar = () => {
+    if (pendingAvatar && pendingAvatar !== playerData.playerAvatar) {
+      onEditAvatar(pendingAvatar);
+    }
+    setAvatarDialogOpen(false);
+  };
+
+  const handleCancelAvatar = () => {
+    setPendingAvatar(null);
+    setAvatarDialogOpen(false);
+  };
 
   return (
     <Paper
@@ -67,18 +103,43 @@ const PlayerStatsCard = ({
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: '1 1 0', minWidth: 0 }}>
-          <Avatar
-            src={playerAvatarSrc}
-            alt={playerData.name}
-            sx={{
-              bgcolor: theme.palette.primary.main,
-              width: 48,
-              height: 48,
-              flexShrink: 0
-            }}
-          >
-            {playerData.name?.charAt(0)}
-          </Avatar>
+          {/* Avatar with optional edit overlay */}
+          <Box sx={{ position: 'relative', flexShrink: 0 }}>
+            <Avatar
+              src={playerAvatarSrc}
+              alt={playerData.name}
+              sx={{
+                bgcolor: theme.palette.primary.main,
+                width: 48,
+                height: 48,
+              }}
+            >
+              {playerData.name?.charAt(0)}
+            </Avatar>
+
+            {canEditAvatar && (
+              <Tooltip title="Change avatar" placement="bottom" arrow>
+                <IconButton
+                  size="small"
+                  onClick={handleOpenAvatarDialog}
+                  sx={{
+                    position: 'absolute',
+                    bottom: -4,
+                    right: -4,
+                    width: 20,
+                    height: 20,
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    '&:hover': { bgcolor: 'action.hover' },
+                  }}
+                >
+                  <EditIcon sx={{ fontSize: 11 }} />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
+
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant="h6" fontWeight={700} lineHeight={1.2} noWrap>
               {playerData.name}
@@ -216,6 +277,45 @@ const PlayerStatsCard = ({
           points: playerData.bracketPoints
         } : null}
       />
+
+      {/* ── Avatar picker dialog ── */}
+      <Dialog
+        open={avatarDialogOpen}
+        onClose={handleCancelAvatar}
+        fullScreen={isMobile}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          Change Avatar
+          <IconButton onClick={handleCancelAvatar} size="small" edge="end">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={isMobile
+          ? { display: 'flex', flexDirection: 'column', p: 0, flex: 1, overflow: 'hidden' }
+          : { px: 0, pb: 0 }
+        }>
+          <AvatarPickerGrid
+            value={pendingAvatar}
+            onChange={setPendingAvatar}
+            fillHeight={isMobile}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 2, pb: 2 }}>
+          {!isMobile && (
+            <Button onClick={handleCancelAvatar} color="inherit">Cancel</Button>
+          )}
+          <Button
+            onClick={handleSaveAvatar}
+            variant="contained"
+            fullWidth={isMobile}
+            disabled={!pendingAvatar || pendingAvatar === playerData.playerAvatar}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 };
