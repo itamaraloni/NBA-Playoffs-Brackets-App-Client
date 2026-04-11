@@ -21,8 +21,9 @@ import {
 import { TbCrystalBall } from 'react-icons/tb';
 import { PREDICTIONS_OPEN_DATE, PLAYIN_START_DATE } from '../shared/SeasonConfig';
 
-// Format a Date as "Apr 13" in the user's local locale.
-const fmt = (date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+// Format a Date as "Apr 13, 10:00 AM" in the user's local timezone.
+const fmt = (date) =>
+  date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 
 // ── How It Works ─────────────────────────────────────────────────────────────
 // Step 01 = Bonus Picks first (locked before playoffs begin — sets context)
