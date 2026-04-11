@@ -90,7 +90,9 @@ const PlayerStatsCard = ({
       sx={{
         p: isMobile ? 2 : 3,
         borderRadius: 2,
-        bgcolor: theme.palette.background.paper
+        bgcolor: theme.palette.background.paper,
+        border: '1px solid',
+        borderColor: 'divider'
       }}
     >
       <Box

@@ -7,6 +7,7 @@ import {
   Box,
   Typography,
   IconButton,
+  Alert,
   useMediaQuery,
   useTheme,
   Divider,
@@ -17,6 +18,11 @@ import {
 } from '@mui/icons-material';
 import PlayerStatsCard from './PlayerStatsCard';
 import UserServices from '../services/UserServices';
+
+const BOT_INFO = {
+  '100': 'Always bets on the favorite',
+  '101': 'Bets randomly on each matchup',
+};
 
 const PlayerDetailDialog = ({ player, leagueName, open, onClose }) => {
   const theme = useTheme();
@@ -72,6 +78,11 @@ const PlayerDetailDialog = ({ player, leagueName, open, onClose }) => {
       </DialogTitle>
       <Divider />
       <DialogContent sx={{ p: 3 }}>
+        {BOT_INFO[player?.playerAvatar] && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            {BOT_INFO[player.playerAvatar]}
+          </Alert>
+        )}
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
             <CircularProgress />

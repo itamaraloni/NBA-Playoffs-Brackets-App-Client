@@ -153,8 +153,8 @@ const RankCell = ({ rank }) => {
   if (rank <= 3) {
     return (
       <Box display="flex" alignItems="center">
-        <TrophyIcon fontSize="small" sx={{ color: MEDAL_COLORS[rank], mr: 0.5 }} />
         <Typography variant="body2" fontWeight="bold">{rank}</Typography>
+        <TrophyIcon fontSize="small" sx={{ color: MEDAL_COLORS[rank], ml: 0.5 }} />
       </Box>
     );
   }
@@ -246,7 +246,7 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
   // Current-player row: background tint + left-edge accent via inset box-shadow
   // (border-left on <tr> is unreliable in the CSS table model)
   const buildRowSx = (isCurrentPlayer) => ({
-    bgcolor: isCurrentPlayer ? alpha(theme.palette.primary.main, 0.08) : 'inherit',
+    bgcolor: isCurrentPlayer ? alpha(theme.palette.primary.main, 0.13) : 'inherit',
     ...(isCurrentPlayer && {
       boxShadow: `inset 3px 0 0 ${theme.palette.primary.main}`,
     }),
@@ -269,30 +269,30 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
     <TableContainer component={Paper} elevation={2}>
       <Table size={isMobile ? 'small' : 'medium'}>
         <TableHead>
-          <TableRow>
+          <TableRow sx={{ bgcolor: theme.palette.action.selected }}>
             {isMobile ? (
               <>
-                <TableCell>Rank</TableCell>
-                <TableCell>Player</TableCell>
-                <TableCell align="right">Total</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>Rank</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>Player</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700, color: 'text.primary' }}>Total</TableCell>
               </>
             ) : (
               <>
-                <TableCell>Rank</TableCell>
-                <TableCell>Player</TableCell>
-                <TableCell>Champion</TableCell>
-                <TableCell>Finals MVP</TableCell>
-                <TableCell align="right">
+                <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>Rank</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>Player</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>Champion</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>Finals MVP</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700, color: 'text.primary' }}>
                   <TableSortLabel {...sortLabelProps('predictions')}>
                     Live Picks
                   </TableSortLabel>
                 </TableCell>
-                <TableCell align="right">
+                <TableCell align="right" sx={{ fontWeight: 700, color: 'text.primary' }}>
                   <TableSortLabel {...sortLabelProps('bracket')}>
                     Bracket
                   </TableSortLabel>
                 </TableCell>
-                <TableCell align="right">
+                <TableCell align="right" sx={{ fontWeight: 700, color: 'text.primary' }}>
                   <TableSortLabel {...sortLabelProps('total')}>
                     Total
                   </TableSortLabel>
