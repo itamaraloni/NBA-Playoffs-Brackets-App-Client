@@ -24,7 +24,7 @@ export const PLAYER_AVATARS = [
     { id: "20",  src: '/resources/player-avatars/Brady.png',             alt: 'Brady' },
     { id: "21",  src: '/resources/player-avatars/Federer.png',           alt: 'Federer' },
     { id: "22",  src: '/resources/player-avatars/Phelps.png',            alt: 'Phelps' },
-    { id: "23",  src: '/resources/player-avatars/fuck them kids.png',    alt: 'F.T.K.' },
+    { id: "23",  src: '/resources/player-avatars/fuck them kids.png',    alt: 'Fuck Them Kids' },
     { id: "24",  src: '/resources/player-avatars/Biles.png',             alt: 'Biles' },
     { id: "25",  src: '/resources/player-avatars/Hamilton.png',          alt: 'Hamilton' },
     { id: "26",  src: '/resources/player-avatars/Novak.png',             alt: 'Novak' },
@@ -47,8 +47,8 @@ export const PLAYER_AVATARS = [
 // Order within avatarIds controls display order inside the group.
 // To add a new group: add an entry here with a unique id, label, and avatarIds.
 export const PLAYER_AVATAR_GROUPS = [
-    { id: 'goats',       label: 'GOATs',         avatarIds: ['8', '10', '11', '15', '17', '19', '20', '21', '22', '24', '25', '26', '27', '28', '30', '31', '33', '35', '36'] },
-    { id: 'ballers',     label: 'Ballers',      avatarIds: ['2', '4', '12', '13', '14', '7', '6', '1', '9', '34'] },
+    { id: 'goats',       label: 'GOATs',         avatarIds: ['36', '8', '10', '11', '15', '19', '20', '21', '22', '24', '25', '28'] },
+    { id: 'ballers',     label: 'Ballers',      avatarIds: ['2', '4', '12', '13', '14', '17', '7', '6', '1', '9', '33', '35', '34'] },
     { id: 'politicians', label: 'World Leaders', avatarIds: ['3', '5'] },
-    { id: 'others',      label: 'Be Different',        avatarIds: ['16', '18', '23', '29', '32'] },
+    { id: 'others',      label: 'Be Different',        avatarIds: ['16', '18', '23', '29', '30', '31', '32', '26', '27'] },
 ];

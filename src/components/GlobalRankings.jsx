@@ -14,6 +14,7 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { EmojiEvents as TrophyIcon } from '@mui/icons-material';
 import { PLAYER_AVATARS } from '../shared/GeneralConsts';
 
@@ -52,8 +53,8 @@ const GlobalRankings = ({ globalRankings }) => {
     if (rank === 1) {
       return (
         <Box display="flex" alignItems="center">
-          <TrophyIcon fontSize="small" sx={{ color: 'gold', mr: 0.5 }} />
           <Typography variant="body2" fontWeight="bold">1</Typography>
+          <TrophyIcon fontSize="small" sx={{ color: 'gold', ml: 0.5 }} />
         </Box>
       );
     }
@@ -87,18 +88,18 @@ const GlobalRankings = ({ globalRankings }) => {
   );
 
   const rowHighlight = (isMe) => ({
-    bgcolor: isMe ? `${theme.palette.primary.main}15` : 'inherit',
+    bgcolor: isMe ? alpha(theme.palette.primary.main, 0.13) : 'inherit',
   });
 
   return (
     <TableContainer component={Paper} elevation={2}>
       <Table size={isMobile ? 'small' : 'medium'}>
         <TableHead>
-          <TableRow>
-            <TableCell>Rank</TableCell>
-            <TableCell>Player</TableCell>
-            <TableCell>League</TableCell>
-            <TableCell align="right">Score</TableCell>
+          <TableRow sx={{ bgcolor: theme.palette.action.selected }}>
+            <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>Rank</TableCell>
+            <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>Player</TableCell>
+            <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>League</TableCell>
+            <TableCell align="right" sx={{ fontWeight: 700, color: 'text.primary' }}>Score</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
