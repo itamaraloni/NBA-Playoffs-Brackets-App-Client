@@ -118,7 +118,8 @@ const LandingInfoSection = ({ onSignIn, loading = false }) => {
             sx={{
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' },
-              alignItems: 'center',
+              // stretch → both chips fill the same width when stacked on mobile
+              alignItems: { xs: 'stretch', sm: 'center' },
               justifyContent: 'center',
               gap: { xs: 1, sm: 0 },
               mb: { xs: 5, md: 7 },
