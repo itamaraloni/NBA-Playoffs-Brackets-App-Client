@@ -190,7 +190,7 @@ const LeaguePage = () => {
         {leagueData.name}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mt: -1, mb: 1 }}>
-        {leagueData.players.length} members
+        {leagueData.players.length} members (including 2 bots)
       </Typography>
 
       {/* Player Standings Table */}
