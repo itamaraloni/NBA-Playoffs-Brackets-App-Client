@@ -4,8 +4,12 @@ import {
   Typography,
   Snackbar,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Box,
+  Tooltip,
+  IconButton,
 } from '@mui/material';
+import { InfoOutlined as InfoIcon } from '@mui/icons-material';
 import StandingsTable from '../components/StandingsTable';
 import GlobalRankings from '../components/GlobalRankings';
 import ScoringRules from '../components/common/ScoringRules';
@@ -154,16 +158,52 @@ const LeaguePage = () => {
     );
   }
 
+  const tiebreakerTooltip = (
+    <Box sx={{ p: 0.5 }}>
+      <Typography variant="caption" display="block" fontWeight={700} gutterBottom>
+        How standings are ordered
+      </Typography>
+      <Typography variant="caption" display="block" gutterBottom>
+        Players are ranked by Total Score. When tied, these criteria break the tie in order:
+      </Typography>
+      <Box component="ol" sx={{ m: 0, pl: 2 }}>
+        {[
+          'More exact-score predictions (bullseyes) — later rounds count more',
+          'More correct-winner predictions (hits) — same round weighting',
+          'Higher Championship pick bonus',
+          'Higher Finals MVP pick bonus',
+        ].map((line, i) => (
+          <Typography key={i} component="li" variant="caption" display="list-item">
+            {line}
+          </Typography>
+        ))}
+      </Box>
+      <Typography variant="caption" display="block" sx={{ mt: 0.5, fontStyle: 'italic' }}>
+        Players tied across all criteria share the same rank.
+      </Typography>
+    </Box>
+  );
+
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
       <Typography variant="h4" component="h1" gutterBottom>
         {leagueData.name}
       </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: -1, mb: 1 }}>
+        {leagueData.players.length} members
+      </Typography>
 
       {/* Player Standings Table */}
-      <Typography variant="h5" component="h2" sx={{ mt: 4, mb: 2 }}>
-        Player Standings
-      </Typography>
+      <Box display="flex" alignItems="center" sx={{ mt: 4, mb: 2 }}>
+        <Typography variant="h5" component="h2">
+          Player Standings
+        </Typography>
+        <Tooltip title={tiebreakerTooltip} enterTouchDelay={0} leaveTouchDelay={4000} arrow>
+          <IconButton size="small" sx={{ ml: 0.5 }}>
+            <InfoIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Box>
       <StandingsTable
         players={leagueData.players}
         currentPlayerId={currentPlayerId}
@@ -206,9 +246,16 @@ const LeaguePage = () => {
       {/* Global Rankings — top 10 across all leagues */}
       {globalRankings && (
         <>
-          <Typography variant="h5" component="h2" sx={{ mt: 4, mb: 2 }}>
-            Global Rankings
-          </Typography>
+          <Box display="flex" alignItems="center" sx={{ mt: 4, mb: 2 }}>
+            <Typography variant="h5" component="h2">
+              Global Rankings
+            </Typography>
+            <Tooltip title={tiebreakerTooltip} enterTouchDelay={0} leaveTouchDelay={4000} arrow>
+              <IconButton size="small" sx={{ ml: 0.5 }}>
+                <InfoIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
           <GlobalRankings globalRankings={globalRankings} />
         </>
       )}
