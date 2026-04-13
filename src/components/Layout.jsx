@@ -28,6 +28,7 @@ import {
   AdminPanelSettings as AdminIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  Menu as MenuIcon,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import ThemeToggle from '../theme/ThemeToggle';
@@ -225,30 +226,25 @@ const Layout = ({ children, onLogout }) => {
       >
 
         <Toolbar sx={appBarToolbarSx}>
-          {/* Mobile: logo image acts as the drawer toggle; desktop: hidden (no hamburger needed) */}
+          {/* Mobile: hamburger icon opens the drawer */}
           <IconButton
             color="inherit"
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ display: { md: 'none' }, gridColumn: { xs: 1, md: 1 }, p: 0.5 }}
+            sx={{ display: { md: 'none' }, gridColumn: { xs: 1, md: 1 } }}
           >
-            <Box
-              component="img"
-              src={NAV_LOGO_SRC}
-              alt="Playoff Prophet"
-              sx={{ width: 36, height: 36, borderRadius: '50%', display: 'block' }}
-            />
+            <MenuIcon />
           </IconButton>
           <Box
             sx={{ minWidth: 0, gridColumn: { xs: 2, md: 2 }, display: 'flex', alignItems: 'center', gap: 1 }}
           >
-            {/* Logo only shown on desktop — on mobile it's already the menu trigger above */}
+            {/* Logo shown on both mobile and desktop */}
             <Box
               component="img"
               src={NAV_LOGO_SRC}
               alt="Playoff Prophet logo"
-              sx={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, display: { xs: 'none', md: 'block' } }}
+              sx={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0 }}
             />
             <Typography
               variant="h6"
