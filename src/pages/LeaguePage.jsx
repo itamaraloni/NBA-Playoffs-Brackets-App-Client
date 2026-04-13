@@ -169,7 +169,7 @@ const LeaguePage = () => {
       <Box component="ol" sx={{ m: 0, pl: 2 }}>
         {[
           'More exact-score predictions (bullseyes) — later rounds count more',
-          'More correct-winner predictions (hits) — same round weighting',
+          'More correct-winner predictions (hits) — later rounds count more',
           'Higher Championship pick bonus',
           'Higher Finals MVP pick bonus',
         ].map((line, i) => (
