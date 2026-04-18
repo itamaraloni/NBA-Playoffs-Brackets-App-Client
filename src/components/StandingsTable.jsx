@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   TableSortLabel,
   Paper,
@@ -180,6 +181,15 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState('desc');
 
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Reset to first page whenever the players list changes (e.g. league switch)
+  useEffect(() => {
+    setPage(0);
+  }, [players]);
+
   const handleSort = (column) => {
     if (sortColumn === column) {
       setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
@@ -187,6 +197,7 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
       setSortColumn(column);
       setSortDirection('desc');
     }
+    setPage(0); // always return to first page on sort change
   };
 
   // Derive a sorted copy of the players array; falls back to server order when no sort active.
@@ -209,6 +220,8 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
       return a.rank - b.rank;
     });
   }, [players, sortColumn, sortDirection]);
+
+  const displayedPlayers = sortedPlayers.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 
   const resolveAvatar = (avatarId) =>
     PLAYER_AVATARS.find(a => a.id === avatarId)?.src;
@@ -266,7 +279,8 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
   });
 
   return (
-    <TableContainer component={Paper} elevation={2}>
+    <Paper elevation={2}>
+    <TableContainer>
       <Table size={isMobile ? 'small' : 'medium'}>
         <TableHead>
           <TableRow sx={{ bgcolor: theme.palette.action.selected }}>
@@ -303,7 +317,7 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
         </TableHead>
 
         <TableBody>
-          {sortedPlayers.map((player) => {
+          {displayedPlayers.map((player) => {
             const isCurrentPlayer = player.id === currentPlayerId;
 
             if (isMobile) {
@@ -357,6 +371,22 @@ const StandingsTable = ({ players, currentPlayerId, onPlayerSelect }) => {
         </TableBody>
       </Table>
     </TableContainer>
+    {sortedPlayers.length > rowsPerPage && (
+      <TablePagination
+        component="div"
+        count={sortedPlayers.length}
+        page={page}
+        onPageChange={(_, newPage) => setPage(newPage)}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(e) => {
+          setRowsPerPage(parseInt(e.target.value, 10));
+          setPage(0);
+        }}
+        rowsPerPageOptions={isMobile ? [] : [10, 25, 50]}
+        labelRowsPerPage={isMobile ? '' : 'Rows per page:'}
+      />
+    )}
+    </Paper>
   );
 };
 
